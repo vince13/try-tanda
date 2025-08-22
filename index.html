@@ -242,15 +242,39 @@
       margin-bottom: 10px;
     }
 
-    .play-pause-btn:hover {
-      transform: scale(1.1);
-      background: white;
-    }
-
-    .play-pause-btn i {
-      color: #000;
-      font-size: 1rem;
-    }
+          .play-pause-btn:hover {
+        transform: scale(1.1);
+        background: white;
+      }
+      
+      .play-pause-btn i {
+        color: #000;
+        font-size: 1rem;
+      }
+      
+      .volume-btn {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+      }
+      
+      .volume-btn:hover {
+        transform: scale(1.1);
+        background: white;
+      }
+      
+      .volume-btn i {
+        color: #000;
+        font-size: 1rem;
+      }
 
     .video-progress {
       width: 100%;
@@ -522,6 +546,8 @@
       border-radius: var(--border-radius);
       overflow: hidden;
       transition: transform 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .screenshot-card:hover {
@@ -530,12 +556,13 @@
 
     .screenshot-card img {
       width: 100%;
-      height: 400px;
+      height: 800px;
       object-fit: cover;
     }
 
     .screenshot-info {
-      padding: 1.5rem;
+      padding: 2rem;
+      background: var(--bg-card);
     }
 
     .screenshot-info h3 {
@@ -704,6 +731,10 @@
         grid-template-columns: 1fr;
       }
       
+      .screenshot-card img {
+        height: 500px;
+      }
+      
       .google-form-container {
         padding: 1rem;
         margin: 0 1rem;
@@ -788,7 +819,7 @@
   <div class="container">
       <div class="hero-layout">
         <div class="hero-content fade-in-up">
-          <h1>Video Commerce Reimagined for Africa</h1>
+          <h1>Video Commerce Reimagined</h1>
           <p>Transform content creation, cultural discovery and shopping through engaging short-form videos. Tanda merges entertainment with seamless commerce, creating the future of video commerce.</p>
           
           <div class="cta-buttons">
@@ -815,6 +846,9 @@
                   <div class="video-controls">
                     <button class="play-pause-btn" id="playPauseBtn">
                       <i class="fas fa-play"></i>
+                    </button>
+                    <button class="volume-btn" id="volumeBtn">
+                      <i class="fas fa-volume-mute"></i>
                     </button>
                     <div class="video-progress">
                       <div class="progress-bar">
@@ -931,7 +965,7 @@
         <div class="step">
           <div class="step-number">1</div>
           <h3>Watch & Discover</h3>
-          <p>Browse through engaging short-form videos showcasing products from trusted creators and brands.</p>
+          <p>Browse through engaging short-form videos showcasing different engaging contents and products from approved creators and brands.</p>
         </div>
         
         <div class="step">
@@ -961,7 +995,7 @@
       <h2 class="section-title">See Tanda in Action</h2>
       <div class="screenshots-grid">
         <div class="screenshot-card">
-          <img src="https://via.placeholder.com/400x700/1a1a1a/ffffff?text=Video+Feed" alt="Tanda Video Feed">
+          <!-- <img src="#" alt="Tanda Video Feed"> -->
           <div class="screenshot-info">
             <h3>Video Feed</h3>
             <p>Endless scroll of engaging videos from creators</p>
@@ -969,7 +1003,7 @@
         </div>
         
         <div class="screenshot-card">
-          <img src="https://via.placeholder.com/400x700/1a1a1a/ffffff?text=Product+Details" alt="Product Details">
+          <!-- <img src="#" alt="Product Details"> -->
           <div class="screenshot-info">
             <h3>Product Details</h3>
             <p>Comprehensive product information with pricing, reviews, and purchase options.</p>
@@ -977,7 +1011,7 @@
         </div>
         
         <div class="screenshot-card">
-          <img src="https://via.placeholder.com/400x700/1a1a1a/ffffff?text=Checkout" alt="Checkout Process">
+          <!-- <img src="#" alt="Checkout Process"> -->
           <div class="screenshot-info">
             <h3>One-Tap Checkout</h3>
             <p>Streamlined purchasing with saved payment methods and delivery preferences.</p>
@@ -1031,7 +1065,6 @@
         <div class="footer-section">
           <h3>Contact</h3>
           <p>trytanda@gmail.com</p>
-          <p>Abuja, Nigeria</p>
           <div class="social-links">
             <a href="#"><i class="fab fa-x"></i></a>
             <a href="#"><i class="fab fa-linkedin"></i></a>
@@ -1040,7 +1073,7 @@
     </div>
 
       <div class="footer-bottom">
-        <p>&copy; 2024 Tanda. All rights reserved. | Privacy Policy | Terms of Service</p>
+        <p>&copy; 2025 Tanda. All rights reserved. | Privacy Policy | Terms of Service</p>
       </div>
   </div>
   </footer>
@@ -1107,9 +1140,10 @@
       // Video player functionality
       const video = document.getElementById('tandaVideo');
       const playPauseBtn = document.getElementById('playPauseBtn');
+      const volumeBtn = document.getElementById('volumeBtn');
       const progressFill = document.querySelector('.progress-fill');
       
-      if (video && playPauseBtn && progressFill) {
+      if (video && playPauseBtn && volumeBtn && progressFill) {
         // Play/Pause functionality
         playPauseBtn.addEventListener('click', () => {
           if (video.paused) {
@@ -1119,8 +1153,19 @@
             video.pause();
             playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
           }
+                  });
+        
+        // Volume functionality
+        volumeBtn.addEventListener('click', () => {
+          if (video.muted) {
+            video.muted = false;
+            volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+          } else {
+            video.muted = true;
+            volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+          }
         });
-
+        
         // Update progress bar
         video.addEventListener('timeupdate', () => {
           const progress = (video.currentTime / video.duration) * 100;
