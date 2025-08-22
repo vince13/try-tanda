@@ -680,6 +680,20 @@
       
       .nav-links {
         display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-primary);
+        flex-direction: column;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+      }
+      
+      .nav-links.show {
+        display: flex;
       }
 
       .mobile-menu-btn {
@@ -736,16 +750,40 @@
       }
       
       .google-form-container {
-        padding: 1rem;
-        margin: 0 1rem;
+        padding: 0.5rem;
+        margin: 0 0.5rem;
+        border-radius: 15px;
       }
       
       .google-form-container iframe {
-        height: 600px;
+        height: 800px;
+        border-radius: 10px;
+      }
+      
+      .form-link-container {
+        margin: 1rem 0.5rem;
+        padding: 1rem;
       }
 
       .container {
         padding: 0 1rem;
+      }
+      
+      /* Extra small mobile devices */
+      @media (max-width: 480px) {
+        .google-form-container {
+          padding: 0.25rem;
+          margin: 0 0.25rem;
+        }
+        
+        .google-form-container iframe {
+          height: 700px;
+        }
+        
+        .form-link-container {
+          margin: 0.5rem 0.25rem;
+          padding: 0.75rem;
+        }
       }
     }
 
@@ -807,7 +845,7 @@
           <li><a href="#screenshots">Screenshots</a></li>
           <li><a href="#waitlist">Join Waitlist</a></li>
         </ul>
-        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <button class="mobile-menu-btn">
           <i class="fas fa-bars"></i>
         </button>
       </nav>
@@ -1105,11 +1143,46 @@
 
           // Google Form iframe is now embedded directly - no custom submission needed
 
-    // Mobile menu toggle
-    function toggleMobileMenu() {
-      const navLinks = document.querySelector('.nav-links');
-      navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-    }
+
+    
+    // Mobile menu functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      const navLinksContainer = document.querySelector('.nav-links');
+      
+      // Add click event to mobile menu button
+      mobileMenuBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle the show class
+        navLinksContainer.classList.toggle('show');
+        
+        // Update button icon
+        if (navLinksContainer.classList.contains('show')) {
+          mobileMenuBtn.innerHTML = '<i class="fas fa-times"></i>';
+        } else {
+          mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+      });
+      
+      // Close menu when clicking on navigation links
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          navLinksContainer.classList.remove('show');
+          mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+      });
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!navLinksContainer.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+          navLinksContainer.classList.remove('show');
+          mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+      });
+    });
 
     // Intersection Observer for animations
     const observerOptions = {
