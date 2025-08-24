@@ -346,7 +346,7 @@
 
           /* Google Form iframe styles */
       .google-form-container {
-        max-width: 800px;
+        max-width: 1200px;
         margin: 0 auto;
         background: var(--card-bg);
         padding: 2rem;
@@ -430,6 +430,71 @@
       /* Custom Google Form styling */
       .google-form-container iframe {
         filter: brightness(0.9) contrast(1.1) saturate(1.2);
+      }
+      
+      /* Competitive Advantage Table Styles */
+      .comparison-table-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        overflow-x: auto;
+      }
+      
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card-bg);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .comparison-table th {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      
+      .comparison-table td {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        vertical-align: middle;
+      }
+      
+      .comparison-table tr:last-child td {
+        border-bottom: none;
+      }
+      
+      .tanda-feature {
+        color: #00ff88;
+        font-weight: 500;
+      }
+      
+      .tanda-feature i {
+        color: #00ff88;
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+      }
+      
+      .other-feature {
+        color: #ff6b6b;
+        font-weight: 500;
+      }
+      
+      .other-feature i {
+        color: #ff6b6b;
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+      }
+      
+      .comparison-table tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transition: background 0.3s ease;
       }
       
       /* Features Section */
@@ -751,8 +816,9 @@
       
       .google-form-container {
         padding: 0.5rem;
-        margin: 0 0.5rem;
+        margin: 0 0.25rem;
         border-radius: 15px;
+        max-width: 95vw;
       }
       
       .google-form-container iframe {
@@ -764,6 +830,20 @@
         margin: 1rem 0.5rem;
         padding: 1rem;
       }
+      
+      .comparison-table-container {
+        margin: 0 0.5rem;
+        overflow-x: auto;
+      }
+      
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        padding: 1rem 0.75rem;
+      }
 
       .container {
         padding: 0 1rem;
@@ -773,7 +853,8 @@
       @media (max-width: 480px) {
         .google-form-container {
           padding: 0.25rem;
-          margin: 0 0.25rem;
+          margin: 0 0.1rem;
+          max-width: 98vw;
         }
         
         .google-form-container iframe {
@@ -781,7 +862,7 @@
         }
         
         .form-link-container {
-          margin: 0.5rem 0.25rem;
+          margin: 0.5rem 0.1rem;
           padding: 0.75rem;
         }
       }
@@ -842,8 +923,8 @@
         <ul class="nav-links">
           <li><a href="#features">Features</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#screenshots">Screenshots</a></li>
-          <li><a href="#waitlist">Join Waitlist</a></li>
+          <!-- <li><a href="#screenshots">Screenshots</a></li> -->
+                      <li><a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank">Join Waitlist</a></li>
         </ul>
         <button class="mobile-menu-btn">
           <i class="fas fa-bars"></i>
@@ -861,7 +942,7 @@
           <p>Transform content creation, cultural discovery and shopping through engaging short-form videos. Tanda merges entertainment with seamless commerce, creating the future of video commerce.</p>
           
           <div class="cta-buttons">
-            <a href="#waitlist" class="btn btn-primary">
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank" class="btn btn-primary">
               <i class="fas fa-rocket"></i>
               Join the Waitlist
             </a>
@@ -903,38 +984,95 @@
     </div>
   </section>
 
-  <!-- Waitlist Section -->
-  <section class="waitlist-section" id="waitlist">
+  <!-- Competitive Advantage Section -->
+  <section class="competitive-advantage" id="competitive-advantage">
     <div class="container">
-      <h2 class="section-title">Be Among the First</h2>
+      <h2 class="section-title">Competitive Advantage</h2>
       <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
-        Join thousands of early adopters and get exclusive access to Tanda's beta launch.
+        Why Tanda is different from other social media platforms
       </p>
       
-            <!-- Embedded Google Form -->
-      <div class="google-form-container">
-        <iframe 
-          src="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform?embedded=true"
-          width="100%" 
-          height="700" 
-          frameborder="0" 
-          marginheight="0" 
-          marginwidth="0"
-          title="Tanda Waitlist Registration">
-          Loading…
-        </iframe>
+      <p style="text-align: center; margin-bottom: 3rem; color: var(--text-primary); font-size: 1.1rem; line-height: 1.6;">
+        Ready to be part of Africa's next big eCommerce revolution? Join our exclusive waitlist and get early access to Tanda's beta launch. Be among the first creators, sellers, and shoppers to experience video commerce reimagined for Africa.
+      </p>
+      
+      <div class="comparison-table-container">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Tanda</th>
+              <th>TikTok/IG/YouTube Shorts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Video + Commerce Native</td>
+              <td class="tanda-feature">
+                <i class="fas fa-check-circle"></i>
+                Built-in shop, checkout & escrow
+              </td>
+              <td class="other-feature">
+                <i class="fas fa-times-circle"></i>
+                External links only
+              </td>
+            </tr>
+            <tr>
+              <td>Affiliate built-in</td>
+              <td class="tanda-feature">
+                <i class="fas fa-check-circle"></i>
+                Auto commissions
+              </td>
+              <td class="other-feature">
+                <i class="fas fa-times-circle"></i>
+                Manual brand deals
+              </td>
+            </tr>
+            <tr>
+              <td>Escrow trust</td>
+              <td class="tanda-feature">
+                <i class="fas fa-check-circle"></i>
+                Buyers + agents covered
+              </td>
+              <td class="other-feature">
+                <i class="fas fa-times-circle"></i>
+                No
+              </td>
+            </tr>
+            <tr>
+              <td>Localized Payments</td>
+              <td class="tanda-feature">
+                <i class="fas fa-check-circle"></i>
+                Bank, wallets, telcos
+              </td>
+              <td class="other-feature">
+                <i class="fas fa-times-circle"></i>
+                Limited
+              </td>
+            </tr>
+            <tr>
+              <td>Africa-First Focus</td>
+              <td class="tanda-feature">
+                <i class="fas fa-check-circle"></i>
+                Tailored for African sellers & buyers
+              </td>
+              <td class="other-feature">
+                <i class="fas fa-times-circle"></i>
+                Global-first
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-      <!-- Alternative: Direct link to Google Form -->
-      <!-- <div class="form-link-container">
-        <p class="form-link-text">Having trouble with the form above? Fill it out directly:</p>
+      
+      <div class="cta-container" style="text-align: center; margin-top: 3rem;">
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" 
            target="_blank" 
-           class="google-form-link">
-          <i class="fas fa-external-link-alt"></i>
-          Open Google Form
+           class="btn btn-primary">
+          <i class="fas fa-rocket"></i>
+          Join the Waitlist
         </a>
-      </div> -->
+      </div>
     </div>
   </section>
 
@@ -1028,36 +1166,36 @@
   </section>
 
   <!-- Screenshots Section -->
-  <section class="screenshots-section" id="screenshots">
+  <!-- <section class="screenshots-section" id="screenshots">
     <div class="container">
       <h2 class="section-title">See Tanda in Action</h2>
       <div class="screenshots-grid">
-        <div class="screenshot-card">
+        <div class="screenshot-card"> -->
           <!-- <img src="#" alt="Tanda Video Feed"> -->
-          <div class="screenshot-info">
+          <!-- <div class="screenshot-info">
             <h3>Video Feed</h3>
             <p>Endless scroll of engaging videos from creators</p>
           </div>
-        </div>
+        </div> -->
         
-        <div class="screenshot-card">
+        <!-- <div class="screenshot-card"> -->
           <!-- <img src="#" alt="Product Details"> -->
-          <div class="screenshot-info">
+          <!-- <div class="screenshot-info">
             <h3>Product Details</h3>
             <p>Comprehensive product information with pricing, reviews, and purchase options.</p>
           </div>
-        </div>
+        </div> -->
         
-        <div class="screenshot-card">
+        <!-- <div class="screenshot-card"> -->
           <!-- <img src="#" alt="Checkout Process"> -->
-          <div class="screenshot-info">
+          <!-- <div class="screenshot-info">
             <h3>One-Tap Checkout</h3>
             <p>Streamlined purchasing with saved payment methods and delivery preferences.</p>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <!-- Stats Section -->
   <section class="stats">
@@ -1096,8 +1234,8 @@
           <h3>Quick Links</h3>
           <p><a href="#features">Features</a></p>
           <p><a href="#how-it-works">How It Works</a></p>
-          <p><a href="#screenshots">Screenshots</a></p>
-          <p><a href="#waitlist">Join Waitlist</a></p>
+          <!-- <p><a href="#screenshots">Screenshots</a></p> -->
+          <p><a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank">Join Waitlist</a></p>
         </div>
         
         <div class="footer-section">
