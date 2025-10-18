@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanda Safety Standards & Community Guidelines</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+            --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+            --accent-color: #00f2ea;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --border-radius: 1rem;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            height: 40px;
+            width: auto;
+            border-radius: 8px;
+        }
+        
+        .logo-text {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 1rem;
+        }
+        
+        h2 {
+            color: var(--text-primary);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1rem;
+        }
+        
+        h3 {
+            color: var(--accent-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        h4 {
+            color: var(--text-primary);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        ul, ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .toc {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .toc h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .toc a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .toc a:hover {
+            color: var(--text-primary);
+        }
+        
+        .contact-info {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-info h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .contact-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .contact-item strong {
+            color: var(--text-primary);
+        }
+        
+        .guidelines {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .guidelines h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        
+        .guidelines ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .guidelines li {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .prohibited {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .prohibited h3 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+        
+        .prohibited ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .prohibited li {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 0.5rem;
+            border-left: 3px solid #ff6b6b;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer p {
+            margin-bottom: 1rem;
+        }
+        
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: var(--text-primary);
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 0.5rem;
+        }
+
+        strong {
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--text-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .logo img {
+                height: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="Tanda logo.png" alt="Tanda Logo">
+                <span class="logo-text">Tanda</span>
+            </div>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
+        </div>
+        
+        <h1><span class="emoji">🛡️</span>TANDA SAFETY STANDARDS & COMMUNITY GUIDELINES</h1>
+        
+        <div class="toc">
+            <h3>📋 TABLE OF CONTENTS</h3>
+            <ul>
+                <li><a href="#content-moderation">Content Moderation</a></li>
+                <li><a href="#user-safety">User Safety</a></li>
+                <li><a href="#child-safety">Child Safety</a></li>
+                <li><a href="#privacy-data">Privacy & Data Protection</a></li>
+                <li><a href="#reporting-enforcement">Reporting & Enforcement</a></li>
+                <li><a href="#contact-information">Contact Information</a></li>
+                <li><a href="#community-guidelines">Community Guidelines</a></li>
+            </ul>
+        </div>
+
+        <h2 id="commitment">🛡️ Our Commitment to Safety</h2>
+        <p>Tanda is committed to creating a safe, inclusive, and positive environment for all users. We believe in fostering authentic connections while maintaining the highest standards of user safety and content moderation.</p>
+
+        <h2 id="content-moderation">🎯 CONTENT MODERATION</h2>
+        
+        <h3>Automated Systems</h3>
+        <ul>
+            <li><strong>AI-Powered Filtering</strong>: Advanced machine learning algorithms detect and filter inappropriate content</li>
+            <li><strong>Real-time Scanning</strong>: All uploaded content is scanned before publication</li>
+            <li><strong>Keyword Detection</strong>: Prohibited language and harmful content identification</li>
+            <li><strong>Image Recognition</strong>: Detection of inappropriate visual content</li>
+        </ul>
+
+        <h3>Human Review</h3>
+        <ul>
+            <li><strong>Expert Moderators</strong>: Trained content moderation team reviews flagged content</li>
+            <li><strong>24/7 Monitoring</strong>: Continuous oversight of platform activity</li>
+            <li><strong>Escalation Process</strong>: Complex cases reviewed by senior moderation staff</li>
+            <li><strong>Cultural Sensitivity</strong>: Moderators trained in African cultural contexts</li>
+        </ul>
+
+        <div class="prohibited">
+            <h3>Prohibited Content</h3>
+            <ul>
+                <li>Violence, graphic content, or harmful imagery</li>
+                <li>Hate speech, discrimination, or harassment</li>
+                <li>Sexual content involving minors</li>
+                <li>Dangerous activities or self-harm</li>
+                <li>Spam, scams, or fraudulent content</li>
+                <li>Copyright infringement</li>
+                <li>Misinformation or fake news</li>
+            </ul>
+        </div>
+
+        <h2 id="user-safety">👥 USER SAFETY</h2>
+        
+        <h3>Age Verification</h3>
+        <ul>
+            <li><strong>Minimum Age</strong>: 13+ for basic features, 18+ for full platform access</li>
+            <li><strong>Age Verification</strong>: Identity verification for users 18+ accessing commerce features</li>
+            <li><strong>Parental Awareness</strong>: Clear information for parents about platform features</li>
+            <li><strong>Age-Appropriate Content</strong>: Content filtering based on user age</li>
+        </ul>
+
+        <h3>Harassment Prevention</h3>
+        <ul>
+            <li><strong>Block & Report</strong>: Easy-to-use tools for blocking and reporting users</li>
+            <li><strong>Anti-Bullying Measures</strong>: Proactive detection of bullying behavior</li>
+            <li><strong>Safe Spaces</strong>: Community guidelines promoting respectful interactions</li>
+            <li><strong>Support Resources</strong>: Links to mental health and safety resources</li>
+        </ul>
+
+        <h3>Privacy Controls</h3>
+        <ul>
+            <li><strong>Profile Privacy</strong>: Granular privacy settings for user profiles</li>
+            <li><strong>Content Visibility</strong>: Control over who can see posts and content</li>
+            <li><strong>Location Privacy</strong>: Optional location sharing with privacy controls</li>
+            <li><strong>Data Control</strong>: Users can download, modify, or delete their data</li>
+        </ul>
+
+        <h2 id="child-safety">👶 CHILD SAFETY</h2>
+        
+        <h3>Protection Measures</h3>
+        <ul>
+            <li><strong>COPPA Compliance</strong>: Full compliance with Children's Online Privacy Protection Act</li>
+            <li><strong>Age-Appropriate Content</strong>: Strict filtering for users under 18</li>
+            <li><strong>Parental Controls</strong>: Tools for parents to monitor and control child accounts</li>
+            <li><strong>Educational Resources</strong>: Safety education for young users and parents</li>
+        </ul>
+
+        <h3>Reporting Mechanisms</h3>
+        <ul>
+            <li><strong>Quick Report</strong>: One-tap reporting for safety concerns</li>
+            <li><strong>Anonymous Reporting</strong>: Option to report without revealing identity</li>
+            <li><strong>Priority Response</strong>: Expedited review of child safety reports</li>
+            <li><strong>Law Enforcement Cooperation</strong>: Collaboration with authorities when necessary</li>
+        </ul>
+
+        <h3>Content Restrictions</h3>
+        <ul>
+            <li><strong>No Direct Messaging</strong>: Limited messaging for users under 16</li>
+            <li><strong>Supervised Accounts</strong>: Enhanced monitoring for younger users</li>
+            <li><strong>Educational Content</strong>: Focus on positive, educational content</li>
+            <li><strong>Community Mentorship</strong>: Positive role models and mentors</li>
+        </ul>
+
+        <h2 id="privacy-data">🔒 PRIVACY & DATA PROTECTION</h2>
+        
+        <h3>Data Security</h3>
+        <ul>
+            <li><strong>End-to-End Encryption</strong>: Secure messaging and data transmission</li>
+            <li><strong>Secure Storage</strong>: Industry-standard data protection measures</li>
+            <li><strong>Regular Audits</strong>: Third-party security assessments</li>
+            <li><strong>Incident Response</strong>: Rapid response to security breaches</li>
+        </ul>
+
+        <h3>User Rights</h3>
+        <ul>
+            <li><strong>Data Portability</strong>: Users can export their data</li>
+            <li><strong>Right to Deletion</strong>: Complete account and data removal</li>
+            <li><strong>Consent Management</strong>: Clear consent for data collection and use</li>
+            <li><strong>Transparency</strong>: Clear privacy policy and data practices</li>
+        </ul>
+
+        <h3>Compliance</h3>
+        <ul>
+            <li><strong>GDPR Compliance</strong>: European data protection standards</li>
+            <li><strong>Local Regulations</strong>: Compliance with African data protection laws</li>
+            <li><strong>Industry Standards</strong>: Following best practices for social platforms</li>
+            <li><strong>Regular Updates</strong>: Continuous improvement of privacy measures</li>
+        </ul>
+
+        <h2 id="reporting-enforcement">📢 REPORTING & ENFORCEMENT</h2>
+        
+        <h3>How to Report</h3>
+        <ol>
+            <li><strong>In-App Reporting</strong>: Use the report button on any content or user</li>
+            <li><strong>Email Reporting</strong>: Send detailed reports to safety@tanda.media</li>
+            <li><strong>Help Center</strong>: Submit reports through our help center</li>
+            <li><strong>Emergency Contact</strong>: Use emergency@tanda.media for urgent safety issues</li>
+        </ol>
+
+        <h3>Response Times</h3>
+        <ul>
+            <li><strong>Critical Safety Issues</strong>: Within 2 hours</li>
+            <li><strong>Content Violations</strong>: Within 24 hours</li>
+            <li><strong>General Reports</strong>: Within 48 hours</li>
+            <li><strong>Appeals</strong>: Within 72 hours</li>
+        </ul>
+
+        <h3>Enforcement Actions</h3>
+        <ul>
+            <li><strong>Content Removal</strong>: Immediate removal of violating content</li>
+            <li><strong>Account Warnings</strong>: Progressive warnings for policy violations</li>
+            <li><strong>Temporary Suspensions</strong>: Time-limited account restrictions</li>
+            <li><strong>Permanent Bans</strong>: For severe or repeated violations</li>
+        </ul>
+
+        <h3>Appeal Process</h3>
+        <ul>
+            <li><strong>Fair Review</strong>: All enforcement actions can be appealed</li>
+            <li><strong>Human Review</strong>: Appeals reviewed by senior moderation staff</li>
+            <li><strong>Transparent Process</strong>: Clear explanation of decisions</li>
+            <li><strong>Second Opinions</strong>: Option for additional review</li>
+        </ul>
+
+        <div class="contact-info">
+            <h2 id="contact-information">📞 CONTACT INFORMATION</h2>
+            
+            <h3>Safety Team</h3>
+            <div class="contact-item">
+                <strong>Email:</strong> safety@tanda.media<br>
+                <strong>Response Time:</strong> 24-48 hours<br>
+                <strong>Languages:</strong> English, French, Swahili, Arabic<br>
+                <strong>Specialization:</strong> Content moderation, user safety, child protection
+            </div>
+
+            <h3>General Support</h3>
+            <div class="contact-item">
+                <strong>Email:</strong> support@tanda.media<br>
+                <strong>Help Center:</strong> https://tanda.media/help<br>
+                <strong>Response Time:</strong> 48-72 hours<br>
+                <strong>Languages:</strong> English, French, Swahili, Arabic
+            </div>
+
+            <h3>Emergency Contact</h3>
+            <div class="contact-item">
+                <strong>Email:</strong> emergency@tanda.media<br>
+                <strong>Response Time:</strong> 2-4 hours<br>
+                <strong>Use For:</strong> Immediate safety threats, child safety issues<br>
+                <strong>Available:</strong> 24/7
+            </div>
+
+            <h3>Legal & Compliance</h3>
+            <div class="contact-item">
+                <strong>Email:</strong> legal@tanda.media<br>
+                <strong>Response Time:</strong> 72 hours<br>
+                <strong>Specialization:</strong> Legal compliance, law enforcement requests
+            </div>
+
+            <h3>Media & Press</h3>
+            <div class="contact-item">
+                <strong>Email:</strong> press@tanda.media<br>
+                <strong>Response Time:</strong> 24-48 hours<br>
+                <strong>Specialization:</strong> Media inquiries, public relations
+            </div>
+        </div>
+
+        <div class="guidelines">
+            <h2 id="community-guidelines">📜 COMMUNITY GUIDELINES</h2>
+            
+            <h3>Be Respectful</h3>
+            <ul>
+                <li>Treat all users with dignity and respect</li>
+                <li>Use inclusive language and avoid discrimination</li>
+                <li>Respect different opinions and cultural backgrounds</li>
+                <li>Be kind and constructive in your interactions</li>
+            </ul>
+
+            <h3>Be Authentic</h3>
+            <ul>
+                <li>Use your real identity and information</li>
+                <li>Don't impersonate others or create fake accounts</li>
+                <li>Share original content and give credit where due</li>
+                <li>Be honest in your business transactions</li>
+            </ul>
+
+            <h3>Be Safe</h3>
+            <ul>
+                <li>Protect your personal information</li>
+                <li>Report suspicious or harmful behavior</li>
+                <li>Don't share inappropriate content</li>
+                <li>Respect others' privacy and boundaries</li>
+            </ul>
+
+            <h3>Be Positive</h3>
+            <ul>
+                <li>Contribute to a positive community environment</li>
+                <li>Share uplifting and educational content</li>
+                <li>Support other creators and users</li>
+                <li>Help build a thriving social commerce ecosystem</li>
+            </ul>
+
+            <h3>Commerce Guidelines</h3>
+            <ul>
+                <li>Provide accurate product descriptions</li>
+                <li>Deliver products as promised</li>
+                <li>Use secure payment methods</li>
+                <li>Resolve disputes fairly and promptly</li>
+            </ul>
+        </div>
+
+        <h2>🔄 UPDATES & CHANGES</h2>
+        <p>This safety standards document is regularly updated to reflect:</p>
+        <ul>
+            <li>New safety features and tools</li>
+            <li>Changes in laws and regulations</li>
+            <li>Community feedback and improvements</li>
+            <li>Industry best practices</li>
+        </ul>
+        <p><strong>Last Updated:</strong> January 2025<br>
+        <strong>Next Review:</strong> April 2025</p>
+
+        <h2>📚 ADDITIONAL RESOURCES</h2>
+        <ul>
+            <li><strong>Help Center:</strong> <a href="https://tanda.media/help">https://tanda.media/help</a></li>
+            <li><strong>Community Guidelines:</strong> <a href="https://tanda.media/guidelines">https://tanda.media/guidelines</a></li>
+            <li><strong>Privacy Policy:</strong> <a href="https://tanda.media/privacy">https://tanda.media/privacy</a></li>
+            <li><strong>Terms of Service:</strong> <a href="https://tanda.media/terms">https://tanda.media/terms</a></li>
+            <li><strong>Safety Tips:</strong> <a href="https://tanda.media/safety-tips">https://tanda.media/safety-tips</a></li>
+        </ul>
+
+        <div class="footer">
+            <p><strong>Tanda is committed to creating a safe, inclusive, and positive platform for all users.</strong></p>
+            <p>Together, we can build a thriving community where creativity, commerce, and connection flourish.</p>
+            <p><em>For questions about these safety standards, contact us at <a href="mailto:safety@tanda.media">safety@tanda.media</a></em></p>
+        </div>
+    </div>
+</body>
+</html>
