@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Curved Favicon - Tanda</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #000000, #111111);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            background: linear-gradient(135deg, #ff0050, #00f2ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+        }
+        
+        .favicon-canvas {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin: 20px;
+            display: inline-block;
+            background: white;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #ff0050, #00f2ea);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .preview-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .instructions h3 {
+            color: #00f2ea;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .instructions code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Create Curved Edge Favicon for Tanda</h1>
+        
+        <div class="controls">
+            <h3>📐 Curvature Settings</h3>
+            <label for="curvature">Border Radius: </label>
+            <input type="range" id="curvature" min="0" max="20" value="12" oninput="updateCurvature(this.value)">
+            <span id="curvatureValue">12px</span>
+        </div>
+        
+        <div class="preview-grid">
+            <div class="preview-item">
+                <h4>512x512px</h4>
+                <canvas id="canvas512" class="favicon-canvas" width="128" height="128"></canvas>
+                <br>
+                <button class="btn" onclick="downloadFavicon(512)">Download 512px</button>
+            </div>
+            
+            <div class="preview-item">
+                <h4>192x192px</h4>
+                <canvas id="canvas192" class="favicon-canvas" width="96" height="96"></canvas>
+                <br>
+                <button class="btn" onclick="downloadFavicon(192)">Download 192px</button>
+            </div>
+            
+            <div class="preview-item">
+                <h4>180x180px (Apple)</h4>
+                <canvas id="canvas180" class="favicon-canvas" width="90" height="90"></canvas>
+                <br>
+                <button class="btn" onclick="downloadFavicon(180)">Download 180px</button>
+            </div>
+            
+            <div class="preview-item">
+                <h4>32x32px</h4>
+                <canvas id="canvas32" class="favicon-canvas" width="32" height="32"></canvas>
+                <br>
+                <button class="btn" onclick="downloadFavicon(32)">Download 32px</button>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How to Use:</h3>
+            <ol>
+                <li><strong>Adjust the curvature</strong> using the slider above to get the perfect rounded edges</li>
+                <li><strong>Click "Download"</strong> for each size you need</li>
+                <li><strong>Replace your existing favicon files</strong> with the downloaded ones</li>
+                <li><strong>Update your HTML</strong> to reference the new files</li>
+            </ol>
+            
+            <h3>🎯 Recommended Files to Replace:</h3>
+            <ul>
+                <li><code>favicon-512x512.png</code> - For high-res displays</li>
+                <li><code>favicon-192x192.png</code> - For Android devices</li>
+                <li><code>apple-touch-icon.png</code> - For iOS devices</li>
+                <li><code>Tanda logo.png</code> - For general favicon use</li>
+            </ul>
+            
+            <h3>💡 Pro Tip:</h3>
+            <p>Start with a curvature of 12px for a modern, rounded look that works well across all sizes.</p>
+        </div>
+        
+        <button class="btn" onclick="downloadAll()">🚀 Download All Sizes</button>
+    </div>
+    
+    <script>
+        let currentCurvature = 12;
+        let logoImage = new Image();
+        
+        // Load the Tanda logo
+        logoImage.onload = function() {
+            updateAllCanvases();
+        };
+        logoImage.src = 'Tanda logo.png';
+        
+        function updateCurvature(value) {
+            currentCurvature = parseInt(value);
+            document.getElementById('curvatureValue').textContent = value + 'px';
+            updateAllCanvases();
+        }
+        
+        function updateAllCanvases() {
+            updateCanvas('canvas512', 512);
+            updateCanvas('canvas192', 192);
+            updateCanvas('canvas180', 180);
+            updateCanvas('canvas32', 32);
+        }
+        
+        function updateCanvas(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const displaySize = canvas.width;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, displaySize, displaySize);
+            
+            // Create rounded rectangle path
+            const radius = (currentCurvature / size) * displaySize;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, displaySize, displaySize, radius);
+            ctx.clip();
+            
+            // Draw the logo
+            ctx.drawImage(logoImage, 0, 0, displaySize, displaySize);
+        }
+        
+        function downloadFavicon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `favicon-${size}x${size}-curved.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function downloadAll() {
+            const sizes = [512, 192, 180, 32];
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadFavicon(size);
+                }, index * 500); // Delay each download by 500ms
+            });
+        }
+        
+        // Add roundRect support for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>

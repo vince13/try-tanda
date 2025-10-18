@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Generator - Curved Edges</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .favicon-preview {
+            display: inline-block;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .favicon {
+            width: 64px;
+            height: 64px;
+            background: url('Tanda logo.png') center/cover;
+            border-radius: 12px; /* Curved edges */
+            margin: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .favicon-32 {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+        }
+        
+        .favicon-16 {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .instructions {
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: left;
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #ff0050, #00f2ea);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Tanda Favicon with Curved Edges</h1>
+    
+    <div class="favicon-preview">
+        <h3>64x64px</h3>
+        <div class="favicon"></div>
+    </div>
+    
+    <div class="favicon-preview">
+        <h3>32x32px</h3>
+        <div class="favicon favicon-32"></div>
+    </div>
+    
+    <div class="favicon-preview">
+        <h3>16x16px</h3>
+        <div class="favicon favicon-16"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>📋 How to Create Curved Edge Favicons:</h3>
+        <ol>
+            <li><strong>Option 1 - CSS Method:</strong> Add border-radius to your existing favicon files</li>
+            <li><strong>Option 2 - Image Editor:</strong> Use Photoshop, GIMP, or online tools to add rounded corners</li>
+            <li><strong>Option 3 - Online Generator:</strong> Use favicon generators that support rounded corners</li>
+        </ol>
+        
+        <h3>🎯 Recommended Approach:</h3>
+        <p>Since you already have the Tanda logo, the easiest way is to:</p>
+        <ul>
+            <li>Use an online favicon generator like <a href="https://favicon.io/" target="_blank" style="color: #00f2ea;">favicon.io</a></li>
+            <li>Upload your Tanda logo</li>
+            <li>Select "Rounded" or "Curved" edges option</li>
+            <li>Download the generated favicon files</li>
+        </ul>
+        
+        <h3>💡 CSS Alternative:</h3>
+        <p>You can also add CSS to make the favicon appear rounded in browsers that support it:</p>
+        <pre style="background: #222; padding: 10px; border-radius: 4px; overflow-x: auto;">
+.favicon {
+    border-radius: 12px;
+}</pre>
+    </div>
+    
+    <button class="download-btn" onclick="window.open('https://favicon.io/favicon-generator/', '_blank')">
+        🚀 Generate Curved Favicon Online
+    </button>
+    
+    <button class="download-btn" onclick="downloadCSS()">
+        📋 Copy CSS Code
+    </button>
+    
+    <script>
+        function downloadCSS() {
+            const css = `
+/* Add this to your CSS for curved favicon edges */
+.favicon, 
+.favicon-192x192, 
+.favicon-512x512, 
+.apple-touch-icon {
+    border-radius: 12px;
+}
+
+/* For smaller favicons */
+.favicon-32x32 {
+    border-radius: 6px;
+}
+
+.favicon-16x16 {
+    border-radius: 3px;
+}
+            `;
+            
+            navigator.clipboard.writeText(css).then(() => {
+                alert('CSS code copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
