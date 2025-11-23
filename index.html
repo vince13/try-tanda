@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tanda – Video Commerce Reimagined for Africa</title>
-  <meta name="description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Join the waitlist for Africa's next big eCommerce platform.">
+  <meta name="description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Now available on Google Play Store with AI shopping assistant for hands-free shopping.">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
@@ -399,6 +399,28 @@
     .btn-secondary:hover {
       background: var(--accent-color);
       color: var(--bg-primary);
+    }
+
+    /* Play Store Badge */
+    .play-store-badge {
+      display: inline-block;
+      height: 60px;
+      transition: transform 0.3s ease;
+    }
+
+    .play-store-badge:hover {
+      transform: translateY(-2px);
+    }
+
+    .play-store-badge img {
+      height: 100%;
+      width: auto;
+    }
+
+    @media (max-width: 768px) {
+      .play-store-badge {
+        height: 50px;
+      }
     }
 
     /* Waitlist Form */
@@ -1026,7 +1048,7 @@
               <li><a href="tanda_safety_standards.html">Safety Standards</a></li>
             </ul>
           </li>
-           <li><a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank">Join Waitlist</a></li>
+           <li><a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank">Download App</a></li>
         </ul>
         <button class="mobile-menu-btn">
           <i class="fas fa-bars"></i>
@@ -1044,9 +1066,8 @@
           <p>Transform content creation, cultural discovery and shopping through engaging short-form videos. Tanda merges entertainment with seamless commerce, creating the future of video commerce.</p>
           
           <div class="cta-buttons">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank" class="btn btn-primary">
-              <i class="fas fa-rocket"></i>
-              Join the Waitlist
+            <a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank" class="play-store-badge">
+              <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play">
             </a>
             <a href="#how-it-works" class="btn btn-secondary">
               <i class="fas fa-play"></i>
@@ -1095,7 +1116,7 @@
       </p>
       
       <p style="text-align: center; margin-bottom: 3rem; color: var(--text-primary); font-size: 1.1rem; line-height: 1.6;">
-        Ready to be part of Africa's next big eCommerce revolution? Join our exclusive waitlist and get early access to Tanda's beta launch. Be among the first creators, sellers, and shoppers to experience video commerce reimagined for Africa.
+        Ready to be part of Africa's next big eCommerce revolution? Tanda is now live on the Google Play Store! Download the app and experience video commerce reimagined for Africa.
       </p>
       
       <div class="comparison-table-container">
@@ -1168,11 +1189,10 @@
       </div>
       
       <div class="cta-container" style="text-align: center; margin-top: 3rem;">
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" 
+        <a href="https://play.google.com/store/apps/details?id=com.tanda.app" 
            target="_blank" 
-           class="btn btn-primary">
-          <i class="fas fa-rocket"></i>
-          Join the Waitlist
+           class="play-store-badge">
+          <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play">
         </a>
       </div>
     </div>
@@ -1223,14 +1243,22 @@
           <h3>Secure & Trusted</h3>
           <p>Bank-grade security with local payment methods, escrow services, and buyer protection guarantees.</p>
         </div>
-        
+            
         <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-microphone-alt"></i>
+          </div>
+          <h3>AI Shopping Assistant</h3>
+          <p>Shop hands-free with our AI assistant! Use voice or text commands to discover products, compare prices, and make purchases effortlessly.</p>
+        </div>
+
+        <!-- <div class="feature-card">
           <div class="feature-icon">
             <i class="fas fa-globe-africa"></i>
           </div>
           <h3>Made for Africa</h3>
           <p>Localized for African markets with support for local languages, currencies, and cultural preferences.</p>
-        </div>
+        </div> -->
       </div>
     </div>
   </section>
@@ -1258,10 +1286,16 @@
           <p>Your order is processed securely with real-time tracking and multiple delivery options across Africa.</p>
         </div>
         
-        <div class="step">
+        <!-- <div class="step">
           <div class="step-number">4</div>
           <h3>Share & Earn</h3>
           <p>Create your own product videos and earn commissions when others purchase through your content.</p>
+        </div> -->
+        
+        <div class="step">
+          <div class="step-number">5</div>
+          <h3>AI Shopping Assistant</h3>
+          <p>Shop hands-free! Use voice or text commands with our AI assistant to discover products, compare prices, and complete purchases effortlessly.</p>
         </div>
       </div>
     </div>
@@ -1337,7 +1371,7 @@
           <p><a href="#features">Features</a></p>
           <p><a href="#how-it-works">How It Works</a></p>
           <!-- <p><a href="#screenshots">Screenshots</a></p> -->
-          <p><a href="https://docs.google.com/forms/d/e/1FAIpQLScBZcohPXEeuoLCGCCR3DeWZT090nQ1C9jMVCaQbPA7wMxCSw/viewform" target="_blank">Join Waitlist</a></p>
+          <p><a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank">Download App</a></p>
         </div>
         
         <div class="footer-section">
