@@ -432,6 +432,108 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Get current user info
+   */
+  static async getCurrentUser() {
+    return await this.apiRequest('/users/profile/');
+  }
+
+  /**
+   * Blog API Methods
+   */
+  
+  /**
+   * Get all blog posts (public)
+   */
+  static async getBlogPosts(page = 1) {
+    return await this.apiRequest(`/blog/posts/?page=${page}`);
+  }
+
+  /**
+   * Get blog post by slug or ID
+   */
+  static async getBlogPost(slugOrId) {
+    return await this.apiRequest(`/blog/posts/${slugOrId}/`);
+  }
+
+  /**
+   * Get all blog posts for admin (including drafts)
+   */
+  static async getAdminBlogPosts() {
+    return await this.apiRequest('/blog/posts/admin_list/');
+  }
+
+  /**
+   * Get blog categories
+   */
+  static async getBlogCategories() {
+    return await this.apiRequest('/blog/categories/');
+  }
+
+  /**
+   * Create blog post
+   */
+  static async createBlogPost(postData) {
+    const formData = new FormData();
+    
+    // Add text fields
+    Object.keys(postData).forEach(key => {
+      if (key !== 'featured_image' && postData[key] !== null && postData[key] !== undefined) {
+        formData.append(key, postData[key]);
+      }
+    });
+    
+    // Add image if provided
+    if (postData.featured_image && postData.featured_image instanceof File) {
+      formData.append('featured_image', postData.featured_image);
+    }
+    
+    return await this.multipartRequest('/blog/posts/', formData, { method: 'POST' });
+  }
+
+  /**
+   * Update blog post
+   */
+  static async updateBlogPost(postId, postData) {
+    const formData = new FormData();
+    
+    // Add text fields
+    Object.keys(postData).forEach(key => {
+      if (key !== 'featured_image' && postData[key] !== null && postData[key] !== undefined) {
+        formData.append(key, postData[key]);
+      }
+    });
+    
+    // Add image if provided
+    if (postData.featured_image && postData.featured_image instanceof File) {
+      formData.append('featured_image', postData.featured_image);
+    }
+    
+    return await this.multipartRequest(`/blog/posts/${postId}/`, formData, { method: 'PATCH' });
+  }
+
+  /**
+   * Delete blog post
+   */
+  static async deleteBlogPost(postId) {
+    return await this.apiRequest(`/blog/posts/${postId}/`, { method: 'DELETE' });
+  }
+
+  /**
+   * Publish blog post
+   */
+  static async publishBlogPost(postId) {
+    return await this.apiRequest(`/blog/posts/${postId}/publish/`, { method: 'POST' });
+  }
+
+  /**
+   * Unpublish blog post
+   */
+  static async unpublishBlogPost(postId) {
+    return await this.apiRequest(`/blog/posts/${postId}/unpublish/`, { method: 'POST' });
+  }
+
+  /**
    * Copy text to clipboard
    */
   static async copyToClipboard(text) {

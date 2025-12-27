@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Blog Post - Tanda</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/ios-enhancements.js"></script>
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --text-muted: #888888;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Safe area insets */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header */
+    .header {
+      padding: 2rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 40px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    .logo-text {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Style for auth nav buttons */
+    .auth-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .nav-link-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    
+    .nav-link-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .nav-link-btn i {
+      font-size: 0.9rem;
+    }
+    
+    .nav-link-btn-primary {
+      color: var(--text-primary) !important;
+      background: var(--primary-gradient) !important;
+    }
+    
+    .nav-link-btn-primary:hover {
+      background: linear-gradient(135deg, #ff0050, #00d4c8) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 242, 234, 0.3);
+    }
+
+    /* Blog Post Content */
+    .blog-post-hero {
+      padding: 10rem 0 3rem;
+    }
+
+    .post-header {
+      margin-bottom: 3rem;
+    }
+
+    .post-category {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      border-radius: 1rem;
+      color: var(--accent-color);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .post-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .post-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .post-featured-image {
+      width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-bottom: 3rem;
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.2), rgba(0, 242, 234, 0.2));
+    }
+
+    .post-content {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .post-content h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 2rem 0 1rem;
+      color: var(--text-primary);
+    }
+
+    .post-content h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .post-content p {
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .post-content ul,
+    .post-content ol {
+      margin: 1.5rem 0;
+      padding-left: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .post-content li {
+      margin-bottom: 0.75rem;
+      line-height: 1.8;
+    }
+
+    .post-content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+
+    .post-content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    /* Social Share */
+    .social-share {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 3rem;
+    }
+
+    .social-share span {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .share-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .share-btn:hover {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      transform: translateY(-2px);
+    }
+
+    /* Back to Blog */
+    .back-to-blog {
+      margin-bottom: 2rem;
+    }
+
+    .back-to-blog a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: gap 0.3s ease;
+    }
+
+    .back-to-blog a:hover {
+      gap: 0.75rem;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--text-secondary);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .blog-post-hero {
+        padding: 8rem 0 2rem;
+      }
+
+      .post-content {
+        padding: 2rem;
+      }
+
+      .social-share {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="index.html" class="logo">
+          <img src="Tanda logo.png" alt="Tanda">
+          <span class="logo-text">Tanda</span>
+        </a>
+        <div id="authNav" class="tanda-nav-container"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="blog-post-hero">
+      <div class="container">
+        <div class="back-to-blog">
+          <a href="blog.html">
+            <i class="fas fa-arrow-left"></i>
+            Back to Blog
+          </a>
+        </div>
+
+        <div class="post-header">
+          <span class="post-category" id="post-category">General</span>
+          <h1 class="post-title" id="post-title">Blog Post Title</h1>
+          <div class="post-meta">
+            <span>
+              <i class="far fa-calendar"></i>
+              <span id="post-date">January 1, 2025</span>
+            </span>
+            <span>
+              <i class="far fa-clock"></i>
+              <span id="post-read-time">5 min read</span>
+            </span>
+          </div>
+        </div>
+
+        <img id="post-featured-image" class="post-featured-image" src="" alt="" style="display: none;">
+
+        <div class="social-share">
+          <span>Share:</span>
+          <div class="share-buttons">
+            <a href="#" class="share-btn" onclick="shareOnTwitter(event)" aria-label="Share on Twitter">
+              <i class="fab fa-x"></i>
+            </a>
+            <a href="#" class="share-btn" onclick="shareOnLinkedIn(event)" aria-label="Share on LinkedIn">
+              <i class="fab fa-linkedin"></i>
+            </a>
+            <a href="#" class="share-btn" onclick="shareOnFacebook(event)" aria-label="Share on Facebook">
+              <i class="fab fa-facebook"></i>
+            </a>
+            <a href="#" class="share-btn" onclick="copyLink(event)" aria-label="Copy link">
+              <i class="fas fa-link"></i>
+            </a>
+          </div>
+        </div>
+
+        <article class="post-content" id="post-content">
+          <!-- Blog post content will be loaded here -->
+          <p>Loading post content...</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Tanda. All rights reserved.</p>
+      <p style="margin-top: 0.5rem;">
+        <a href="index.html" style="color: var(--accent-color); text-decoration: none;">Back to Home</a> | 
+        <a href="blog.html" style="color: var(--accent-color); text-decoration: none;">Blog</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Get post slug from URL
+    function getPostSlug() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('slug');
+    }
+
+    // Load and render post from API
+    async function loadPost() {
+      const slug = getPostSlug();
+      
+      if (!slug) {
+        document.getElementById('post-content').innerHTML = '<p>Post not found. <a href="blog.html">Return to blog</a></p>';
+        return;
+      }
+
+      try {
+        const post = await SuperAffiliateAPI.getBlogPost(slug);
+        
+        if (!post) {
+          document.getElementById('post-content').innerHTML = '<p>Post not found. <a href="blog.html">Return to blog</a></p>';
+          return;
+        }
+
+        // Update page title
+        document.title = `${post.title} - Tanda Blog`;
+        
+        // Update meta description if available
+        if (post.meta_description) {
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) {
+            metaDesc.content = post.meta_description;
+          }
+        }
+
+        // Update post header
+        document.getElementById('post-category').textContent = post.category ? post.category.name : 'General';
+        document.getElementById('post-title').textContent = post.title;
+        document.getElementById('post-date').textContent = formatDate(post.published_at || post.created_at);
+        if (post.read_time) {
+          document.getElementById('post-read-time').textContent = post.read_time;
+        }
+
+        // Update featured image
+        if (post.featured_image) {
+          const img = document.getElementById('post-featured-image');
+          img.src = post.featured_image;
+          img.alt = post.title;
+          img.style.display = 'block';
+        }
+
+        // Update content
+        document.getElementById('post-content').innerHTML = post.content || '<p>Content coming soon...</p>';
+      } catch (error) {
+        console.error('Error loading post:', error);
+        document.getElementById('post-content').innerHTML = '<p>Error loading post. <a href="blog.html">Return to blog</a></p>';
+      }
+    }
+
+    // Format date
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+
+    // Social sharing functions
+    function shareOnTwitter(e) {
+      e.preventDefault();
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent(document.getElementById('post-title').textContent);
+      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    }
+
+    function shareOnLinkedIn(e) {
+      e.preventDefault();
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+    }
+
+    function shareOnFacebook(e) {
+      e.preventDefault();
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    }
+
+    function copyLink(e) {
+      e.preventDefault();
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        if (window.HapticFeedback) {
+          HapticFeedback.success();
+        }
+        // Show toast notification
+        const btn = e.currentTarget;
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+        }, 2000);
+      });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SuperAffiliateAPI !== 'undefined') {
+        SuperAffiliateAPI.renderAuthNav('authNav');
+      } else {
+        setTimeout(() => {
+          if (typeof SuperAffiliateAPI !== 'undefined') {
+            SuperAffiliateAPI.renderAuthNav('authNav');
+          }
+        }, 100);
+      }
+
+      loadPost();
+    });
+  </script>
+</body>
+</html>
+

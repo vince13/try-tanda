@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>For Investors - Tanda</title>
+  <meta name="description" content="Invest in Tanda - AI-Powered Global Video-Commerce Engine. Join us in revolutionizing video commerce across Africa, Asia, LATAM, and globally.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/ios-enhancements.js"></script>
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --text-muted: #888888;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header */
+    .header {
+      padding: 2rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Style for auth nav buttons */
+    .auth-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .nav-link-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    
+    .nav-link-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .nav-link-btn i {
+      font-size: 0.9rem;
+    }
+    
+    .nav-link-btn-primary {
+      color: var(--text-primary) !important;
+      background: var(--primary-gradient) !important;
+    }
+    
+    .nav-link-btn-primary:hover {
+      background: linear-gradient(135deg, #ff0050, #00d4c8) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 242, 234, 0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 40px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    .logo-text {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Hero Section */
+    .investors-hero {
+      padding: 10rem 0 4rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.05), rgba(0, 242, 234, 0.05));
+    }
+
+    .investors-hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .investors-hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto 2rem;
+    }
+
+    .pitch-deck-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      background: var(--primary-gradient);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--border-radius);
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.3);
+    }
+
+    .pitch-deck-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 0, 80, 0.4);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin: 4rem 0;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    /* Content Sections */
+    .content-section {
+      padding: 4rem 0;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 2rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .info-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent-color);
+    }
+
+    .info-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-card li {
+      padding: 0.75rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--text-secondary);
+    }
+
+    .info-card li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.1), rgba(0, 242, 234, 0.1));
+      border: 2px solid rgba(0, 242, 234, 0.3);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .highlight-box h3 {
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+
+    /* Contact Section */
+    .contact-section {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3rem;
+      margin: 4rem 0;
+      text-align: center;
+    }
+
+    .contact-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    .contact-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .contact-btn:hover {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      transform: translateY(-2px);
+    }
+
+    .contact-btn.primary {
+      background: var(--primary-gradient);
+      border: none;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--text-secondary);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .investors-hero {
+        padding: 8rem 0 3rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .info-card {
+        padding: 1.5rem;
+      }
+
+      .contact-section {
+        padding: 2rem;
+      }
+
+      .contact-buttons {
+        flex-direction: column;
+      }
+
+      .contact-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="index.html" class="logo">
+          <img src="Tanda logo.png" alt="Tanda">
+          <span class="logo-text">Tanda</span>
+        </a>
+        <div id="authNav" class="tanda-nav-container"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="investors-hero">
+      <div class="container">
+        <h1>Invest in Tanda</h1>
+        <p>AI-Powered Global Video-Commerce Engine</p>
+        <p style="font-size: 1rem; margin-top: 1rem;">Play Store live • 16k waitlist • 1,400 SMEs</p>
+        <a href="Tanda Pitch Deck.pdf" target="_blank" class="pitch-deck-cta" download>
+          <i class="fas fa-download"></i>
+          Download Pitch Deck
+        </a>
+      </div>
+    </section>
+
+    <!-- Traction Stats -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Traction & Growth</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">16,000+</div>
+            <div class="stat-label">Users Waitlist</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">1,400+</div>
+            <div class="stat-label">SMEs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">98</div>
+            <div class="stat-label">Influencers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">Live</div>
+            <div class="stat-label">Play Store</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Investment Ask -->
+    <section class="content-section">
+      <div class="container">
+        <div class="highlight-box">
+          <h3>Investment Opportunity</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+            <div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;">$500,000</div>
+              <div style="color: var(--text-secondary);">Raising</div>
+            </div>
+            <div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;">10%</div>
+              <div style="color: var(--text-secondary);">Equity</div>
+            </div>
+            <div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;">$5M</div>
+              <div style="color: var(--text-secondary);">Pre-money Valuation</div>
+            </div>
+            <div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;">$10M</div>
+              <div style="color: var(--text-secondary);">GMV Target in 24 months</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Market Opportunity -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Market Opportunity</h2>
+        <div class="info-card">
+          <ul>
+            <li>Africa video commerce: $5B</li>
+            <li>Africa e-commerce: $50B</li>
+            <li>LATAM + Asia: $200B+</li>
+            <li>Global video commerce: $1T by 2028</li>
+          </ul>
+          <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+            <em>Data Source: Statista, Ecofin Agency, Business Insider</em>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Solution -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">What is Tanda?</h2>
+        <div class="info-card">
+          <h3>Tanda = Short Videos + Commerce Built-In</h3>
+          <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+            Powered by AI - users shop via voice or chat while watching videos.
+          </p>
+          <ul>
+            <li>Seamless video-to-purchase experience</li>
+            <li>Built-in affiliate network (creators earn instantly)</li>
+            <li>Escrow system for trust</li>
+            <li>Africa-first payments (wallets, telcos, banks)</li>
+            <li>AI shopping assistant - users shop hands-free via voice or text</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Competitive Advantage -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Competitive Advantage</h2>
+        <div class="info-card">
+          <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+            Tanda combines video engagement, local payments, and AI-assisted shopping in one Africa-first platform - a mix no global or regional player currently offers.
+          </p>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+                  <th style="padding: 1rem; text-align: left; color: var(--accent-color);">Feature</th>
+                  <th style="padding: 1rem; text-align: center;">Tanda</th>
+                  <th style="padding: 1rem; text-align: center;">TikTok</th>
+                  <th style="padding: 1rem; text-align: center;">Jumia</th>
+                  <th style="padding: 1rem; text-align: center;">Instagram</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <td style="padding: 1rem;">Shoppable Short Videos</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--accent-color);">☑ Built-in</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">☑ (limited)</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">⚠️ (not localized)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <td style="padding: 1rem;">Local Payments Integration</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--accent-color);">☑ Across all African gateways</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗ (restricted)</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--accent-color);">☑</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <td style="padding: 1rem;">Escrow Protection</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--accent-color);">☑ Native escrow</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">⚠️ (partial)</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                  <td style="padding: 1rem;">AI Shopping Assistant</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--accent-color);">☑ Voice & text</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                  <td style="padding: 1rem; text-align: center; color: var(--text-secondary);">✗</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Business Model -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Business Model</h2>
+        <div class="info-card">
+          <h3>We earn every time a video converts</h3>
+          <ul>
+            <li>10% Transaction Commission</li>
+            <li>2% Escrow Fee</li>
+            <li>Ad & Sponsored Listings</li>
+            <li>10% Affiliate Rewards Model</li>
+            <li>$5/mo creator tools subscription</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use of Funds -->
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Use of Funds</h2>
+        <div class="info-card">
+          <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+            <strong>$500K</strong> fuels Tanda's scale to <strong>$10M GMV</strong> in 24 months (18-20 months runway)
+          </p>
+          <ul>
+            <li><strong>35% ($175K)</strong> – Product enhancement (AI assistant, escrow scaling)</li>
+            <li><strong>30% ($150K)</strong> – Marketing & creator acquisition</li>
+            <li><strong>20% ($100K)</strong> – Market expansion (Nigeria → Ghana, Kenya, Egypt, & South Africa)</li>
+            <li><strong>15% ($75K)</strong> – Team & Operations (engineers, growth lead, operations staff)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="content-section">
+      <div class="container">
+        <div class="contact-section">
+          <h2 class="section-title" style="margin-bottom: 1rem;">Let's Talk</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Interested in investing? Schedule a demo or intro call to learn more about Tanda's vision and growth trajectory.
+          </p>
+          <div class="contact-buttons">
+            <a href="https://calendly.com/hello-tanda/30min" target="_blank" class="contact-btn primary">
+              <i class="fas fa-calendar"></i>
+              Schedule a Call
+            </a>
+            <a href="mailto:hello@tanda.media" class="contact-btn">
+              <i class="fas fa-envelope"></i>
+              hello@tanda.media
+            </a>
+            <a href="tel:+2348136345451" class="contact-btn">
+              <i class="fas fa-phone"></i>
+              +234 813-634-5451
+            </a>
+          </div>
+          <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+              <strong>Website:</strong> <a href="https://app.tanda.media" target="_blank" style="color: var(--accent-color); text-decoration: none;">app.tanda.media</a>
+            </p>
+            <p style="color: var(--text-secondary);">
+              <strong>Alternative Contact:</strong> +234 808-447-7609
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Tanda. All rights reserved.</p>
+      <p style="margin-top: 0.5rem;">
+        <a href="index.html" style="color: var(--accent-color); text-decoration: none;">Back to Home</a> | 
+        <a href="privacy-policy.html" style="color: var(--accent-color); text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Render navigation
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SuperAffiliateAPI !== 'undefined') {
+        SuperAffiliateAPI.renderAuthNav('authNav');
+      } else {
+        // Fallback if API not loaded
+        setTimeout(() => {
+          if (typeof SuperAffiliateAPI !== 'undefined') {
+            SuperAffiliateAPI.renderAuthNav('authNav');
+          }
+        }, 100);
+      }
+    });
+  </script>
+</body>
+</html>
+
