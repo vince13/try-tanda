@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Create Account - Tanda</title>
+  <meta name="description" content="Create your Tanda account to access the web app.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 720px;
+      width: 100%;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 {
+      font-size: 2rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .header p { color: var(--text-secondary); }
+
+    .notice {
+      background: rgba(0, 242, 234, 0.08);
+      border: 1px solid rgba(0, 242, 234, 0.25);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500; }
+    input, select {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.6rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    input[readonly] {
+      opacity: 0.9;
+      cursor: not-allowed;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 0.5rem;
+    }
+
+    .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-message {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      padding: 1rem;
+      border-radius: 0.6rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .error-message.show { display: block; }
+
+    .links { margin-top: 1.5rem; text-align: center; color: var(--text-secondary); }
+    .links a { color: var(--accent-color); text-decoration: none; }
+    .links a:hover { opacity: 0.85; }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .container { 
+        padding: 2rem 1.25rem; 
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .grid { 
+        grid-template-columns: 1fr; 
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .container {
+        padding: 1.5rem 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-user-plus"></i> Create Account</h1>
+      <p>Sign up to use Tanda on web (great for iOS users)</p>
+    </div>
+
+    <div id="notice" class="notice" style="display:none;"></div>
+
+    <div id="error-message" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="error-text"></span>
+    </div>
+
+    <form id="signup-form" onsubmit="handleSignup(event)">
+      <div class="grid">
+        <div class="form-group">
+          <label for="first_name">First Name</label>
+          <input type="text" id="first_name" required placeholder="First name">
+        </div>
+        <div class="form-group">
+          <label for="last_name">Last Name</label>
+          <input type="text" id="last_name" required placeholder="Last name">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" required placeholder="Choose a username">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="you@email.com">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="phone_number">Phone (optional)</label>
+          <input type="tel" id="phone_number" placeholder="+234...">
+        </div>
+        <div class="form-group">
+          <label for="country">Country (optional)</label>
+          <input type="text" id="country" placeholder="Nigeria">
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label for="password_confirm">Confirm Password</label>
+          <input type="password" id="password_confirm" required placeholder="••••••••">
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="signup-btn">
+        <i class="fas fa-rocket"></i> Create Account
+      </button>
+    </form>
+
+    <div class="links">
+      <p>Already have an account? <a id="login-link" href="super-affiliate-login.html">Login</a></p>
+      <p style="margin-top: 0.5rem;"><a href="index.html">← Back to Home</a></p>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteEmail = urlParams.get('email');
+    const lockEmail = urlParams.get('lock_email') === '1';
+    const redirect = urlParams.get('redirect'); // accept
+    const token = urlParams.get('token'); // invitation token
+    const refCode = urlParams.get('ref'); // referral code (Super Affiliate or product affiliate)
+
+    // Store referral code in localStorage if present
+    if (refCode) {
+      localStorage.setItem('signup_ref_code', refCode);
+    }
+
+    const notice = document.getElementById('notice');
+    const loginLink = document.getElementById('login-link');
+
+    if (inviteEmail) {
+      document.getElementById('email').value = decodeURIComponent(inviteEmail);
+      if (lockEmail) {
+        document.getElementById('email').setAttribute('readonly', 'readonly');
+        notice.style.display = 'block';
+        notice.innerHTML = `<strong>Invite flow:</strong> this email is locked to your invitation for security.`;
+      }
+    }
+
+    // Adjust login link to keep redirect context
+    if (redirect === 'accept' && token) {
+      const emailParam = encodeURIComponent(inviteEmail || '');
+      loginLink.href = `super-affiliate-login.html?email=${emailParam}&redirect=accept&token=${encodeURIComponent(token)}`;
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('error-message');
+      const text = document.getElementById('error-text');
+      text.textContent = msg;
+      box.classList.add('show');
+      setTimeout(() => box.classList.remove('show'), 7000);
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+
+      const btn = document.getElementById('signup-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+      try {
+        // Get referral code from URL param or localStorage
+        const referralCode = refCode || localStorage.getItem('signup_ref_code');
+        
+        const payload = {
+          username: document.getElementById('username').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          first_name: document.getElementById('first_name').value.trim(),
+          last_name: document.getElementById('last_name').value.trim(),
+          phone_number: document.getElementById('phone_number').value.trim() || null,
+          country: document.getElementById('country').value.trim() || null,
+          password: document.getElementById('password').value,
+          password_confirm: document.getElementById('password_confirm').value,
+        };
+
+        // Add referral code to payload if present
+        if (referralCode) {
+          payload.ref = referralCode;
+        }
+
+        // If invite-locked, enforce email match on client side too
+        if (lockEmail && inviteEmail && payload.email.toLowerCase() !== decodeURIComponent(inviteEmail).toLowerCase()) {
+          throw new Error('Email must match the invitation email.');
+        }
+
+        const res = await SuperAffiliateAPI.register(payload);
+        
+        // Clear referral code from localStorage after successful registration
+        if (referralCode) {
+          localStorage.removeItem('signup_ref_code');
+        }
+
+        // Store pending invitation token so accept page can auto-accept
+        if (redirect === 'accept' && token) {
+          localStorage.setItem('pending_invitation_token', token);
+          localStorage.setItem('pending_invitation_email', payload.email);
+          showToast('✅ Account created! Continuing invitation acceptance...', 'success');
+          setTimeout(() => {
+            window.location.href = `super-affiliate-accept.html?token=${encodeURIComponent(token)}&redirect=accept`;
+          }, 900);
+          return;
+        }
+
+        showToast('✅ Account created! Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = 'super-affiliate-dashboard.html';
+        }, 900);
+      } catch (e) {
+        showError(e.message || 'Signup failed. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rocket"></i> Create Account';
+      }
+    }
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Add Product - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 1000px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group label .required {
+      color: #ff0050;
+      margin-left: 0.2rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-help {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .btn {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .alert-info {
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      color: var(--accent-color);
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #f44336;
+    }
+
+    .alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: #4caf50;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload-label:hover {
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .file-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .file-preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .file-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .file-preview-item .remove-btn {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      background: rgba(244, 67, 54, 0.9);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      .file-preview {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .section-title {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Add Product</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="alert-container"></div>
+
+    <div class="card">
+      <form id="product-form" onsubmit="handleSubmit(event)">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-info-circle"></i> Basic Information
+          </h2>
+
+          <div class="form-group">
+            <label for="name">Product Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Premium Wireless Headphones">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description <span class="required">*</span></label>
+            <textarea id="description" name="description" required placeholder="Describe your product in detail..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category <span class="required">*</span></label>
+            <select id="category" name="category" required>
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-tag"></i> Pricing
+          </h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="price">Price (₦) <span class="required">*</span></label>
+              <input type="number" id="price" name="price" required min="0.01" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="original_price">Original Price (₦)</label>
+              <input type="number" id="original_price" name="original_price" min="0.01" step="0.01" placeholder="0.00">
+              <div class="form-help">Leave empty if not on sale</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency">
+              <option value="NGN" selected>NGN - Nigerian Naira</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inventory -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-box"></i> Inventory
+          </h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stock_quantity">Stock Quantity <span class="required">*</span></label>
+              <input type="number" id="stock_quantity" name="stock_quantity" required min="0" value="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label for="condition">Condition <span class="required">*</span></label>
+              <select id="condition" name="condition" required>
+                <option value="new" selected>New</option>
+                <option value="used">Used</option>
+                <option value="refurbished">Refurbished</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="min_order_quantity">Min Order Quantity</label>
+              <input type="number" id="min_order_quantity" name="min_order_quantity" min="1" value="1" placeholder="1">
+            </div>
+            <div class="form-group">
+              <label for="max_order_quantity">Max Order Quantity</label>
+              <input type="number" id="max_order_quantity" name="max_order_quantity" min="1" value="10" placeholder="10">
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-cube"></i> Product Details
+          </h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="brand">Brand</label>
+              <input type="text" id="brand" name="brand" placeholder="Brand name">
+            </div>
+            <div class="form-group">
+              <label for="model">Model</label>
+              <input type="text" id="model" name="model" placeholder="Model number">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="weight">Weight (kg)</label>
+              <input type="number" id="weight" name="weight" min="0" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="dimensions">Dimensions (LxWxH cm)</label>
+              <input type="text" id="dimensions" name="dimensions" placeholder="e.g. 20x15x10">
+            </div>
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-images"></i> Product Images
+          </h2>
+
+          <div class="form-group">
+            <label>Upload Images</label>
+            <div class="file-upload">
+              <input type="file" id="product-images" name="images" accept="image/*" multiple>
+              <label for="product-images" class="file-upload-label">
+                <i class="fas fa-upload"></i>
+                <span>Click to upload product images (multiple allowed)</span>
+              </label>
+            </div>
+            <div class="file-preview" id="image-preview"></div>
+          </div>
+        </div>
+
+        <!-- Affiliate Settings -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-users"></i> Affiliate Settings
+          </h2>
+
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="allow_affiliate_promotion" name="allow_affiliate_promotion" checked style="width: auto; margin-right: 0.5rem;">
+              Allow affiliate promotion
+            </label>
+            <div class="form-help">Allow affiliates to promote this product and earn commissions</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="affiliate_commission_rate">Commission Rate (%)</label>
+              <input type="number" id="affiliate_commission_rate" name="affiliate_commission_rate" min="0" max="100" step="0.1" value="10" placeholder="10">
+              <div class="form-help">Percentage of sale price paid to affiliates</div>
+            </div>
+            <div class="form-group">
+              <label for="min_affiliate_tier">Minimum Affiliate Tier</label>
+              <select id="min_affiliate_tier" name="min_affiliate_tier">
+                <option value="basic" selected>Basic</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-toggle-on"></i> Status
+          </h2>
+
+          <div class="form-group">
+            <label for="status">Product Status</label>
+            <select id="status" name="status">
+              <option value="draft">Draft (Not visible to customers)</option>
+              <option value="active" selected>Active (Visible to customers)</option>
+            </select>
+            <div class="form-help">Draft products are saved but not published. Active products are visible in the store.</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">
+          <i class="fas fa-check"></i> Create Product
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    let selectedImages = [];
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    // Check if user is an approved seller
+    async function checkSellerStatus() {
+      try {
+        const profile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+        if (!profile || !profile.id) {
+          showAlert('You need to be a seller to add products. Please register as a seller first.', 'error');
+          setTimeout(() => {
+            window.location.href = 'become-seller.html';
+          }, 2000);
+          return false;
+        }
+        if (profile.status !== 'approved') {
+          showAlert('Your seller account is pending approval. You cannot add products until approved.', 'error');
+          return false;
+        }
+        return true;
+      } catch (error) {
+        showAlert('You need to be a seller to add products. Please register as a seller first.', 'error');
+        setTimeout(() => {
+          window.location.href = 'become-seller.html';
+        }, 2000);
+        return false;
+      }
+    }
+
+    // Load categories
+    async function loadCategories() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/categories/');
+        const categories = Array.isArray(response) ? response : (response.results || response.categories || []);
+        const select = document.getElementById('category');
+        select.innerHTML = '<option value="">Select category</option>';
+        categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id || cat.slug;
+          option.textContent = cat.name || cat.title;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        showAlert('Failed to load categories. Please refresh the page.', 'error');
+      }
+    }
+
+    // Image upload handler
+    document.getElementById('product-images').addEventListener('change', function(e) {
+      const files = Array.from(e.target.files);
+      selectedImages = files;
+      displayImagePreviews(files);
+    });
+
+    function displayImagePreviews(files) {
+      const preview = document.getElementById('image-preview');
+      preview.innerHTML = '';
+      
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const item = document.createElement('div');
+          item.className = 'file-preview-item';
+          item.innerHTML = `
+            <img src="${e.target.result}" alt="Preview ${index + 1}">
+            <button type="button" class="remove-btn" onclick="removeImage(${index})">
+              <i class="fas fa-times"></i>
+            </button>
+          `;
+          preview.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeImage(index) {
+      selectedImages.splice(index, 1);
+      const input = document.getElementById('product-images');
+      const dt = new DataTransfer();
+      selectedImages.forEach(file => dt.items.add(file));
+      input.files = dt.files;
+      displayImagePreviews(selectedImages);
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      const isSeller = await checkSellerStatus();
+      if (!isSeller) return;
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Product...';
+
+      try {
+        const formData = new FormData();
+        
+        // Collect form data
+        const formFields = [
+          'name', 'description', 'category', 'price', 'original_price', 'currency',
+          'stock_quantity', 'min_order_quantity', 'max_order_quantity', 'condition',
+          'brand', 'model', 'weight', 'dimensions', 'status',
+          'affiliate_commission_rate', 'min_affiliate_tier'
+        ];
+
+        formFields.forEach(field => {
+          const element = document.getElementById(field);
+          if (element) {
+            const value = element.type === 'checkbox' ? element.checked : element.value;
+            if (value !== '' && value !== null && value !== undefined) {
+              formData.append(field, value);
+            }
+          }
+        });
+
+        // Add affiliate promotion checkbox
+        const allowAffiliate = document.getElementById('allow_affiliate_promotion').checked;
+        formData.append('allow_affiliate_promotion', allowAffiliate);
+
+        // Add images
+        selectedImages.forEach((file, index) => {
+          formData.append(`images[${index}]`, file);
+        });
+
+        // Submit to API
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/products/create/', {
+          method: 'POST',
+          body: formData,
+        });
+
+        showAlert('Product created successfully!', 'success');
+        
+        setTimeout(() => {
+          window.location.href = `product-detail.html?id=${response.id}`;
+        }, 1500);
+
+      } catch (error) {
+        console.error('Error creating product:', error);
+        const errorMessage = error.message || 'Failed to create product. Please try again.';
+        showAlert(errorMessage, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Create Product';
+      }
+    }
+
+    function showAlert(message, type) {
+      const container = document.getElementById('alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      container.innerHTML = '';
+      container.appendChild(alert);
+      
+      if (type === 'success') {
+        setTimeout(() => {
+          alert.remove();
+        }, 5000);
+      }
+    }
+
+    // Initialize
+    checkSellerStatus();
+    loadCategories();
+  </script>
+</body>
+</html>

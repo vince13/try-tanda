@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Become an Affiliate - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group label .required {
+      color: #ff0050;
+      margin-left: 0.2rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-help {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .btn {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .alert-info {
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      color: var(--accent-color);
+    }
+
+    .alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: #4caf50;
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #f44336;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload-label:hover {
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .file-name {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .verify-success {
+      color: #4caf50;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .verify-error {
+      color: #f44336;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .bank-select-wrapper {
+      position: relative;
+    }
+
+    .bank-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 0.25rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .bank-dropdown-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: transparent;
+    }
+
+    .bank-dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .bank-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .bank-dropdown-item.highlighted {
+      background: rgba(0, 242, 234, 0.25);
+    }
+
+    .bank-dropdown-empty {
+      padding: 1rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Become an Affiliate</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="alert-container"></div>
+
+    <div class="card">
+      <form id="affiliate-form" onsubmit="handleSubmit(event)">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-user-tie"></i> Profile Information
+          </h2>
+
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" name="bio" placeholder="Tell us about yourself and your content niche..."></textarea>
+            <div class="form-help">Describe your content style and what products you'd like to promote</div>
+          </div>
+
+          <div class="form-group">
+            <label for="niche">Niche</label>
+            <select id="niche" name="niche">
+              <option value="">Select your niche</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Beauty">Beauty</option>
+              <option value="Tech">Tech</option>
+              <option value="Food">Food</option>
+              <option value="Lifestyle">Lifestyle</option>
+              <option value="Fitness">Fitness</option>
+              <option value="Travel">Travel</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Education">Education</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-share-alt"></i> Social Media Handles
+          </h2>
+
+          <div class="form-group">
+            <label for="instagram_handle">Instagram Handle</label>
+            <input type="text" id="instagram_handle" name="instagram_handle" placeholder="@yourhandle">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tiktok_handle">TikTok Handle</label>
+              <input type="text" id="tiktok_handle" name="tiktok_handle" placeholder="@yourhandle">
+            </div>
+            <div class="form-group">
+              <label for="youtube_channel">YouTube Channel</label>
+              <input type="text" id="youtube_channel" name="youtube_channel" placeholder="Channel name or URL">
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-phone"></i> Contact Information
+          </h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="your@email.com" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed;">
+              <div class="form-help">Uses your account email</div>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone" placeholder="+234 800 000 0000">
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-map-marker-alt"></i> Location
+          </h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="state">State</label>
+              <input type="text" id="state" name="state" placeholder="Lagos">
+            </div>
+            <div class="form-group">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" placeholder="Lagos">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="local_government">Local Government</label>
+            <input type="text" id="local_government" name="local_government" placeholder="Ikeja">
+          </div>
+        </div>
+
+        <!-- Bank Information -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-university"></i> Bank Details <span class="required">*</span>
+          </h2>
+
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Your bank details are required for receiving commission payments. This information is securely stored.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="bank_name">Bank Name <span class="required">*</span></label>
+            <div class="bank-select-wrapper">
+              <input type="text" id="bank_search" placeholder="Type to search for a bank..." autocomplete="off">
+              <div class="bank-dropdown" id="bank_dropdown" style="display: none;"></div>
+            </div>
+            <input type="hidden" id="bank_name" name="bank_name" required>
+            <input type="hidden" id="bank_code" name="bank_code">
+            <div class="form-help" id="selected-bank-display" style="margin-top: 0.5rem; color: var(--accent-color); display: none;">
+              <i class="fas fa-check-circle"></i> <span id="selected-bank-name"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="account_number">Account Number <span class="required">*</span></label>
+            <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+              <div style="flex: 1;">
+                <input type="text" id="account_number" name="account_number" required placeholder="0000000000" pattern="[0-9]{10}" maxlength="10">
+              </div>
+              <button type="button" class="btn" id="verify-account-btn" onclick="verifyAccount()" style="width: auto; padding: 0.875rem 1.5rem; white-space: nowrap;">
+                <i class="fas fa-check-circle"></i> Verify
+              </button>
+            </div>
+            <div class="form-help">Click "Verify" to automatically fill account name</div>
+          </div>
+
+          <div class="form-group">
+            <label for="account_name">Account Name <span class="required">*</span></label>
+            <input type="text" id="account_name" name="account_name" required placeholder="Account name will appear after verification" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed;">
+            <div class="form-help" id="account-name-help">Verify your account number to auto-fill this field</div>
+          </div>
+
+          <div class="form-group">
+            <label for="bvn">BVN (optional)</label>
+            <input type="text" id="bvn" name="bvn" placeholder="11-digit BVN" pattern="[0-9]{11}" maxlength="11">
+            <div class="form-help">Bank Verification Number for additional verification</div>
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-file-alt"></i> Documents (Optional)
+          </h2>
+
+          <div class="form-group">
+            <label for="id_document">ID Document</label>
+            <div class="file-upload">
+              <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png">
+              <label for="id_document" class="file-upload-label">
+                <i class="fas fa-file-upload"></i>
+                <span>Upload ID document (PDF, JPG, PNG)</span>
+              </label>
+            </div>
+            <div class="file-name" id="id-file-name"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">
+          <i class="fas fa-check"></i> Submit Application
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    // Check if user already has affiliate profile
+    async function checkExistingProfile() {
+      try {
+        const profile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
+        if (profile && profile.id) {
+          showAlert('You already have an affiliate profile. Redirecting to your affiliate dashboard...', 'info');
+          setTimeout(() => {
+            window.location.href = 'affiliate-dashboard.html';
+          }, 2000);
+          return true;
+        }
+      } catch (error) {
+        // Check if error is because profile already exists (400) or not found (404)
+        if (error.message && error.message.includes('already exists')) {
+          showAlert('You already have an affiliate profile. Redirecting to your affiliate dashboard...', 'info');
+          setTimeout(() => {
+            window.location.href = 'affiliate-dashboard.html';
+          }, 2000);
+          return true;
+        }
+        // No profile exists, continue with form
+        return false;
+      }
+      return false;
+    }
+
+    // Check on load
+    checkExistingProfile();
+
+    // Load user email
+    async function loadUserEmail() {
+      try {
+        const profile = await SuperAffiliateAPI.apiRequest('/users/profile/');
+        if (profile && profile.email) {
+          document.getElementById('email').value = profile.email;
+        }
+      } catch (error) {
+        console.error('Error loading user email:', error);
+      }
+    }
+
+    // Comprehensive list of Nigerian banks supported by Paystack
+    const NIGERIAN_BANKS = [
+      { name: '9 Payment Service Bank', code: 'C34' },
+      { name: 'Access Bank', code: '044' },
+      { name: 'Access Bank (Diamond)', code: '063' },
+      { name: 'ALAT by Wema', code: '035' },
+      { name: 'Carbon', code: '565' },
+      { name: 'Citibank Nigeria', code: '023' },
+      { name: 'Ecobank Nigeria', code: '050' },
+      { name: 'Eyowo', code: '50126' },
+      { name: 'FairMoney Microfinance Bank', code: '51318' },
+      { name: 'Fidelity Bank', code: '070' },
+      { name: 'Firmus MFB', code: '51314' },
+      { name: 'First Bank of Nigeria', code: '011' },
+      { name: 'First City Monument Bank (FCMB)', code: '214' },
+      { name: 'FSDH Merchant Bank', code: '501' },
+      { name: 'Globus Bank', code: '103' },
+      { name: 'GoMoney', code: '100022' },
+      { name: 'Guaranty Trust Bank (GTBank)', code: '058' },
+      { name: 'Heritage Bank', code: '030' },
+      { name: 'HopePSB', code: '120002' },
+      { name: 'Jaiz Bank', code: '301' },
+      { name: 'Keystone Bank', code: '082' },
+      { name: 'Kuda Bank', code: '50211' },
+      { name: 'Lotus Bank', code: '303' },
+      { name: 'Moniepoint Microfinance Bank', code: '50515' },
+      { name: 'OPay Digital Services Limited', code: '999992' },
+      { name: 'Paga', code: '327' },
+      { name: 'Palmpay', code: '999991' },
+      { name: 'Parallex Bank', code: '104' },
+      { name: 'Parkway - ReadyCash', code: '311' },
+      { name: 'Paycom', code: '999993' },
+      { name: 'Polaris Bank', code: '076' },
+      { name: 'Providus Bank', code: '101' },
+      { name: 'Rubies MFB', code: '125' },
+      { name: 'Sparkle Microfinance Bank', code: '51310' },
+      { name: 'Stanbic IBTC Bank', code: '221' },
+      { name: 'Standard Chartered Bank', code: '068' },
+      { name: 'Sterling Bank', code: '232' },
+      { name: 'Suntrust Bank', code: '100' },
+      { name: 'Taj Bank', code: '302' },
+      { name: 'Tangerine Money', code: '51269' },
+      { name: 'TCF MFB', code: '51211' },
+      { name: 'Titan Trust Bank', code: '102' },
+      { name: 'Union Bank of Nigeria', code: '032' },
+      { name: 'United Bank for Africa (UBA)', code: '033' },
+      { name: 'Unity Bank', code: '215' },
+      { name: 'VFD Microfinance Bank', code: '566' },
+      { name: 'Wema Bank', code: '035' },
+      { name: 'Zenith Bank', code: '057' },
+    ];
+
+    let allBanks = [];
+    let filteredBanks = [];
+    let selectedBankIndex = -1;
+
+    // Load banks list
+    async function loadBanks() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/banks-list/');
+        const apiBanks = response.banks || [];
+        
+        if (apiBanks.length > 0) {
+          allBanks = apiBanks.map(bank => ({
+            name: bank.name || bank.bank_name,
+            code: bank.code || bank.bank_code
+          }));
+        } else {
+          allBanks = NIGERIAN_BANKS;
+        }
+      } catch (error) {
+        console.error('Error loading banks from API, using fallback:', error);
+        allBanks = NIGERIAN_BANKS;
+      }
+      
+      filteredBanks = allBanks;
+      setupBankSearch();
+    }
+
+    function setupBankSearch() {
+      const searchInput = document.getElementById('bank_search');
+      const dropdown = document.getElementById('bank_dropdown');
+      const bankNameInput = document.getElementById('bank_name');
+      const bankCodeInput = document.getElementById('bank_code');
+      const selectedDisplay = document.getElementById('selected-bank-display');
+      const selectedName = document.getElementById('selected-bank-name');
+
+      // Filter banks on input
+      searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (query === '') {
+          filteredBanks = allBanks;
+          selectedBankIndex = -1;
+        } else {
+          filteredBanks = allBanks.filter(bank => 
+            bank.name.toLowerCase().includes(query)
+          );
+          selectedBankIndex = -1;
+        }
+        
+        renderBankDropdown();
+      });
+
+      // Show dropdown on focus
+      searchInput.addEventListener('focus', function() {
+        if (searchInput.value.trim() === '') {
+          filteredBanks = allBanks;
+        }
+        renderBankDropdown();
+      });
+
+      // Hide dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+
+      // Handle keyboard navigation
+      searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedBankIndex = Math.min(selectedBankIndex + 1, filteredBanks.length - 1);
+          renderBankDropdown();
+          scrollToSelected();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedBankIndex = Math.max(selectedBankIndex - 1, -1);
+          renderBankDropdown();
+          scrollToSelected();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (selectedBankIndex >= 0 && filteredBanks[selectedBankIndex]) {
+            const bank = filteredBanks[selectedBankIndex];
+            selectBank(bank);
+          }
+        } else if (e.key === 'Escape') {
+          dropdown.style.display = 'none';
+        }
+      });
+
+      function renderBankDropdown() {
+        if (filteredBanks.length === 0) {
+          dropdown.innerHTML = '<div class="bank-dropdown-empty">No banks found</div>';
+          return;
+        }
+
+        dropdown.innerHTML = filteredBanks.map((bank, index) => {
+          const isHighlighted = index === selectedBankIndex;
+          return `
+            <div class="bank-dropdown-item ${isHighlighted ? 'highlighted' : ''}" 
+                 data-index="${index}"
+                 data-bank-name="${bank.name.replace(/"/g, '&quot;')}"
+                 data-bank-code="${bank.code}">
+              ${bank.name}
+            </div>
+          `;
+        }).join('');
+
+        // Add click handlers
+        dropdown.querySelectorAll('.bank-dropdown-item').forEach(item => {
+          item.addEventListener('click', function() {
+            const bankName = this.dataset.bankName;
+            const bankCode = this.dataset.bankCode;
+            selectBank({ name: bankName, code: bankCode });
+          });
+        });
+
+        dropdown.style.display = 'block';
+      }
+
+      function scrollToSelected() {
+        if (selectedBankIndex >= 0) {
+          const items = dropdown.querySelectorAll('.bank-dropdown-item');
+          if (items[selectedBankIndex]) {
+            items[selectedBankIndex].scrollIntoView({ block: 'nearest' });
+          }
+        }
+      }
+
+      function selectBank(bank) {
+        bankNameInput.value = bank.name;
+        bankCodeInput.value = bank.code;
+        searchInput.value = bank.name;
+        dropdown.style.display = 'none';
+        selectedDisplay.style.display = 'block';
+        selectedName.textContent = bank.name;
+        
+        // Clear account name if bank changes
+        document.getElementById('account_name').value = '';
+        document.getElementById('account-name-help').innerHTML = 'Verify your account number to auto-fill this field';
+        document.getElementById('account-name-help').className = 'form-help';
+      }
+    }
+
+    // Verify bank account
+    async function verifyAccount() {
+      const bankCode = document.getElementById('bank_code').value;
+      const bankName = document.getElementById('bank_name').value;
+      const accountNumber = document.getElementById('account_number').value.trim();
+      const accountNameField = document.getElementById('account_name');
+      const helpText = document.getElementById('account-name-help');
+      const verifyBtn = document.getElementById('verify-account-btn');
+
+      if (!bankCode || !bankName) {
+        showAlert('Please select a bank first', 'error');
+        return;
+      }
+
+      if (!accountNumber || accountNumber.length < 10) {
+        showAlert('Please enter a valid 10-digit account number', 'error');
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/verify-bank-account/', {
+          method: 'POST',
+          body: JSON.stringify({
+            bank_code: bankCode,
+            account_number: accountNumber
+          })
+        });
+
+        if (response.success && response.account_name) {
+          accountNameField.value = response.account_name;
+          accountNameField.style.borderColor = '#4caf50';
+          helpText.innerHTML = `<i class="fas fa-check-circle"></i> Verified: ${response.account_name}`;
+          helpText.className = 'verify-success';
+          showAlert('Account verified successfully!', 'success');
+        } else {
+          throw new Error(response.error || 'Verification failed');
+        }
+      } catch (error) {
+        console.error('Account verification error:', error);
+        accountNameField.value = '';
+        accountNameField.style.borderColor = '#f44336';
+        helpText.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message || 'Verification failed. Please check your account number.'}`;
+        helpText.className = 'verify-error';
+        showAlert(error.message || 'Account verification failed. Please check your details.', 'error');
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verify';
+      }
+    }
+
+
+    // Initialize
+    loadUserEmail();
+    loadBanks();
+
+    // File upload handler
+    document.getElementById('id_document').addEventListener('change', function(e) {
+      const fileName = e.target.files[0]?.name || '';
+      document.getElementById('id-file-name').textContent = fileName || 'No file selected';
+    });
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      // Validate account name is verified
+      const accountName = document.getElementById('account_name').value.trim();
+      if (!accountName) {
+        showAlert('Please verify your bank account number before submitting', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+      try {
+        const formData = new FormData();
+        
+        // Collect form data
+        const formFields = [
+          'bio', 'niche',
+          'instagram_handle', 'tiktok_handle', 'youtube_channel',
+          'email', 'phone',
+          'state', 'city', 'local_government',
+          'bank_name', 'account_number', 'account_name', 'bvn'
+        ];
+
+        formFields.forEach(field => {
+          const element = document.getElementById(field);
+          if (element) {
+            const value = element.value;
+            if (value) {
+              formData.append(field, value);
+            }
+          }
+        });
+
+        // Add bank_code if available
+        const bankCode = document.getElementById('bank_code').value;
+        if (bankCode) {
+          formData.append('bank_code', bankCode);
+        }
+
+        // Add file
+        const idFile = document.getElementById('id_document').files[0];
+        if (idFile) {
+          formData.append('id_document', idFile);
+        }
+
+        // Submit to API
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/create/', {
+          method: 'POST',
+          body: formData,
+        });
+
+        showAlert('Affiliate application submitted successfully! Your application is pending review.', 'success');
+        
+        setTimeout(() => {
+          window.location.href = 'affiliate-dashboard.html';
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error submitting affiliate application:', error);
+        let errorMessage = error.message || 'Failed to submit application. Please try again.';
+        
+        // Check if user already has an affiliate profile
+        if (errorMessage.includes('already exists') || errorMessage.includes('Affiliate profile already exists')) {
+          showAlert('You already have an affiliate profile. Redirecting to dashboard...', 'info');
+          setTimeout(() => {
+            window.location.href = 'affiliate-dashboard.html';
+          }, 2000);
+          return;
+        }
+        
+        showAlert(errorMessage, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Submit Application';
+      }
+    }
+
+    function showAlert(message, type) {
+      const container = document.getElementById('alert-container');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      container.innerHTML = '';
+      container.appendChild(alert);
+      
+      if (type === 'success' || type === 'info') {
+        setTimeout(() => {
+          alert.remove();
+        }, 5000);
+      }
+    }
+  </script>
+</body>
+</html>

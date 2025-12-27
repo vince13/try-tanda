@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
   <title>Accept Super Affiliate Invitation - Tanda</title>
   <meta name="description" content="Accept your invitation to join Tanda's exclusive Founding Distribution Partners program.">
   
@@ -32,6 +36,52 @@
       margin: 0; 
       padding: 0; 
       box-sizing: border-box; 
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
     }
 
     html {
@@ -266,6 +316,14 @@
       box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
     }
 
+    /* Disabled link-style buttons (anchors) */
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: grayscale(0.2);
+    }
+
     .back-link {
       text-align: center;
       margin-top: 2rem;
@@ -279,6 +337,141 @@
 
     .back-link a:hover {
       opacity: 0.8;
+    }
+
+    /* Embedded Auth Forms Styles */
+    .auth-forms-container {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      display: none;
+    }
+
+    .auth-forms-container.enabled {
+      display: block;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .auth-tab:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .auth-tab.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    .auth-tab:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-group input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-error {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #ff0050;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .form-success {
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent-color);
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .form-success.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 768px) {
@@ -297,6 +490,24 @@
       .detail-row {
         flex-direction: column;
         gap: 0.5rem;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .container {
+        padding: 1.5rem 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
       }
     }
   </style>
@@ -348,7 +559,7 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">Commission Rate:</span>
-          <span class="detail-value">6% on all referrals</span>
+          <span class="detail-value" id="commission-rate-display">Up to 30% on all referrals</span>
         </div>
       </div>
 
@@ -358,7 +569,7 @@
         <p>You are invited to join Tanda's exclusive Founding Distribution Partners program, a limited-time, invite-only opportunity for up to 200 partners.</p>
 
         <h4>2. COMMISSION STRUCTURE</h4>
-        <p><strong>Direct Referrals:</strong> 6% commission on revenue generated by users you refer</p>
+        <p><strong>Direct Referrals:</strong> Up to 30% commission on revenue generated by users you refer</p>
         <p><strong>Program Duration:</strong> 6 months from acceptance date</p>
         <p><strong>Payment Terms:</strong> Monthly payouts for qualified earnings</p>
         <p><strong>Minimum Payout:</strong> $50 USD equivalent</p>
@@ -393,6 +604,92 @@
         </label>
       </div>
 
+      <!-- Embedded Login/Signup Forms -->
+      <div id="auth-forms-container" class="auth-forms-container">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')" disabled>
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+          <button type="button" class="auth-tab" id="signup-tab" onclick="switchAuthTab('signup')" disabled>
+            <i class="fas fa-user-plus"></i> Create Account
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="embedded-login-form" class="auth-form active" onsubmit="handleEmbeddedLogin(event)">
+          <div id="login-error" class="form-error"></div>
+          <div id="login-success" class="form-success"></div>
+          
+          <div class="form-group">
+            <label for="login-email">Email or Username</label>
+            <input type="text" id="login-email" name="email" placeholder="your@email.com or username" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" required disabled>
+          </div>
+
+          <button type="submit" class="btn btn-secondary" id="embedded-login-btn" disabled>
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="embedded-signup-form" class="auth-form" onsubmit="handleEmbeddedSignup(event)">
+          <div id="signup-error" class="form-error"></div>
+          <div id="signup-success" class="form-success"></div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-first-name">First Name</label>
+              <input type="text" id="signup-first-name" name="first_name" placeholder="First name" required disabled>
+            </div>
+            <div class="form-group">
+              <label for="signup-last-name">Last Name</label>
+              <input type="text" id="signup-last-name" name="last_name" placeholder="Last name" required disabled>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-username">Username</label>
+              <input type="text" id="signup-username" name="username" placeholder="Choose a username" required disabled>
+            </div>
+            <div class="form-group">
+              <label for="signup-email">Email</label>
+              <input type="email" id="signup-email" name="email" placeholder="you@email.com" required disabled>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-phone">Phone (optional)</label>
+              <input type="tel" id="signup-phone" name="phone_number" placeholder="+234..." disabled>
+            </div>
+            <div class="form-group">
+              <label for="signup-country">Country (optional)</label>
+              <input type="text" id="signup-country" name="country" placeholder="Nigeria" disabled>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="signup-password">Password</label>
+              <input type="password" id="signup-password" name="password" placeholder="••••••••" required disabled>
+            </div>
+            <div class="form-group">
+              <label for="signup-password-confirm">Confirm Password</label>
+              <input type="password" id="signup-password-confirm" name="password_confirm" placeholder="••••••••" required disabled>
+            </div>
+          </div>
+
+          <button type="submit" class="btn" id="embedded-signup-btn" disabled>
+            <i class="fas fa-rocket"></i> Create Account
+          </button>
+        </form>
+      </div>
+
       <button class="btn" id="accept-btn" disabled onclick="acceptInvitation()">
         <i class="fas fa-check"></i> Accept Invitation
       </button>
@@ -422,6 +719,22 @@
   <script src="js/super-affiliate-api.js"></script>
 
   <script>
+    // Bypass ngrok warning page (for development)
+    if (window.location.hostname.includes('ngrok-free.dev') || window.location.hostname.includes('ngrok.io')) {
+      // Set header to bypass ngrok warning (works on subsequent requests)
+      if (typeof fetch !== 'undefined') {
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          if (args[1]) {
+            args[1].headers = args[1].headers || {};
+            args[1].headers['ngrok-skip-browser-warning'] = 'true';
+          } else {
+            args[1] = { headers: { 'ngrok-skip-browser-warning': 'true' } };
+          }
+          return originalFetch.apply(this, args);
+        };
+      }
+    }
     // Get token from URL
     const urlParams = new URLSearchParams(window.location.search);
     const invitationToken = urlParams.get('token');
@@ -456,7 +769,8 @@
       document.getElementById('invitation-section').style.display = 'block';
 
       document.getElementById('affiliate-code').textContent = data.affiliate_code || '-';
-      document.getElementById('user-email').textContent = data.user_email || '-';
+      const invitedEmail = data.email || data.user_email || '-';
+      document.getElementById('user-email').textContent = invitedEmail;
       
       if (data.invitation_expires_at) {
         const date = new Date(data.invitation_expires_at);
@@ -466,6 +780,30 @@
       } else {
         document.getElementById('expires-at').textContent = 'No expiration';
       }
+
+      // Store token and email in localStorage for after login/signup
+      localStorage.setItem('pending_invitation_token', invitationToken);
+      localStorage.setItem('pending_invitation_email', invitedEmail);
+
+      // Pre-fill email in embedded forms
+      const loginEmailInput = document.getElementById('login-email');
+      const signupEmailInput = document.getElementById('signup-email');
+      
+      if (loginEmailInput && invitedEmail) {
+        loginEmailInput.value = invitedEmail;
+      }
+      if (signupEmailInput && invitedEmail) {
+        signupEmailInput.value = invitedEmail;
+        signupEmailInput.setAttribute('readonly', 'readonly');
+        signupEmailInput.style.background = 'rgba(255,255,255,0.03)';
+        signupEmailInput.style.cursor = 'not-allowed';
+      }
+
+      // Initialize form states
+      updateActionButtons();
+
+      // Check if user is already authenticated
+      checkAuthenticationStatus();
     }
 
     function showError(message) {
@@ -482,34 +820,279 @@
     function toggleCheckbox() {
       const checkbox = document.getElementById('agree-checkbox');
       checkbox.checked = !checkbox.checked;
-      updateAcceptButton();
+      updateActionButtons();
     }
 
-    function updateAcceptButton() {
+    function updateActionButtons() {
       const checkbox = document.getElementById('agree-checkbox');
       const acceptBtn = document.getElementById('accept-btn');
-      acceptBtn.disabled = !checkbox.checked;
+      const authFormsContainer = document.getElementById('auth-forms-container');
+      const loginTab = document.getElementById('login-tab');
+      const signupTab = document.getElementById('signup-tab');
+      const loginForm = document.getElementById('embedded-login-form');
+      const signupForm = document.getElementById('embedded-signup-form');
+      const loginInputs = loginForm.querySelectorAll('input, button');
+      const signupInputs = signupForm.querySelectorAll('input, button');
+
+      const enabled = !!checkbox?.checked;
+
+      // Accept button (only show if authenticated)
+      if (SuperAffiliateAPI.isAuthenticated()) {
+        acceptBtn.disabled = !enabled;
+        acceptBtn.style.display = enabled ? 'block' : 'none';
+      } else {
+        acceptBtn.style.display = 'none';
+      }
+
+      // Show/hide auth forms container
+      if (authFormsContainer) {
+        if (enabled && !SuperAffiliateAPI.isAuthenticated()) {
+          authFormsContainer.classList.add('enabled');
+        } else {
+          authFormsContainer.classList.remove('enabled');
+        }
+      }
+
+      // Enable/disable tabs
+      if (loginTab) loginTab.disabled = !enabled;
+      if (signupTab) signupTab.disabled = !enabled;
+
+      // Enable/disable form inputs and buttons
+      loginInputs.forEach(input => {
+        input.disabled = !enabled;
+      });
+      signupInputs.forEach(input => {
+        input.disabled = !enabled;
+      });
+    }
+
+    function switchAuthTab(tab) {
+      const loginTab = document.getElementById('login-tab');
+      const signupTab = document.getElementById('signup-tab');
+      const loginForm = document.getElementById('embedded-login-form');
+      const signupForm = document.getElementById('embedded-signup-form');
+
+      if (tab === 'login') {
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        loginForm.classList.add('active');
+        signupForm.classList.remove('active');
+      } else {
+        signupTab.classList.add('active');
+        loginTab.classList.remove('active');
+        signupForm.classList.add('active');
+        loginForm.classList.remove('active');
+      }
+
+      // Clear any error messages
+      document.getElementById('login-error').classList.remove('show');
+      document.getElementById('signup-error').classList.remove('show');
+      document.getElementById('login-success').classList.remove('show');
+      document.getElementById('signup-success').classList.remove('show');
     }
 
     // Enable accept button when checkbox is checked
     document.addEventListener('DOMContentLoaded', () => {
       const checkbox = document.getElementById('agree-checkbox');
       if (checkbox) {
-        checkbox.addEventListener('change', updateAcceptButton);
+        checkbox.addEventListener('change', updateActionButtons);
       }
+      // Initialize disabled/enabled state on load
+      updateActionButtons();
     });
 
-    // Accept invitation
-    async function acceptInvitation() {
+    // Check if user is authenticated
+    function checkAuthenticationStatus() {
+      const isAuthenticated = SuperAffiliateAPI.isAuthenticated();
       const acceptBtn = document.getElementById('accept-btn');
+      const authFormsContainer = document.getElementById('auth-forms-container');
+
+      if (!isAuthenticated) {
+        // User is not logged in - show embedded forms (if agreement checked)
+        acceptBtn.style.display = 'none';
+        if (authFormsContainer && document.getElementById('agree-checkbox').checked) {
+          authFormsContainer.classList.add('enabled');
+        }
+      } else {
+        // User is logged in - show accept button
+        acceptBtn.style.display = 'block';
+        if (authFormsContainer) {
+          authFormsContainer.classList.remove('enabled');
+        }
+      }
+
+      // Re-evaluate enabled/disabled state for all CTAs
+      if (typeof updateActionButtons === 'function') {
+        updateActionButtons();
+      }
+    }
+
+    // Handle embedded login
+    async function handleEmbeddedLogin(event) {
+      event.preventDefault();
+      
+      const loginBtn = document.getElementById('embedded-login-btn');
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorDiv = document.getElementById('login-error');
+      const successDiv = document.getElementById('login-success');
+
+      // Clear previous messages
+      errorDiv.classList.remove('show');
+      successDiv.classList.remove('show');
+
+      if (!email || !password) {
+        errorDiv.textContent = 'Please fill in all fields';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+      try {
+        await SuperAffiliateAPI.login(email, password);
+        
+        // Login successful
+        successDiv.textContent = '✅ Login successful! Accepting invitation...';
+        successDiv.classList.add('show');
+
+        // Auto-accept invitation after login
+        setTimeout(async () => {
+          try {
+            await acceptInvitation();
+          } catch (error) {
+            console.error('Auto-accept error:', error);
+            errorDiv.textContent = 'Login successful but failed to accept invitation. Please try again.';
+            errorDiv.classList.add('show');
+            successDiv.classList.remove('show');
+          }
+        }, 1000);
+
+      } catch (error) {
+        console.error('Login error:', error);
+        errorDiv.textContent = error.message || 'Login failed. Please check your credentials and try again.';
+        errorDiv.classList.add('show');
+        
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      }
+    }
+
+    // Handle embedded signup
+    async function handleEmbeddedSignup(event) {
+      event.preventDefault();
+      
+      const signupBtn = document.getElementById('embedded-signup-btn');
+      const errorDiv = document.getElementById('signup-error');
+      const successDiv = document.getElementById('signup-success');
+
+      // Clear previous messages
+      errorDiv.classList.remove('show');
+      successDiv.classList.remove('show');
+
+      const payload = {
+        username: document.getElementById('signup-username').value.trim(),
+        email: document.getElementById('signup-email').value.trim(),
+        first_name: document.getElementById('signup-first-name').value.trim(),
+        last_name: document.getElementById('signup-last-name').value.trim(),
+        phone_number: document.getElementById('signup-phone').value.trim() || null,
+        country: document.getElementById('signup-country').value.trim() || null,
+        password: document.getElementById('signup-password').value,
+        password_confirm: document.getElementById('signup-password-confirm').value,
+      };
+
+      // Validate passwords match
+      if (payload.password !== payload.password_confirm) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      // Validate email matches invitation email
+      const invitedEmail = invitationData?.email || invitationData?.user_email || '';
+      if (invitedEmail && payload.email.toLowerCase() !== invitedEmail.toLowerCase()) {
+        errorDiv.textContent = 'Email must match the invitation email address';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      signupBtn.disabled = true;
+      signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+      try {
+        await SuperAffiliateAPI.register(payload);
+        
+        // Signup successful
+        successDiv.textContent = '✅ Account created! Accepting invitation...';
+        successDiv.classList.add('show');
+
+        // Auto-accept invitation after signup
+        setTimeout(async () => {
+          try {
+            await acceptInvitation();
+          } catch (error) {
+            console.error('Auto-accept error:', error);
+            errorDiv.textContent = 'Account created but failed to accept invitation. Please try again.';
+            errorDiv.classList.add('show');
+            successDiv.classList.remove('show');
+          }
+        }, 1000);
+
+      } catch (error) {
+        console.error('Signup error:', error);
+        errorDiv.textContent = error.message || 'Signup failed. Please try again.';
+        errorDiv.classList.add('show');
+        
+        signupBtn.disabled = false;
+        signupBtn.innerHTML = '<i class="fas fa-rocket"></i> Create Account';
+      }
+    }
+
+    // If user returned from login/signup, do NOT auto-accept.
+    // They must explicitly check the agreement checkbox before accepting.
+    function checkPendingInvitation() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      if (SuperAffiliateAPI.isAuthenticated() && redirect === 'accept') {
+        // Cleanup only; keep user on this page to review agreement
+        localStorage.removeItem('pending_invitation_token');
+        localStorage.removeItem('pending_invitation_email');
+        showToast('Please review and accept the agreement to activate your Super Affiliate status.', 'success');
+      }
+    }
+
+    // Accept invitation
+    async function acceptInvitation(token = null) {
+      const tokenToUse = token || invitationToken;
+      const acceptBtn = document.getElementById('accept-btn');
+      const checkbox = document.getElementById('agree-checkbox');
+      
+      // Check authentication first
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        checkAuthenticationStatus();
+        showToast('⚠️ Please login or create an account first', 'error');
+        return;
+      }
+
+      // Must explicitly accept agreement
+      if (!checkbox || !checkbox.checked) {
+        showToast('⚠️ Please check the agreement box to continue.', 'error');
+        return;
+      }
+
       acceptBtn.disabled = true;
       acceptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
 
       try {
         console.log('Accepting invitation...');
-        await SuperAffiliateAPI.acceptInvitation(invitationToken);
+        await SuperAffiliateAPI.acceptInvitation(tokenToUse, true);
         showSuccess();
         showToast('✅ Invitation accepted successfully!', 'success');
+        
+        // Clear any pending invitation data
+        localStorage.removeItem('pending_invitation_token');
+        localStorage.removeItem('pending_invitation_email');
         
         // Redirect to dashboard after 3 seconds
         setTimeout(() => {
@@ -517,14 +1100,81 @@
         }, 3000);
       } catch (error) {
         console.error('Accept error:', error);
-        showToast('❌ ' + error.message, 'error');
+        
+        // If error is authentication-related, show auth required
+        if (error.message.includes('401') || error.message.includes('authenticated') || error.message.includes('login')) {
+          checkAuthenticationStatus();
+          showToast('⚠️ Please login first to accept the invitation', 'error');
+        } else {
+          showToast('❌ ' + error.message, 'error');
+        }
+        
         acceptBtn.disabled = false;
         acceptBtn.innerHTML = '<i class="fas fa-check"></i> Accept Invitation';
       }
     }
 
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? 'rgba(0, 242, 234, 0.9)' : type === 'error' ? 'rgba(255, 0, 80, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
+        color: ${type === 'error' ? 'white' : '#000'};
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        font-weight: 500;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Add CSS animations for toast
+    if (!document.getElementById('toast-styles')) {
+      const style = document.createElement('style');
+      style.id = 'toast-styles';
+      style.textContent = `
+        @keyframes slideIn {
+          from {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
     // Initialize on load
     init();
+    
+    // Check for pending invitation (in case user just logged in)
+    checkPendingInvitation();
   </script>
 </body>
 </html>

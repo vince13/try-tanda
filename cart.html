@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Shopping Cart - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .cart-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+
+    .cart-items {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .cart-items {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cart-items {
+        padding: 1rem;
+      }
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 1.5rem;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    @media (max-width: 768px) {
+      .cart-item {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem 0;
+      }
+
+      .item-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+    }
+
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .item-info {
+      flex: 1;
+    }
+
+    .item-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .item-price {
+      color: var(--accent-color);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .item-name {
+        font-size: 1rem;
+        text-align: center;
+      }
+
+      .item-price {
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 0.75rem;
+      }
+
+      .item-info {
+        text-align: center;
+      }
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      padding: 0.25rem;
+    }
+
+    .quantity-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-radius: 0.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .quantity-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .quantity-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .quantity-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .quantity-input {
+      width: 50px;
+      padding: 0.4rem 0.25rem;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      -moz-appearance: textfield;
+    }
+
+    .quantity-input::-webkit-outer-spin-button,
+    .quantity-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .quantity-input:focus {
+      outline: none;
+    }
+
+    .btn-remove {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 0, 80, 0.15);
+      color: #ff0050;
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      margin-left: 0.5rem;
+    }
+
+    .btn-remove:hover {
+      background: rgba(255, 0, 80, 0.25);
+      border-color: #ff0050;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.2);
+    }
+
+    .btn-remove:active {
+      transform: translateY(0);
+    }
+
+    .btn-remove i {
+      font-size: 0.85rem;
+    }
+
+    .summary {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      height: fit-content;
+      position: sticky;
+      top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .summary {
+        position: static;
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .summary {
+        padding: 1rem;
+      }
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .summary-total {
+      font-size: 1.5rem;
+      font-weight: 800;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-link {
+      background: transparent;
+      color: var(--accent-color);
+      text-decoration: underline;
+      padding: 0;
+      width: auto;
+      margin: 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-cart {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .cart-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .cart-items {
+        padding: 1.5rem;
+      }
+
+      .summary {
+        position: static;
+        padding: 1.5rem;
+      }
+
+      .item-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+      }
+
+      .quantity-selector {
+        width: auto;
+        justify-content: center;
+      }
+
+      .quantity-btn {
+        width: 36px;
+        height: 36px;
+      }
+
+      .quantity-input {
+        width: 60px;
+        font-size: 1rem;
+      }
+
+      .btn-remove {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+      }
+
+      .cart-item {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem 0;
+      }
+
+      .item-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+
+      .item-name {
+        font-size: 1rem;
+        text-align: center;
+      }
+
+      .item-price {
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 0.75rem;
+      }
+
+      .item-info {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .cart-items,
+      .summary {
+        padding: 1rem;
+      }
+
+      .item-name {
+        font-size: 0.95rem;
+      }
+
+      .item-price {
+        font-size: 1rem;
+      }
+
+      .quantity-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+
+      .quantity-input {
+        width: 50px;
+        font-size: 0.9rem;
+      }
+
+      .btn-remove {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Shopping Cart</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Loading cart...</p>
+    </div>
+
+    <div id="cart-section" style="display: none;">
+      <div class="cart-layout">
+        <div class="cart-items" id="cart-items">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h2 style="margin: 0;">Cart Items</h2>
+            <button class="btn-link" onclick="window.clearCart()" style="color: #ff6b6b; padding: 0.5rem 1rem; border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 0.5rem; background: rgba(255, 107, 107, 0.1); transition: all 0.2s ease;">
+              <i class="fas fa-trash-alt"></i> Clear Cart
+            </button>
+          </div>
+        </div>
+
+        <div class="summary">
+          <h2 style="margin-bottom: 1.5rem;">Order Summary</h2>
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="subtotal">₦0.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span id="shipping">₦0.00</span>
+          </div>
+          <div class="summary-row summary-total">
+            <span>Total</span>
+            <span id="total">₦0.00</span>
+          </div>
+          <button class="btn" onclick="window.proceedToCheckout()">
+            <i class="fas fa-arrow-right"></i> Proceed to Checkout
+          </button>
+          <a href="products.html" class="btn btn-link" style="display: block; text-align: center; margin-top: 1rem;">
+            Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="empty-section" class="empty-cart" style="display: none;">
+      <i class="fas fa-shopping-cart" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+      <h2 style="margin-bottom: 1rem;">Your cart is empty</h2>
+      <a href="products.html" class="btn" style="width: auto; display: inline-block;">
+        <i class="fas fa-shopping-bag"></i> Start Shopping
+      </a>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    let cartData = null;
+
+    // Define global functions FIRST before they're used in HTML generation
+    window.validateCartQuantity = function(itemId, value) {
+      // Convert to string for consistent ID matching
+      const itemIdStr = String(itemId);
+      let input = document.getElementById(`qty-${itemIdStr}`);
+      
+      // If not found, try finding by data attribute
+      if (!input) {
+        const inputs = document.querySelectorAll(`input[data-item-id="${itemIdStr}"], input[data-item-id="${itemId}"]`);
+        if (inputs.length > 0) {
+          input = inputs[0];
+        }
+      }
+      
+      if (!input) return;
+      
+      const numValue = parseInt(value) || 1;
+      const min = parseInt(input.min) || 1;
+      const max = parseInt(input.max) || 999;
+      const validatedValue = Math.max(min, Math.min(max, numValue));
+      if (input.value != validatedValue) {
+        input.value = validatedValue;
+      }
+    };
+
+    window.increaseQuantity = async function(itemId) {
+      console.log('increaseQuantity called with itemId:', itemId, typeof itemId);
+      
+      // Convert to string for consistent ID matching
+      const itemIdStr = String(itemId);
+      let input = document.getElementById(`qty-${itemIdStr}`);
+      
+      // If not found, try finding by data attribute
+      if (!input) {
+        const inputs = document.querySelectorAll(`input[data-item-id="${itemIdStr}"], input[data-item-id="${itemId}"]`);
+        if (inputs.length > 0) {
+          input = inputs[0];
+        }
+      }
+      
+      if (!input) {
+        console.error('Input not found for item:', itemId, 'Looking for ID:', `qty-${itemIdStr}`);
+        // Try to find all quantity inputs for debugging
+        const allInputs = document.querySelectorAll('.quantity-input');
+        console.log('Available quantity inputs:', Array.from(allInputs).map(inp => inp.id));
+        showToast('Could not find quantity input', 'error');
+        return;
+      }
+      
+      const current = parseInt(input.value) || 1;
+      const max = parseInt(input.max) || 999;
+      const newQty = Math.min(current + 1, max);
+      
+      if (newQty === current) {
+        showToast(`Maximum quantity is ${max}`, 'error');
+        return;
+      }
+      
+      console.log(`Increasing quantity for item ${itemId}: ${current} -> ${newQty}`);
+      // Update input immediately for visual feedback
+      input.value = newQty;
+      // Then update via API - ensure itemId is a number
+      const numItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+      await window.updateQuantity(numItemId, newQty);
+    };
+
+    window.decreaseQuantity = async function(itemId) {
+      console.log('decreaseQuantity called with itemId:', itemId, typeof itemId);
+      
+      // Convert to string for consistent ID matching
+      const itemIdStr = String(itemId);
+      let input = document.getElementById(`qty-${itemIdStr}`);
+      
+      // If not found, try finding by data attribute
+      if (!input) {
+        const inputs = document.querySelectorAll(`input[data-item-id="${itemIdStr}"], input[data-item-id="${itemId}"]`);
+        if (inputs.length > 0) {
+          input = inputs[0];
+        }
+      }
+      
+      if (!input) {
+        console.error('Input not found for item:', itemId, 'Looking for ID:', `qty-${itemIdStr}`);
+        // Try to find all quantity inputs for debugging
+        const allInputs = document.querySelectorAll('.quantity-input');
+        console.log('Available quantity inputs:', Array.from(allInputs).map(inp => inp.id));
+        showToast('Could not find quantity input', 'error');
+        return;
+      }
+      
+      const current = parseInt(input.value) || 1;
+      const newQty = Math.max(current - 1, 1);
+      
+      if (newQty === current) {
+        showToast('Minimum quantity is 1', 'error');
+        return;
+      }
+      
+      console.log(`Decreasing quantity for item ${itemId}: ${current} -> ${newQty}`);
+      // Update input immediately for visual feedback
+      input.value = newQty;
+      // Then update via API - ensure itemId is a number
+      const numItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+      await window.updateQuantity(numItemId, newQty);
+    };
+
+    window.updateQuantity = async function(itemId, quantity) {
+      const qty = parseInt(quantity);
+      if (isNaN(qty) || qty < 1) {
+        showToast('Quantity must be at least 1', 'error');
+        // Reload to reset
+        await loadCart();
+        return;
+      }
+
+      // Ensure itemId is a number for the API
+      const numItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+      console.log(`Updating quantity for item ${numItemId} (original: ${itemId}) to ${qty}`);
+
+      // Convert to string for consistent ID matching
+      const itemIdStr = String(itemId);
+      let input = document.getElementById(`qty-${itemIdStr}`);
+      
+      // If not found, try finding by data attribute
+      if (!input) {
+        const inputs = document.querySelectorAll(`input[data-item-id="${itemIdStr}"], input[data-item-id="${numItemId}"]`);
+        if (inputs.length > 0) {
+          input = inputs[0];
+          console.log('Found input by data attribute');
+        }
+      }
+      
+      // Last resort: try with number version
+      if (!input) {
+        input = document.getElementById(`qty-${numItemId}`);
+      }
+      
+      if (!input) {
+        console.warn(`Input not found for item ${itemId}, but continuing with API update`);
+      }
+      
+      if (input) {
+        // Disable input during update to prevent multiple clicks
+        input.disabled = true;
+      }
+
+      try {
+        const response = await SuperAffiliateAPI.updateCartItem(numItemId, qty);
+        console.log('Update response:', response);
+        
+        // Update cart badge immediately
+        await SuperAffiliateAPI.updateCartBadge();
+        
+        // Update totals without full reload for better UX
+        await updateCartTotals();
+        
+        // Re-enable input
+        if (input) {
+          input.disabled = false;
+        }
+      } catch (error) {
+        console.error('Error updating quantity:', error);
+        console.error('Error details:', error.message);
+        showToast(error.message || 'Failed to update quantity', 'error');
+        
+        // Re-enable input
+        if (input) {
+          input.disabled = false;
+          // Reset to original value on error
+          const timestamp = new Date().getTime();
+          try {
+            const response = await SuperAffiliateAPI.apiRequest(`/commerce/cart/?_t=${timestamp}`);
+            const items = response.items || [];
+            const item = items.find(i => i.id === numItemId || i.id === itemId);
+            if (item && input) {
+              input.value = item.quantity;
+            }
+          } catch (err) {
+            console.error('Error resetting quantity:', err);
+            // If that fails, reload everything
+            await loadCart();
+          }
+        } else {
+          // Reload cart to reset to correct quantity
+          await loadCart();
+        }
+      }
+    };
+
+    async function updateCartTotals() {
+      try {
+        // Force fresh data with cache-busting
+        const timestamp = new Date().getTime();
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/cart/?_t=${timestamp}`);
+        const items = response.items || [];
+        
+        // Calculate totals
+        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
+        const shipping = 0;
+        const total = subtotal + shipping;
+
+        const formatCurrency = (amount) => {
+          return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        };
+
+        document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+        document.getElementById('shipping').textContent = formatCurrency(shipping);
+        document.getElementById('total').textContent = formatCurrency(total);
+        
+        // Also update individual item quantities in case they changed
+        items.forEach(item => {
+          const itemIdStr = String(item.id);
+          let input = document.getElementById(`qty-${itemIdStr}`);
+          
+          // If not found, try finding by data attribute
+          if (!input) {
+            const inputs = document.querySelectorAll(`input[data-item-id="${itemIdStr}"], input[data-item-id="${item.id}"]`);
+            if (inputs.length > 0) {
+              input = inputs[0];
+            }
+          }
+          
+          if (input && parseInt(input.value) !== item.quantity) {
+            input.value = item.quantity;
+          }
+        });
+      } catch (error) {
+        console.error('Error updating totals:', error);
+        // Fallback to full reload
+        await loadCart();
+      }
+    }
+
+    window.removeItem = async function(itemId) {
+      if (!confirm('Remove this item from cart?')) return;
+
+      // Ensure itemId is a number for the API
+      const numItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+
+      try {
+        await SuperAffiliateAPI.removeCartItem(numItemId);
+        await loadCart();
+        await SuperAffiliateAPI.updateCartBadge();
+        showToast('Item removed from cart', 'success');
+      } catch (error) {
+        showToast(error.message || 'Failed to remove item', 'error');
+      }
+    };
+
+    window.clearCart = async function() {
+      if (!confirm('Clear all items from cart? This cannot be undone.')) return;
+
+      try {
+        await SuperAffiliateAPI.clearCart();
+        await loadCart();
+        await SuperAffiliateAPI.updateCartBadge();
+        showToast('Cart cleared', 'success');
+      } catch (error) {
+        showToast(error.message || 'Failed to clear cart', 'error');
+      }
+    };
+
+    window.proceedToCheckout = function() {
+      window.location.href = 'checkout.html';
+    };
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? '#00f2ea' : '#ff0050'};
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    async function loadCart() {
+      try {
+        // Force fresh data - bypass cache by using direct API call with timestamp
+        const timestamp = new Date().getTime();
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/cart/?_t=${timestamp}`);
+        cartData = response;
+        displayCart(response);
+        document.getElementById('loading-section').style.display = 'none';
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('empty-section').style.display = 'block';
+      }
+    }
+
+    // Load cart immediately on page load
+    loadCart();
+
+    function displayCart(data) {
+      document.getElementById('loading-section').style.display = 'none';
+
+      const items = data.items || [];
+      
+      if (items.length === 0) {
+        document.getElementById('empty-section').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('cart-section').style.display = 'block';
+
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      // Display items
+      const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
+      const getImageUrl = (product) => {
+        if (!product) return '';
+        const img = product.image || product.thumbnail || (product.images && product.images[0]?.image);
+        if (!img) return '';
+        return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
+      };
+
+      const itemsContainer = document.getElementById('cart-items');
+      itemsContainer.innerHTML = items.map(item => {
+        const imageUrl = getImageUrl(item.product);
+        return `
+        <div class="cart-item">
+          ${imageUrl ? `<img src="${imageUrl}" alt="${item.product?.name || 'Product'}" class="item-image" onerror="this.style.display='none';">` : '<div class="item-image" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
+          <div class="item-info">
+            <div class="item-name">${item.product?.name || 'Product'}</div>
+            <div class="item-price">${formatCurrency(item.product?.price || 0)}</div>
+            <div class="item-actions">
+              <label style="color: var(--text-secondary); font-size: 0.9rem;">Qty:</label>
+              <div class="quantity-selector">
+                <button class="quantity-btn" onclick="event.preventDefault(); event.stopPropagation(); window.decreaseQuantity('${item.id}')" 
+                        title="Decrease quantity" aria-label="Decrease quantity" type="button">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" class="quantity-input" id="qty-${String(item.id)}" value="${item.quantity}" min="1" 
+                       max="${item.product?.stock_quantity || 999}"
+                       onchange="window.updateQuantity('${item.id}', this.value)"
+                       oninput="window.validateCartQuantity('${item.id}', this.value)"
+                       data-item-id="${item.id}">
+                <button class="quantity-btn" onclick="event.preventDefault(); event.stopPropagation(); window.increaseQuantity('${item.id}')" 
+                        title="Increase quantity" aria-label="Increase quantity" type="button">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+              <button class="btn-remove" onclick="window.removeItem('${item.id}')" type="button">
+                <i class="fas fa-trash"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+
+      // Calculate totals
+      const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
+      const shipping = 0; // TODO: Calculate shipping
+      const total = subtotal + shipping;
+
+      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+      document.getElementById('shipping').textContent = formatCurrency(shipping);
+      document.getElementById('total').textContent = formatCurrency(total);
+    }
+
+    async function updateQuantity(itemId, quantity) {
+      try {
+        await SuperAffiliateAPI.updateCartItem(itemId, parseInt(quantity));
+        await loadCart();
+        await SuperAffiliateAPI.updateCartBadge();
+      } catch (error) {
+        showToast(error.message || 'Failed to update quantity', 'error');
+      }
+    }
+
+    async function removeItem(itemId) {
+      if (!confirm('Remove this item from cart?')) return;
+
+      try {
+        await SuperAffiliateAPI.removeCartItem(itemId);
+        await loadCart();
+        await SuperAffiliateAPI.updateCartBadge();
+        showToast('Item removed from cart', 'success');
+      } catch (error) {
+        showToast(error.message || 'Failed to remove item', 'error');
+      }
+    }
+
+    async function clearCart() {
+      if (!confirm('Clear all items from cart? This cannot be undone.')) return;
+
+      try {
+        await SuperAffiliateAPI.clearCart();
+        await loadCart();
+        await SuperAffiliateAPI.updateCartBadge();
+        showToast('Cart cleared', 'success');
+      } catch (error) {
+        showToast(error.message || 'Failed to clear cart', 'error');
+      }
+    }
+
+    window.proceedToCheckout = function() {
+      window.location.href = 'checkout.html';
+    };
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? '#00f2ea' : '#ff0050'};
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Initialize
+    loadCart();
+  </script>
+</body>
+</html>

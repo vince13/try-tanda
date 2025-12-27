@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
   <title>Tanda – Video Commerce Reimagined for Africa</title>
   <meta name="description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Now available on Google Play Store with AI shopping assistant for hands-free shopping.">
   
@@ -15,7 +20,9 @@
   <link rel="manifest" href="site.webmanifest">
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/super-affiliate-api.js?v=3"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/ios-enhancements.js"></script>
   <style>
     :root {
       --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
@@ -41,6 +48,60 @@
       scroll-behavior: smooth;
     }
 
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .header.scrolled {
+        padding-top: calc(1.5rem + env(safe-area-inset-top));
+      }
+
+      .footer {
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
@@ -53,6 +114,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 2rem;
+      overflow: visible;
     }
 
     /* Header */
@@ -66,6 +128,7 @@
       backdrop-filter: blur(20px);
       z-index: 1000;
       transition: all 0.3s ease;
+      overflow: visible;
     }
 
     .header.scrolled {
@@ -76,6 +139,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+    
+    .nav-main {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+      justify-content: flex-end;
+      min-width: 0;
+      flex-wrap: nowrap;
+      overflow: hidden;
     }
 
     .logo {
@@ -85,6 +162,9 @@
       font-size: 1.8rem;
       font-weight: 800;
       color: var(--text-primary);
+      flex-shrink: 0;
+      white-space: nowrap;
+      margin-right: 1rem;
     }
     
     .logo img {
@@ -102,8 +182,17 @@
 
     .nav-links {
       display: flex;
-      gap: 2rem;
+      gap: 1.5rem;
       list-style: none;
+      margin: 0;
+      padding: 0;
+      flex-shrink: 1;
+      overflow: hidden;
+    }
+    
+    .nav-links li {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .nav-links a {
@@ -115,6 +204,27 @@
 
     .nav-links a:hover {
       color: var(--accent-color);
+    }
+    
+    .nav-links a.shop-link {
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    
+    .nav-links a.shop-link:hover {
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      border-top-color: rgba(255, 255, 255, 0.4) !important;
+      border-right-color: rgba(255, 255, 255, 0.4) !important;
+      border-bottom-color: rgba(255, 255, 255, 0.4) !important;
+      border-left-color: rgba(255, 255, 255, 0.4) !important;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     /* Dropdown Styles */
@@ -163,6 +273,20 @@
       transform: translateY(0);
     }
 
+    /* Mobile dropdown active state */
+    @media (max-width: 768px) {
+      .dropdown.active .dropdown-menu {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+      }
+
+      .dropdown.active .dropdown-toggle i {
+        transform: rotate(180deg);
+      }
+    }
+
     .dropdown-menu li {
       margin: 0;
     }
@@ -182,6 +306,273 @@
       border-left-color: var(--accent-color);
     }
 
+    /* Auth Navigation Styles */
+    .nav-auth {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+      overflow: visible;
+      flex-shrink: 0;
+      min-width: 0;
+      margin-left: 1rem;
+    }
+
+    .auth-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-link-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .nav-link-btn:hover {
+      color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link-btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+    }
+
+    .nav-link-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+      color: white;
+    }
+
+    /* User Menu Dropdown */
+    .user-menu-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+      overflow: visible;
+    }
+
+    .user-menu-dropdown {
+      position: relative;
+      z-index: 10000;
+      overflow: visible;
+    }
+
+    .user-menu-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .user-menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-color);
+    }
+
+    .user-menu-toggle i:first-child {
+      font-size: 1.2rem;
+    }
+
+    .user-menu-toggle i:last-child {
+      font-size: 0.7rem;
+      transition: transform 0.3s ease;
+    }
+
+    .user-menu-dropdown.active .user-menu-toggle i:last-child {
+      transform: rotate(180deg);
+    }
+
+    .user-menu {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px);
+      min-width: 220px;
+      max-width: 280px;
+      width: auto;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 10000;
+      padding: 0.5rem 0;
+      margin: 0;
+      list-style: none;
+      display: block;
+      pointer-events: none;
+      overflow: visible;
+      height: auto;
+      max-height: none;
+    }
+
+    .user-menu.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: translateY(0) !important;
+      pointer-events: auto !important;
+      display: block !important;
+      overflow: visible !important;
+      height: auto !important;
+    }
+
+    /* Ensure menu is visible when active - override any inline styles */
+    .user-menu.active[style*="display: none"] {
+      display: block !important;
+    }
+
+    /* Base user menu item styles - use maximum specificity to override any global styles */
+    .user-menu-dropdown .user-menu a.user-menu-item,
+    .user-menu-dropdown .user-menu a.user-menu-item:link,
+    .user-menu-dropdown .user-menu a.user-menu-item:visited,
+    .user-menu-dropdown .user-menu a.user-menu-item:active,
+    .user-menu-dropdown .user-menu a.user-menu-item:focus,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item {
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.75rem !important;
+      padding: 0.75rem 1.25rem !important;
+      color: var(--text-secondary) !important;
+      text-decoration: none !important;
+      transition: all 0.3s ease !important;
+      font-size: 0.95rem !important;
+      font-weight: 500 !important;
+      font-family: 'Inter', sans-serif !important;
+      white-space: nowrap !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      height: auto !important;
+      line-height: 1.5 !important;
+      border: none !important;
+      background: transparent !important;
+      cursor: pointer !important;
+      margin: 0 !important;
+      outline: none !important;
+      -webkit-appearance: none !important;
+      appearance: none !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item:hover,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item:hover {
+      color: var(--accent-color) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      text-decoration: none !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item span,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item span {
+      display: inline-block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      color: inherit !important;
+      text-decoration: none !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      line-height: inherit !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item i,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item i {
+      display: inline-block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      width: 20px !important;
+      text-align: center !important;
+      font-size: 1rem !important;
+      color: inherit !important;
+      flex-shrink: 0 !important;
+      font-style: normal !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item:hover span,
+    .user-menu-dropdown .user-menu a.user-menu-item:hover i,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item:hover span,
+    .user-menu-wrapper .user-menu-dropdown .user-menu a.user-menu-item:hover i {
+      color: var(--accent-color) !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-highlight {
+      background: linear-gradient(135deg, rgba(255,0,80,0.1), rgba(0,242,234,0.1)) !important;
+      border-left: 3px solid var(--accent-color) !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-highlight:hover {
+      background: linear-gradient(135deg, rgba(255,0,80,0.2), rgba(0,242,234,0.2)) !important;
+      color: var(--accent-color) !important;
+      text-decoration: none !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-danger {
+      color: #ff6b6b !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-danger:hover {
+      color: #ff5252 !important;
+      background: rgba(255, 107, 107, 0.1) !important;
+      text-decoration: none !important;
+    }
+
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-danger span,
+    .user-menu-dropdown .user-menu a.user-menu-item.user-menu-item-danger i {
+      color: inherit !important;
+    }
+
+    .user-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0.5rem 0;
+      width: 100%;
+      display: block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    #dashboardMenuPlaceholder {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .nav-link-btn span {
+        display: none;
+      }
+
+      .user-menu {
+        right: 0;
+        left: auto;
+        min-width: 200px;
+      }
+
+      .user-menu-toggle span {
+        display: none;
+      }
+    }
+
     .mobile-menu-btn {
       display: none;
       background: none;
@@ -189,6 +580,14 @@
       color: var(--text-primary);
       font-size: 1.5rem;
       cursor: pointer;
+      padding: 0.5rem;
+      z-index: 1002;
+    }
+    
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
     }
 
     /* Hero Section */
@@ -235,7 +634,7 @@
       display: flex;
       gap: 1rem;
       justify-content: flex-start;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       margin-bottom: 3rem;
     }
 
@@ -588,6 +987,131 @@
         transition: background 0.3s ease;
       }
       
+      /* FasterCapital Section */
+      .fastercapital-section {
+        padding: 3rem 0;
+        background: linear-gradient(135deg, rgba(255, 0, 80, 0.05), rgba(0, 242, 234, 0.05));
+      }
+
+      .fastercapital-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .fastercapital-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+      }
+
+      .fastercapital-icon {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 0, 80, 0.3);
+      }
+
+      .fastercapital-content {
+        flex: 1;
+      }
+
+      .fastercapital-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .fastercapital-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+      }
+
+      .fastercapital-text strong {
+        color: var(--text-primary);
+        font-weight: 700;
+      }
+
+      .fastercapital-link {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .fastercapital-link:hover {
+        color: #00d4c8;
+        border-bottom-color: #00d4c8;
+      }
+
+      .funding-amount {
+        color: var(--accent-color);
+        font-size: 1.2em;
+        font-weight: 700;
+      }
+
+      .fastercapital-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 242, 234, 0.1);
+        border: 1px solid rgba(0, 242, 234, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        color: var(--accent-color);
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .fastercapital-badge i {
+        color: var(--accent-color);
+      }
+
+      @media (max-width: 768px) {
+        .fastercapital-card {
+          flex-direction: column;
+          text-align: center;
+          padding: 2rem;
+        }
+
+        .fastercapital-icon {
+          width: 70px;
+          height: 70px;
+          font-size: 2rem;
+        }
+
+        .fastercapital-title {
+          font-size: 1.3rem;
+        }
+
+        .fastercapital-text {
+          font-size: 1rem;
+        }
+      }
+
       /* Features Section */
       .features {
       padding: 4rem 0;
@@ -826,6 +1350,10 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
+      .header {
+        padding: 1rem 0;
+      }
+
       .logo img {
         height: 32px;
       }
@@ -833,51 +1361,200 @@
       .logo-text {
         font-size: 1.5rem;
       }
+
+      .nav {
+        position: relative;
+        overflow: visible !important;
+      }
+      
+      .nav-main {
+        position: static;
+        overflow: visible !important;
+      }
+      
+      .container {
+        overflow: visible !important;
+      }
       
       .nav-links {
-        display: none;
+        display: none !important;
         position: absolute;
         top: 100%;
         left: 0;
         right: 0;
+        width: 100%;
         background: var(--bg-primary);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius);
         flex-direction: column;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        z-index: 1000;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(20px);
+        z-index: 1001;
+        gap: 0;
+        margin-top: 1rem;
+        opacity: 1;
+        visibility: visible;
       }
       
       .nav-links.show {
-        display: flex;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+
+      .nav-links li {
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-links li:last-child {
+        border-bottom: none;
+      }
+
+      .nav-links a {
+        display: block;
+        padding: 1rem;
+        width: 100%;
+      }
+      
+      .nav-links a.shop-link {
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-left: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 6px;
+        margin: 0.5rem 0;
+        box-sizing: border-box;
+      }
+      
+      .nav-links a.shop-link:hover {
+        border-color: rgba(255, 255, 255, 0.4) !important;
+        border-top-color: rgba(255, 255, 255, 0.4) !important;
+        border-right-color: rgba(255, 255, 255, 0.4) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.4) !important;
+        border-left-color: rgba(255, 255, 255, 0.4) !important;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .dropdown {
+        width: 100%;
+      }
+
+      .dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+        padding: 1rem;
       }
 
       .dropdown-menu {
         position: static;
-        opacity: 1;
-        visibility: visible;
+        opacity: 0;
+        visibility: hidden;
+        max-height: 0;
+        overflow: hidden;
         transform: none;
-        background: transparent;
+        background: rgba(255, 255, 255, 0.05);
         border: none;
         box-shadow: none;
         backdrop-filter: none;
-        margin: 0.5rem 0;
+        margin: 0;
         padding: 0;
+        width: 100%;
+        border-radius: 0.5rem;
+        margin-top: 0;
+        transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+        display: block;
+      }
+      
+      .dropdown.active .dropdown-menu {
+        opacity: 1 !important;
+        visibility: visible !important;
+        max-height: 500px !important;
+        padding: 0.5rem 0 !important;
+        margin-top: 0.5rem !important;
+      }
+
+      .dropdown-menu li {
+        margin: 0;
       }
 
       .dropdown-menu a {
-        padding: 0.5rem 1rem;
-        border-left: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1.5rem;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       }
 
       .dropdown-menu a:hover {
         background: rgba(255, 255, 255, 0.1);
-        border-left: none;
+        border-left-color: var(--accent-color);
       }
 
       .mobile-menu-btn {
-        display: block;
+        display: block !important;
+        order: 3;
+      }
+
+      .nav-auth {
+        order: 2;
+        flex: 1;
+        justify-content: flex-end;
+        min-width: 0;
+      }
+
+      .nav-auth .user-menu-wrapper,
+      .nav-auth .auth-nav-buttons {
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-right: 0.5rem;
+      }
+
+      .nav-auth .user-menu-wrapper::-webkit-scrollbar,
+      .nav-auth .auth-nav-buttons::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav-link-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .nav-link-btn i {
+        font-size: 0.8rem;
+      }
+
+      .user-menu-toggle {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+
+      .user-menu {
+        right: 0;
+        left: auto;
+        min-width: 200px;
+        max-width: calc(100vw - 2rem);
+      }
+
+      /* Ensure user menu dropdown doesn't get cut off on mobile */
+      .user-menu-dropdown {
+        position: relative;
+      }
+
+      /* Ensure cart badge is visible on mobile */
+      #cart-badge {
+        font-size: 0.65rem;
+        width: 18px;
+        height: 18px;
+        top: -6px;
+        right: -6px;
       }
 
       .hero-layout {
@@ -963,23 +1640,144 @@
       .container {
         padding: 0 1rem;
       }
+    }
+
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      .header {
+        padding: 0.75rem 0;
+      }
+
+      .logo img {
+        height: 28px;
+      }
       
-      /* Extra small mobile devices */
-      @media (max-width: 480px) {
-        .google-form-container {
-          padding: 0.25rem;
-          margin: 0 0.1rem;
-          max-width: 98vw;
-        }
-        
-        .google-form-container iframe {
-          height: 700px;
-        }
-        
-        .form-link-container {
-          margin: 0.5rem 0.1rem;
-          padding: 0.75rem;
-        }
+      .logo-text {
+        font-size: 1.3rem;
+      }
+
+      .nav-link-btn {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      .nav-link-btn span {
+        display: none;
+      }
+
+      .user-menu-toggle {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      .user-menu-toggle span {
+        display: none;
+      }
+
+      .user-menu {
+        min-width: 180px;
+        max-width: calc(100vw - 1rem);
+        right: 0;
+        left: auto;
+      }
+    }
+
+    /* iOS Bottom Sheet Modal */
+    .ios-bottom-sheet {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      pointer-events: none;
+    }
+
+    .ios-bottom-sheet.show {
+      pointer-events: auto;
+    }
+
+    .ios-bottom-sheet-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .ios-bottom-sheet.show .ios-bottom-sheet-backdrop {
+      opacity: 1;
+    }
+
+    .ios-bottom-sheet-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-radius: 20px 20px 0 0;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .ios-bottom-sheet.show .ios-bottom-sheet-content {
+      transform: translateY(0);
+    }
+
+    .ios-bottom-sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin: 12px auto;
+    }
+
+    .ios-bottom-sheet-body {
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    /* iOS-style transitions */
+    .ios-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    /* Ensure all touch targets meet iOS minimum 44x44px */
+    button, .btn, a.btn, .nav-link-btn, .user-menu-toggle, 
+    .actionBtn, input[type="button"], input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* For buttons with only padding, ensure they meet minimum */
+    @media (max-width: 768px) {
+      button, .btn, a.btn {
+        min-height: 44px;
+        padding: 0.75rem 1rem; /* Ensures at least 44px height */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .google-form-container {
+        padding: 0.25rem;
+        margin: 0 0.1rem;
+        max-width: 98vw;
+      }
+      
+      .google-form-container iframe {
+        height: 700px;
+      }
+      
+      .form-link-container {
+        margin: 0.5rem 0.1rem;
+        padding: 0.75rem;
       }
     }
 
@@ -1024,6 +1822,143 @@
       margin-top: 1rem;
       text-align: center;
     }
+
+    /* Add to Home Screen Prompt */
+    .pwa-install-prompt {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem 1.5rem;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .pwa-install-prompt.show {
+      display: flex;
+    }
+
+    .pwa-install-prompt.hide {
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+    }
+
+    .pwa-install-prompt-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--primary-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pwa-install-prompt-icon img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .pwa-install-prompt-content {
+      flex: 1;
+    }
+
+    .pwa-install-prompt-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .pwa-install-prompt-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .pwa-install-prompt-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .pwa-install-btn {
+      padding: 0.5rem 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .pwa-install-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
+    }
+
+    .pwa-install-dismiss {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+      transition: color 0.3s ease;
+    }
+
+    .pwa-install-dismiss:hover {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+      .pwa-install-prompt {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      }
+
+      .pwa-install-prompt-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .pwa-install-btn {
+        flex: 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1031,25 +1966,28 @@
   <header class="header" id="header">
     <div class="container">
       <nav class="nav">
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
           <img src="Tanda logo.png" alt="Tanda Logo">
           <span class="logo-text">Tanda</span>
+        </a>
+        <div class="nav-main">
+          <ul class="nav-links">
+            <li><a href="products.html" class="shop-link">Shop</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle">
+                Legal <i class="fas fa-chevron-down"></i>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                <li><a href="tanda_safety_standards.html">Safety Standards</a></li>
+              </ul>
+            </li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank">Download App</a></li>
+          </ul>
+          <div id="authNav" class="nav-auth tanda-nav-container"></div>
         </div>
-        <ul class="nav-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <!-- <li><a href="#screenshots">Screenshots</a></li> -->
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle">
-              Legal <i class="fas fa-chevron-down"></i>
-            </a>
-            <ul class="dropdown-menu">
-              <li><a href="privacy-policy.html">Privacy Policy</a></li>
-              <li><a href="tanda_safety_standards.html">Safety Standards</a></li>
-            </ul>
-          </li>
-           <li><a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank">Download App</a></li>
-        </ul>
         <button class="mobile-menu-btn">
           <i class="fas fa-bars"></i>
         </button>
@@ -1069,9 +2007,9 @@
             <a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank" class="play-store-badge">
               <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play">
             </a>
-            <a href="#how-it-works" class="btn btn-secondary">
-              <i class="fas fa-play"></i>
-              See How It Works
+            <a href="super-affiliate-login.html" id="get-started-btn" class="btn btn-secondary">
+              <i class="fas fa-rocket"></i>
+              Get Started
             </a>
           </div>
         </div>
@@ -1101,6 +2039,31 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FasterCapital EquityPilot Section -->
+  <section class="fastercapital-section" id="fastercapital">
+    <div class="container">
+      <div class="fastercapital-card">
+        <div class="fastercapital-icon">
+          <i class="fas fa-rocket"></i>
+        </div>
+        <div class="fastercapital-content">
+          <h3 class="fastercapital-title">Funding & Growth</h3>
+          <p class="fastercapital-text">
+            <strong>Tanda</strong> has been accepted into the <strong>EquityPilot program</strong> of 
+            <a href="https://www.fastercapital.com" target="_blank" rel="noopener noreferrer" class="fastercapital-link">
+              FasterCapital
+            </a> 
+            and is seeking a capital of <strong class="funding-amount">$500,000</strong>.
+          </p>
+          <div class="fastercapital-badge">
+            <i class="fas fa-check-circle"></i>
+            <span>EquityPilot Program Participant</span>
           </div>
         </div>
       </div>
@@ -1396,6 +2359,21 @@
   </div>
   </footer>
 
+  <!-- Add to Home Screen Prompt -->
+  <div id="pwaInstallPrompt" class="pwa-install-prompt">
+    <div class="pwa-install-prompt-icon">
+      <img src="Tanda logo.png" alt="Tanda">
+    </div>
+    <div class="pwa-install-prompt-content">
+      <div class="pwa-install-prompt-title">Install Tanda App</div>
+      <div class="pwa-install-prompt-text">Add to your home screen for a better experience</div>
+    </div>
+    <div class="pwa-install-prompt-actions">
+      <button class="pwa-install-btn" id="pwaInstallBtn">Install</button>
+      <button class="pwa-install-dismiss" id="pwaInstallDismiss" aria-label="Dismiss">×</button>
+    </div>
+  </div>
+
   <script>
     // Header scroll effect
     window.addEventListener('scroll', () => {
@@ -1429,40 +2407,84 @@
     
     // Mobile menu functionality
     document.addEventListener('DOMContentLoaded', () => {
-      const navLinks = document.querySelectorAll('.nav-links a');
+      const navLinks = document.querySelectorAll('.nav-links a:not(.dropdown-toggle)');
       const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
       const navLinksContainer = document.querySelector('.nav-links');
+      const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
       
-      // Add click event to mobile menu button
-      mobileMenuBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Toggle the show class
-        navLinksContainer.classList.toggle('show');
-        
-        // Update button icon
-        if (navLinksContainer.classList.contains('show')) {
-          mobileMenuBtn.innerHTML = '<i class="fas fa-times"></i>';
-        } else {
-          mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      // Add haptic feedback to button interactions
+      const addHapticToButtons = () => {
+        if (window.HapticFeedback) {
+          document.querySelectorAll('button, .btn, a.btn').forEach(btn => {
+            if (!btn.hasAttribute('data-haptic-added')) {
+              btn.setAttribute('data-haptic-added', 'true');
+              btn.addEventListener('click', () => {
+                window.HapticFeedback.selection();
+              });
+            }
+          });
         }
+      };
+      addHapticToButtons();
+
+      // Add click event to mobile menu button
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.HapticFeedback) window.HapticFeedback.light();
+          
+          // Toggle the show class
+          navLinksContainer.classList.toggle('show');
+          
+          // Update button icon
+          if (navLinksContainer.classList.contains('show')) {
+            mobileMenuBtn.innerHTML = '<i class="fas fa-times"></i>';
+          } else {
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+          }
+        });
+      }
+      
+      // Handle dropdown toggles on mobile (click instead of hover)
+      dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+          // On mobile, toggle dropdown on click
+          if (window.innerWidth <= 768) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = this.closest('.dropdown');
+            if (dropdown) {
+              dropdown.classList.toggle('active');
+            }
+          }
+        });
       });
       
-      // Close menu when clicking on navigation links
+      // Close menu when clicking on navigation links (non-dropdown)
       navLinks.forEach(link => {
         link.addEventListener('click', () => {
           navLinksContainer.classList.remove('show');
-          mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+          if (mobileMenuBtn) {
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+          }
         });
       });
       
       // Close menu when clicking outside
       document.addEventListener('click', (e) => {
-        if (!navLinksContainer.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        if (navLinksContainer && !navLinksContainer.contains(e.target) && mobileMenuBtn && !mobileMenuBtn.contains(e.target)) {
           navLinksContainer.classList.remove('show');
           mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
         }
+        
+        // Close dropdowns when clicking outside
+        dropdownToggles.forEach(toggle => {
+          const dropdown = toggle.closest('.dropdown');
+          if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+          }
+        });
       });
     });
 
@@ -1490,6 +2512,73 @@
       const heroContent = document.querySelector('.hero-content');
       if (heroContent) {
         heroContent.classList.add('fade-in-up');
+      }
+
+      // Update "Get Started" button based on authentication status
+      function updateGetStartedButton() {
+        const getStartedBtn = document.getElementById('get-started-btn');
+        if (!getStartedBtn) return;
+        
+        // Wait for SuperAffiliateAPI to be available
+        if (typeof SuperAffiliateAPI === 'undefined') {
+          // Retry after a short delay
+          setTimeout(updateGetStartedButton, 100);
+          return;
+        }
+        
+        try {
+          // Check if user is authenticated
+          const isAuthenticated = SuperAffiliateAPI.isAuthenticated();
+          
+          if (isAuthenticated) {
+            // User is logged in - link to feed
+            getStartedBtn.href = 'feed.html';
+            console.log('Get Started button: User authenticated, linking to feed.html');
+          } else {
+            // User is not logged in - link to login/signup
+            getStartedBtn.href = 'super-affiliate-login.html';
+            console.log('Get Started button: User not authenticated, linking to login page');
+          }
+        } catch (error) {
+          console.error('Error checking authentication:', error);
+          // Default to login page on error
+          getStartedBtn.href = 'super-affiliate-login.html';
+        }
+        
+        // Ensure button text and icon are set
+        if (!getStartedBtn.querySelector('i')) {
+          getStartedBtn.innerHTML = '<i class="fas fa-rocket"></i> Get Started';
+        }
+        
+        // Add click handler for haptic feedback on iOS (only once)
+        if (!getStartedBtn.dataset.hapticAdded) {
+          getStartedBtn.addEventListener('click', function(e) {
+            if (window.HapticFeedback) {
+              HapticFeedback.medium();
+            }
+            // Don't prevent default - let the link navigate
+          });
+          getStartedBtn.dataset.hapticAdded = 'true';
+        }
+      }
+      
+      // Initialize button on page load
+      updateGetStartedButton();
+      
+      // Also update when SuperAffiliateAPI loads (if it loads after DOMContentLoaded)
+      if (typeof SuperAffiliateAPI !== 'undefined') {
+        updateGetStartedButton();
+      } else {
+        // Listen for when SuperAffiliateAPI becomes available
+        const checkAPI = setInterval(() => {
+          if (typeof SuperAffiliateAPI !== 'undefined') {
+            updateGetStartedButton();
+            clearInterval(checkAPI);
+          }
+        }, 100);
+        
+        // Stop checking after 5 seconds
+        setTimeout(() => clearInterval(checkAPI), 5000);
       }
 
       // Video player functionality
@@ -1551,6 +2640,158 @@
 
         observer.observe(video);
       }
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.SuperAffiliateAPI) {
+        window.SuperAffiliateAPI.renderAuthNav('authNav');
+      }
+
+      // Register Service Worker for PWA with update handling
+      if ('serviceWorker' in navigator) {
+        // First, unregister all old service workers
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          return Promise.all(
+            registrations.map((registration) => {
+              console.log('Unregistering old service worker:', registration.scope);
+              return registration.unregister();
+            })
+          );
+        }).then(() => {
+          // Then register the new one
+          return navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+        }).then((registration) => {
+          console.log('✅ New Service Worker registered:', registration.scope);
+          
+          // Check for updates immediately
+          registration.update();
+          
+          // Listen for updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  console.log('🔄 New service worker activated, reloading...');
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        }).catch((error) => {
+          console.log('⚠️ Service Worker registration failed:', error);
+        });
+      }
+
+      // Add to Home Screen Prompt
+      function initPWAInstallPrompt() {
+        const prompt = document.getElementById('pwaInstallPrompt');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const dismissBtn = document.getElementById('pwaInstallDismiss');
+        
+        if (!prompt || !installBtn || !dismissBtn) return;
+
+        // Check if already installed or dismissed
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+        const wasDismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+        const wasInstalled = localStorage.getItem('pwa-installed') === 'true';
+
+        if (isInstalled || wasDismissed || wasInstalled) {
+          return; // Don't show prompt
+        }
+
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone === true;
+
+        // Show prompt after delay (on iOS or if beforeinstallprompt event available)
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          setTimeout(() => {
+            if (!wasDismissed && !isStandalone) {
+              prompt.classList.add('show');
+            }
+          }, 3000); // Show after 3 seconds
+        });
+
+        // For iOS, show instructions
+        if (isIOS && !isStandalone) {
+          setTimeout(() => {
+            if (!wasDismissed) {
+              prompt.classList.add('show');
+            }
+          }, 5000); // Show after 5 seconds on iOS
+        }
+
+        // Install button handler
+        installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            // Chrome/Android
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              localStorage.setItem('pwa-installed', 'true');
+              prompt.classList.remove('show');
+            }
+            deferredPrompt = null;
+          } else if (isIOS) {
+            // iOS - show instructions
+            const instructions = document.createElement('div');
+            instructions.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0,0,0,0.9);
+              z-index: 10001;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 2rem;
+              color: white;
+              text-align: center;
+            `;
+            instructions.innerHTML = `
+              <div>
+                <h2 style="margin-bottom: 1rem; font-size: 1.5rem;">Add to Home Screen</h2>
+                <p style="margin-bottom: 2rem; line-height: 1.6;">
+                  Tap the <i class="fas fa-share" style="margin: 0 0.5rem;"></i> share button, then select<br>
+                  <strong>"Add to Home Screen"</strong>
+                </p>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="padding: 0.75rem 2rem; background: var(--primary-gradient); 
+                               color: white; border: none; border-radius: 0.5rem; 
+                               font-weight: 600; cursor: pointer;">
+                  Got it
+                </button>
+              </div>
+            `;
+            document.body.appendChild(instructions);
+            localStorage.setItem('pwa-install-dismissed', 'true');
+            prompt.classList.remove('show');
+          }
+        });
+
+        // Dismiss button handler
+        dismissBtn.addEventListener('click', () => {
+          prompt.classList.remove('show');
+          localStorage.setItem('pwa-install-dismissed', 'true');
+        });
+
+        // Hide prompt when app is installed
+        window.addEventListener('appinstalled', () => {
+          localStorage.setItem('pwa-installed', 'true');
+          prompt.classList.remove('show');
+        });
+      }
+
+      initPWAInstallPrompt();
     });
   </script>
 </body>

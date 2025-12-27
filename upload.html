@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Upload Video - Tanda Web</title>
+  <meta name="description" content="Upload a video from the web (iOS-friendly).">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 920px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: nowrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      min-width: 0; /* allow auth strip to shrink without wrapping */
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.08);
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-left: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .hint {
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    .row { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600; }
+    input[type="file"], textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 0.75rem;
+      padding: 0.95rem 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      background: var(--primary-gradient);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-width: 200px;
+      justify-content: center;
+    }
+    .btn.secondary {
+      background: rgba(255,255,255,0.1);
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .progress {
+      margin-top: 1rem;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .result {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(0, 242, 234, 0.25);
+      background: rgba(0, 242, 234, 0.08);
+      display: none;
+    }
+
+    .result a { color: var(--accent-color); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      body { 
+        padding: 1rem; 
+      }
+
+      .header { 
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .container { 
+        padding: 1.25rem; 
+      }
+
+      .btn { 
+        width: 100%; 
+        min-width: unset; 
+      }
+
+      .nav { 
+        width: 100%; 
+      }
+
+      .nav a { 
+        margin-left: 0;
+        flex: 1;
+        justify-content: center;
+      }
+
+      .row {
+        margin-bottom: 1.5rem;
+      }
+
+      input[type="file"],
+      textarea {
+        font-size: 0.95rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title"><i class="fas fa-cloud-upload-alt"></i> Upload Video</div>
+    <div class="nav">
+      <a href="index.html"><i class="fas fa-home"></i> Home</a>
+      <div id="authNav" class="tanda-nav-container"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <p class="hint">
+      This is the **iOS-friendly** web upload. It uses your existing backend endpoint
+      <code>/api/videos/publish/</code>. Keep videos under ~50MB for now.
+    </p>
+
+    <div class="row">
+      <label for="videoFile">Video file</label>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <input id="videoFile" type="file" accept="video/*" style="flex: 1; min-width: 200px;" />
+        <button type="button" onclick="openCamera()" class="btn" style="flex-shrink: 0; margin: 0;">
+          <i class="fas fa-camera"></i> Record Video
+        </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="caption">Caption (optional)</label>
+      <textarea id="caption" placeholder="Write a caption..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="uploadBtn" onclick="upload()">
+        <i class="fas fa-upload"></i> Publish Video
+      </button>
+      <button class="btn secondary" onclick="SuperAffiliateAPI.logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+
+    <div class="progress" id="progress">
+      <i class="fas fa-spinner fa-spin"></i> Uploading... (this may take a while on mobile)
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    SuperAffiliateAPI.renderAuthNav('authNav');
+
+    // Require auth
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html';
+    }
+
+    async function upload() {
+      const file = document.getElementById('videoFile').files?.[0];
+      const caption = document.getElementById('caption').value || '';
+      const btn = document.getElementById('uploadBtn');
+      const progress = document.getElementById('progress');
+      const result = document.getElementById('result');
+
+      result.style.display = 'none';
+
+      if (!file) {
+        showToast('Please select a video file.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      progress.style.display = 'block';
+
+      try {
+        const res = await SuperAffiliateAPI.publishVideo({ file, caption, isPublic: true });
+        showToast('✅ Video published!', 'success');
+
+        result.style.display = 'block';
+        result.innerHTML = `
+          <div style="font-weight:800; margin-bottom:0.5rem;">Published successfully</div>
+          <div style="color: rgba(255,255,255,0.85); margin-bottom:0.5rem;">
+            You can now add product tags from your videos list.
+          </div>
+          <a href="my-videos.html">Go to My Videos →</a>
+        `;
+      } catch (e) {
+        showToast(e.message || 'Upload failed', 'error');
+      } finally {
+        btn.disabled = false;
+        progress.style.display = 'none';
+      }
+    }
+
+    function openCamera() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'video/*';
+      input.capture = 'environment'; // Use back camera
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          document.getElementById('videoFile').files = dataTransfer.files;
+          document.getElementById('videoFile').dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      input.click();
+    }
+  </script>
+</body>
+</html>
+
+

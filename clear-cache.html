@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Cache - Tanda</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #000;
+      color: #fff;
+    }
+
+    button {
+      padding: 15px 30px;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        margin: 20px auto;
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        margin: 10px auto;
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Clear Cache & Service Worker</h1>
+  <p>Use this page to clear cached files and update the service worker.</p>
+  
+  <button onclick="clearCache()">Clear All Caches</button>
+  <button onclick="unregisterSW()">Unregister Service Worker</button>
+  <button onclick="reload()">Reload Page</button>
+  
+  <div id="status" class="status"></div>
+
+  <script>
+    async function clearCache() {
+      const status = document.getElementById('status');
+      status.innerHTML = 'Clearing caches...';
+      
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('Deleting cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+        status.innerHTML = '✅ All caches cleared!';
+      } catch (error) {
+        status.innerHTML = '❌ Error: ' + error.message;
+      }
+    }
+
+    async function unregisterSW() {
+      const status = document.getElementById('status');
+      status.innerHTML = 'Unregistering service workers...';
+      
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(
+          registrations.map(registration => registration.unregister())
+        );
+        status.innerHTML = '✅ Service workers unregistered!';
+      } catch (error) {
+        status.innerHTML = '❌ Error: ' + error.message;
+      }
+    }
+
+    function reload() {
+      window.location.reload(true);
+    }
+
+    // Auto-clear on load
+    window.addEventListener('load', async () => {
+      await clearCache();
+      await unregisterSW();
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

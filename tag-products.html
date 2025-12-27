@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Tag Products - Tanda Web</title>
+  <meta name="description" content="Add product tags to a video from the web (iOS-friendly).">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.08);
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-left: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .hint {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 700; }
+    input, select, textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 0.75rem;
+      padding: 0.9rem 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      background: var(--primary-gradient);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      min-width: 220px;
+      justify-content: center;
+    }
+    .btn.secondary { background: rgba(255,255,255,0.1); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .section-title { margin: 1.5rem 0 0.75rem; color: var(--accent-color); font-weight: 900; }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .tag-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 1rem;
+      padding: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .tag-img {
+      width: 56px;
+      height: 56px;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.7);
+      font-weight: 800;
+    }
+    .tag-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .tag-meta { flex: 1; min-width: 0; }
+    .tag-name { font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tag-sub { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem; }
+
+    .empty {
+      padding: 1rem;
+      color: var(--text-secondary);
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 0.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid { 
+        grid-template-columns: 1fr; 
+      }
+    }
+
+    @media (max-width: 768px) {
+      body { 
+        padding: 1rem; 
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .container { 
+        padding: 1.25rem; 
+      }
+
+      .nav { 
+        width: 100%; 
+        display: flex; 
+        gap: 0.5rem; 
+      }
+
+      .nav a { 
+        flex: 1; 
+        justify-content: center; 
+        margin-left: 0; 
+      }
+
+      .btn { 
+        width: 100%; 
+        min-width: unset; 
+      }
+
+      .list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+    }
+
+    /* Product Selector Button */
+    .product-select-btn {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+    .product-select-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .product-select-btn i {
+      color: var(--accent-color);
+    }
+    .product-select-btn span {
+      flex: 1;
+      color: var(--text-secondary);
+    }
+    .product-select-btn.has-selection span {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Product Selector Modal */
+    .product-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10002;
+      background: rgba(0,0,0,0.95);
+      backdrop-filter: blur(20px);
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    .product-modal.active {
+      display: block;
+    }
+    .product-modal-content {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(17, 17, 17, 0.98);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    .product-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .product-modal-header h2 {
+      font-size: 1.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .product-modal-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+    }
+    .product-modal-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .product-search {
+      margin-bottom: 1.5rem;
+    }
+    .product-search input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    .product-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .product-item:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+    .product-item.selected {
+      background: rgba(0,242,234,0.1);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(0,242,234,0.3);
+    }
+    .product-item-image {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+    }
+    .product-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .product-item-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .product-item-price {
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .product-modal-footer {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+    .product-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+    .product-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .product-modal {
+        padding: 1rem;
+      }
+      .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+      }
+      .product-modal-content {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title"><i class="fas fa-tag"></i> Tag Products</div>
+    <div class="nav">
+      <div id="authNav" class="tanda-nav-container"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <p class="hint">
+      This page adds **unified product tags** for a video using the backend endpoints:
+      <code>/api/videos/product-tags/by_video/&lt;video_id&gt;/</code> and <code>/api/videos/product-tags/</code>.
+      <br><br>
+      **Internal products** use UUIDs (from `commerce.Product`). External products use numeric IDs (from `ExternalProductLink`).
+    </p>
+
+    <div class="grid">
+      <div>
+        <label for="videoId">Video ID</label>
+        <input id="videoId" placeholder="e.g. 28" />
+      </div>
+      <div>
+        <label for="productType">Product Type</label>
+        <select id="productType" onchange="toggleProductInputs()">
+          <option value="internal">Internal product</option>
+          <option value="external">External product link</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div id="internalWrap">
+        <label for="internalProductBtn">Internal Product</label>
+        <button type="button" id="internalProductBtn" class="product-select-btn" onclick="openProductSelector()">
+          <i class="fas fa-shopping-bag"></i>
+          <span id="selectedProductText">Select a product...</span>
+        </button>
+        <input type="hidden" id="internalProductId" />
+      </div>
+      <div id="externalWrap" style="display:none;">
+        <label for="externalProductUrl">External Product URL</label>
+        <input id="externalProductUrl" type="url" placeholder="Paste product URL (e.g., https://jumia.com/...)" />
+        <small style="color: var(--text-secondary); margin-top: 0.25rem; display: block;">
+          Paste the product URL. The system will create an external product link automatically.
+        </small>
+        <input type="hidden" id="externalProductId" />
+      </div>
+      <div>
+        <label for="timestamp">Timestamp (seconds)</label>
+        <input id="timestamp" placeholder="e.g. 0.0" />
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label for="overlayStyle">Overlay Style</label>
+        <select id="overlayStyle">
+          <option value="default">Default</option>
+          <option value="minimal">Minimal</option>
+          <option value="compact">Compact</option>
+          <option value="glassmorphism">Glassmorphism</option>
+          <option value="gradient">Gradient</option>
+        </select>
+      </div>
+      <div>
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" placeholder="e.g. Tagged from web"></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="createBtn" onclick="createTag()">
+        <i class="fas fa-plus"></i> Create Tag
+      </button>
+      <button class="btn secondary" onclick="loadTags()">
+        <i class="fas fa-sync"></i> Refresh Tags
+      </button>
+      <button class="btn secondary" onclick="SuperAffiliateAPI.logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+
+    <div class="section-title">Existing Tags</div>
+    <div id="tags" class="list"></div>
+  </div>
+
+  <!-- Product Selector Modal -->
+  <div id="productModal" class="product-modal">
+    <div class="product-modal-content">
+      <div class="product-modal-header">
+        <h2 id="productModalTitle">Select Product</h2>
+        <button class="product-modal-close" onclick="closeProductSelector()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="product-search">
+        <input type="text" id="productSearch" placeholder="Search products..." oninput="filterProducts()" />
+      </div>
+      <div id="productGrid" class="product-grid">
+        <div class="product-loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading products...
+        </div>
+      </div>
+      <div class="product-modal-footer">
+        <button class="btn secondary" onclick="closeProductSelector()">Cancel</button>
+        <button class="btn" id="confirmProductBtn" onclick="confirmProductSelection()" disabled>
+          Select Product
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html';
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const initialVideoId = params.get('video_id');
+    if (initialVideoId) {
+      document.getElementById('videoId').value = initialVideoId;
+    }
+
+    // Product selector state
+    let allProducts = [];
+    let filteredProducts = [];
+    let selectedProduct = null;
+    let userRole = null; // 'seller' or 'affiliate'
+
+    async function checkUserRole() {
+      try {
+        // Check if user is a seller
+        const sellerProfile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+        if (sellerProfile && !sellerProfile.error) {
+          userRole = 'seller';
+          return;
+        }
+      } catch (e) {
+        // Not a seller, continue
+      }
+
+      try {
+        // Check if user is an affiliate
+        const affiliateProfile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
+        if (affiliateProfile && !affiliateProfile.error) {
+          userRole = 'affiliate';
+          return;
+        }
+      } catch (e) {
+        // Not an affiliate
+      }
+
+      userRole = null;
+    }
+
+    async function loadProducts() {
+      const productGrid = document.getElementById('productGrid');
+      productGrid.innerHTML = '<div class="product-loading"><i class="fas fa-spinner fa-spin"></i> Loading products...</div>';
+
+      try {
+        let endpoint;
+        let title;
+
+        if (userRole === 'seller') {
+          endpoint = '/commerce/seller/products/';
+          title = 'Select from Your Products';
+        } else if (userRole === 'affiliate') {
+          endpoint = '/commerce/affiliate/products/';
+          title = 'Select Taggable Product';
+        } else {
+          // Fallback: try user products endpoint
+          endpoint = '/commerce/products/my/';
+          title = 'Select Product';
+        }
+
+        document.getElementById('productModalTitle').textContent = title;
+
+        const response = await SuperAffiliateAPI.apiRequest(endpoint);
+        const products = response.products || response.results || [];
+
+        if (products.length === 0) {
+          productGrid.innerHTML = `
+            <div class="product-empty">
+              <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+              <p>No products available.</p>
+              ${userRole === 'seller' ? '<p style="margin-top: 0.5rem; font-size: 0.9rem;">Create products in your seller dashboard first.</p>' : ''}
+              ${userRole === 'affiliate' ? '<p style="margin-top: 0.5rem; font-size: 0.9rem;">No products are available for tagging at the moment.</p>' : ''}
+            </div>
+          `;
+          allProducts = [];
+          filteredProducts = [];
+          return;
+        }
+
+        allProducts = products;
+        filteredProducts = products;
+        renderProducts(products);
+      } catch (error) {
+        productGrid.innerHTML = `
+          <div class="product-empty">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; color: #ff0050;"></i>
+            <p>Failed to load products.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">${error.message || 'Please try again later.'}</p>
+          </div>
+        `;
+        console.error('Error loading products:', error);
+      }
+    }
+
+    function renderProducts(products) {
+      const productGrid = document.getElementById('productGrid');
+      
+      if (products.length === 0) {
+        productGrid.innerHTML = `
+          <div class="product-empty">
+            <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No products found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      productGrid.innerHTML = products.map(product => {
+        const imageUrl = product.image_url || product.image || product.thumbnail_url || '';
+        const name = product.name || 'Unnamed Product';
+        const price = product.price ? `₦${parseFloat(product.price).toLocaleString()}` : 'Price N/A';
+        const isSelected = selectedProduct && selectedProduct.id === product.id;
+
+        return `
+          <div class="product-item ${isSelected ? 'selected' : ''}" onclick="selectProduct('${product.id}', '${name.replace(/'/g, "\\'")}')">
+            <div class="product-item-image">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">` : '<i class="fas fa-shopping-bag"></i>'}
+            </div>
+            <div class="product-item-name" title="${name}">${name}</div>
+            <div class="product-item-price">${price}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectProduct(productId, productName) {
+      selectedProduct = { id: productId, name: productName };
+      
+      // Update UI
+      document.querySelectorAll('.product-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      // Enable confirm button
+      document.getElementById('confirmProductBtn').disabled = false;
+    }
+
+    function confirmProductSelection() {
+      if (!selectedProduct) return;
+
+      // Set the product ID
+      document.getElementById('internalProductId').value = selectedProduct.id;
+      
+      // Update button text
+      const btn = document.getElementById('internalProductBtn');
+      const span = document.getElementById('selectedProductText');
+      span.textContent = selectedProduct.name;
+      btn.classList.add('has-selection');
+
+      closeProductSelector();
+    }
+
+    function filterProducts() {
+      const searchTerm = document.getElementById('productSearch').value.toLowerCase().trim();
+      
+      if (!searchTerm) {
+        filteredProducts = allProducts;
+      } else {
+        filteredProducts = allProducts.filter(product => {
+          const name = (product.name || '').toLowerCase();
+          const description = (product.description || '').toLowerCase();
+          return name.includes(searchTerm) || description.includes(searchTerm);
+        });
+      }
+
+      renderProducts(filteredProducts);
+    }
+
+    async function openProductSelector() {
+      const productType = document.getElementById('productType').value;
+      if (productType !== 'internal') {
+        showToast('Please select "Internal product" type first.', 'error');
+        return;
+      }
+
+      // Check user role if not already checked
+      if (!userRole) {
+        await checkUserRole();
+      }
+
+      // Reset selection
+      selectedProduct = null;
+      document.getElementById('confirmProductBtn').disabled = true;
+      document.getElementById('productSearch').value = '';
+
+      // Show modal
+      document.getElementById('productModal').classList.add('active');
+
+      // Load products
+      await loadProducts();
+    }
+
+    function closeProductSelector() {
+      document.getElementById('productModal').classList.remove('active');
+      selectedProduct = null;
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('productModal').addEventListener('click', (e) => {
+      if (e.target.id === 'productModal') {
+        closeProductSelector();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('productModal').classList.contains('active')) {
+        closeProductSelector();
+      }
+    });
+
+    function toggleProductInputs() {
+      const productType = document.getElementById('productType').value;
+      document.getElementById('internalWrap').style.display = productType === 'internal' ? 'block' : 'none';
+      document.getElementById('externalWrap').style.display = productType === 'external' ? 'block' : 'none';
+      
+      // Reset selections when switching
+      if (productType === 'internal') {
+        document.getElementById('externalProductUrl').value = '';
+        document.getElementById('externalProductId').value = '';
+      } else {
+        document.getElementById('internalProductId').value = '';
+        const btn = document.getElementById('internalProductBtn');
+        const span = document.getElementById('selectedProductText');
+        span.textContent = 'Select a product...';
+        btn.classList.remove('has-selection');
+      }
+    }
+
+    function safeText(v) {
+      return (v === null || v === undefined) ? '' : String(v);
+    }
+
+    function renderTags(tags) {
+      const container = document.getElementById('tags');
+      if (!tags || !tags.length) {
+        container.innerHTML = `<div class="empty">No tags yet for this video.</div>`;
+        return;
+      }
+
+      container.innerHTML = tags.map(t => {
+        const img = t.product_image_url;
+        const name = t.product_name || `Tag ${t.id}`;
+        const ts = (t.timestamp ?? 0).toFixed ? t.timestamp.toFixed(1) : t.timestamp;
+        const sub = `${t.product_type} • ${safeText(ts)}s • views ${t.views ?? 0} • clicks ${t.clicks ?? 0}`;
+        return `
+          <div class="tag-card">
+            <div class="tag-img">
+              ${img ? `<img src="${img}" alt="Product">` : `<span><i class="fas fa-shopping-bag"></i></span>`}
+            </div>
+            <div class="tag-meta">
+              <div class="tag-name">${safeText(name)}</div>
+              <div class="tag-sub">${safeText(sub)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadTags() {
+      const videoId = document.getElementById('videoId').value.trim();
+      if (!videoId) {
+        showToast('Please enter a video ID.', 'error');
+        return;
+      }
+      // Current backend endpoint expects numeric native Video IDs
+      if (!/^\d+$/.test(videoId)) {
+        showToast('This Video ID is not a native numeric ID. Imported/shared videos (UUID) are not taggable yet in web.', 'error');
+        return;
+      }
+
+      try {
+        const tags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+        renderTags(tags);
+      } catch (e) {
+        showToast(e.message || 'Failed to load tags', 'error');
+      }
+    }
+
+    async function createTag() {
+      const btn = document.getElementById('createBtn');
+      const videoId = document.getElementById('videoId').value.trim();
+      const productType = document.getElementById('productType').value;
+      const timestampRaw = document.getElementById('timestamp').value.trim();
+      const overlayStyle = document.getElementById('overlayStyle').value;
+      const notes = document.getElementById('notes').value.trim();
+
+      if (!videoId) return showToast('Video ID is required.', 'error');
+      if (!/^\d+$/.test(videoId)) return showToast('Video ID must be a numeric native Video ID (imported UUID videos are not taggable yet).', 'error');
+
+      const timestamp = timestampRaw ? Number(timestampRaw) : 0.0;
+      if (Number.isNaN(timestamp) || timestamp < 0) return showToast('Timestamp must be a number >= 0.', 'error');
+
+      const payload = {
+        timestamp,
+        position: { x: 0.8, y: 0.1 } // Default position (top-right)
+      };
+
+      if (productType === 'internal') {
+        const internalId = document.getElementById('internalProductId').value.trim();
+        if (!internalId) return showToast('Please select an internal product.', 'error');
+        payload.internal_product = internalId;
+      } else {
+        const externalUrl = document.getElementById('externalProductUrl').value.trim();
+        if (!externalUrl) return showToast('External product URL is required.', 'error');
+        
+        // Try to create or get external product link
+        try {
+          // Create external product link using the endpoint
+          const externalProduct = await SuperAffiliateAPI.apiRequest('/videos/external-products/create/', {
+            method: 'POST',
+            body: JSON.stringify({
+              url: externalUrl
+            })
+          });
+          
+          if (externalProduct && externalProduct.product && externalProduct.product.id) {
+            // External product ID is a UUID string, but the tag API expects it as a number
+            // Actually, let me check - the VideoProductTag model uses ForeignKey to ExternalProductLink
+            // which has UUID primary key, so we need to pass the UUID string
+            // But the serializer might expect it differently. Let's use the UUID string.
+            payload.external_product = externalProduct.product.id;
+            
+            // Store the ID in hidden field for reference
+            document.getElementById('externalProductId').value = externalProduct.product.id;
+          } else {
+            return showToast('Failed to process external product URL. Please check the URL and try again.', 'error');
+          }
+        } catch (error) {
+          // If creation fails, show error
+          const errorMsg = error.message || error.details?.error || 'Unknown error';
+          return showToast('Failed to process external product URL: ' + errorMsg, 'error');
+        }
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+      try {
+        await SuperAffiliateAPI.createProductTag(Number(videoId), payload);
+        showToast('✅ Tag created!', 'success');
+        document.getElementById('notes').value = '';
+        await loadTags();
+      } catch (e) {
+        showToast(e.message || 'Failed to create tag', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Create Tag';
+      }
+    }
+
+    function detectPlatform(url) {
+      const lowerUrl = url.toLowerCase();
+      if (lowerUrl.includes('jumia')) return 'jumia';
+      if (lowerUrl.includes('temu')) return 'temu';
+      if (lowerUrl.includes('amazon')) return 'amazon';
+      if (lowerUrl.includes('aliexpress') || lowerUrl.includes('alibaba')) return 'aliexpress';
+      if (lowerUrl.includes('konga')) return 'konga';
+      if (lowerUrl.includes('shopify')) return 'shopify';
+      return 'custom';
+    }
+
+    // Initialize
+    toggleProductInputs();
+    if (initialVideoId) loadTags();
+    
+    // Pre-check user role on page load
+    checkUserRole();
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Order Details - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .order-id {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-paid {
+      background: rgba(0, 242, 234, 0.2);
+      color: var(--accent-color);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+    }
+
+    .status-delivered {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .status-cancelled {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    .order-items {
+      margin-bottom: 2rem;
+    }
+
+    .order-item {
+      display: flex;
+      gap: 1.5rem;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      background: var(--bg-secondary);
+    }
+
+    .item-details {
+      flex: 1;
+    }
+
+    .item-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .item-price {
+      color: var(--accent-color);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .item-quantity {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .order-summary {
+      background: var(--bg-secondary);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+    }
+
+    .summary-value {
+      color: var(--text-primary);
+    }
+
+    .btn {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-pay {
+      width: 100%;
+      justify-content: center;
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      padding: 1.2rem;
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .error {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #f44336;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .payment-info {
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .payment-info p {
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-info p:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .order-item {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .item-image {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        margin: 0 auto;
+      }
+
+      .item-details {
+        text-align: center;
+      }
+
+      .order-summary {
+        padding: 1.5rem;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .order-summary {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Order Details</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Loading order details...</p>
+    </div>
+
+    <div id="error-section" class="error" style="display: none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="error-message"></span>
+    </div>
+
+    <div id="order-section" style="display: none;">
+      <div class="card">
+        <div class="order-header">
+          <div>
+            <div class="order-id">Order #<span id="order-id"></span></div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+              Placed on <span id="order-date"></span>
+            </div>
+          </div>
+          <div class="status-badge" id="status-badge"></div>
+        </div>
+
+        <div class="order-items" id="order-items"></div>
+
+        <div class="order-summary">
+          <div class="summary-row">
+            <span class="summary-label">Subtotal</span>
+            <span class="summary-value" id="subtotal"></span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Shipping</span>
+            <span class="summary-value" id="shipping"></span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total</span>
+            <span class="summary-value" id="total"></span>
+          </div>
+        </div>
+
+        <div id="payment-section" style="display: none;">
+          <div class="payment-info">
+            <p><strong>Payment Status:</strong> <span id="payment-status"></span></p>
+            <p id="payment-reference" style="display: none;"><strong>Reference:</strong> <span id="reference-value"></span></p>
+          </div>
+          <button class="btn btn-pay" id="pay-button" onclick="initiatePayment()">
+            <i class="fas fa-credit-card"></i> Pay with Paystack
+          </button>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+          <a href="orders.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    let orderData = null;
+    let paymentUrl = null;
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    // Get order ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+
+    if (!orderId) {
+      showError('Order ID not provided');
+      // Don't proceed if no order ID
+    } else {
+      // Load order if ID is present
+      loadOrder();
+    }
+
+    async function loadOrder() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
+        orderData = response;
+        displayOrder(response);
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('order-section').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading order:', error);
+        showError(error.message || 'Failed to load order details');
+        document.getElementById('loading-section').style.display = 'none';
+      }
+    }
+
+    function displayOrder(order) {
+      // Order ID and Date
+      document.getElementById('order-id').textContent = order.id.substring(0, 8).toUpperCase();
+      if (order.created_at) {
+        const date = new Date(order.created_at);
+        document.getElementById('order-date').textContent = date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Status Badge
+      const statusBadge = document.getElementById('status-badge');
+      statusBadge.textContent = order.status || 'pending';
+      statusBadge.className = 'status-badge status-' + (order.status || 'pending').toLowerCase();
+
+      // Order Items
+      const itemsContainer = document.getElementById('order-items');
+      const items = order.items || [];
+      
+      if (items.length === 0) {
+        itemsContainer.innerHTML = '<p style="color: var(--text-secondary);">No items in this order.</p>';
+      } else {
+        const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
+        const getImageUrl = (product) => {
+          if (!product) return '';
+          const img = product.image || product.thumbnail || (product.images && product.images[0]?.image);
+          if (!img) return '';
+          return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
+        };
+
+        itemsContainer.innerHTML = items.map(item => {
+          const imageUrl = getImageUrl(item.product);
+          const formatCurrency = (amount) => {
+            return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+          };
+
+          return `
+            <div class="order-item">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${item.product?.name || 'Product'}" class="item-image" onerror="this.style.display='none';">` : '<div class="item-image" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
+              <div class="item-details">
+                <div class="item-name">${item.product?.name || 'Product'}</div>
+                <div class="item-price">${formatCurrency(item.product?.price || 0)}</div>
+                <div class="item-quantity">Quantity: ${item.quantity}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Order Summary
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      document.getElementById('subtotal').textContent = formatCurrency(order.subtotal || order.total);
+      document.getElementById('shipping').textContent = formatCurrency(order.shipping_cost || 0);
+      document.getElementById('total').textContent = formatCurrency(order.total);
+
+      // Payment Section
+      const paymentStatus = order.payment_status || 'pending';
+      document.getElementById('payment-status').textContent = paymentStatus.toUpperCase();
+
+      // Show payment button if order is pending payment
+      if (paymentStatus === 'pending' || paymentStatus === 'unpaid') {
+        document.getElementById('payment-section').style.display = 'block';
+        
+        // Check if we have payment URL from order creation
+        if (order.payment_url || order.authorization_url) {
+          paymentUrl = order.payment_url || order.authorization_url;
+        } else {
+          // Try to get payment URL from metadata or create new payment
+          // For now, we'll need to create payment on demand
+          console.log('No payment URL found, will create payment on button click');
+        }
+      } else {
+        document.getElementById('payment-section').style.display = 'none';
+      }
+
+      // Show payment reference if available
+      if (order.transaction_id || order.payment_reference) {
+        document.getElementById('payment-reference').style.display = 'block';
+        document.getElementById('reference-value').textContent = order.transaction_id || order.payment_reference;
+      }
+    }
+
+    async function initiatePayment() {
+      const btn = document.getElementById('pay-button');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        // If we don't have a payment URL, create a new order with payment
+        if (!paymentUrl && orderData) {
+          // Re-create order with payment (or use existing order to create payment)
+          // For now, redirect to checkout with order pre-filled
+          // Or create payment directly via API if endpoint exists
+          showToast('Redirecting to payment...', 'info');
+          
+          // Try to get payment URL from order metadata or create new payment
+          // Since we already have an order, we'll need to create payment separately
+          // For simplicity, redirect to checkout with order info
+          window.location.href = `checkout.html?order_id=${orderId}`;
+          return;
+        }
+
+        if (paymentUrl) {
+          // Redirect to Paystack
+          window.location.href = paymentUrl;
+        } else {
+          throw new Error('Payment URL not available. Please try again from checkout.');
+        }
+      } catch (error) {
+        console.error('Payment initiation error:', error);
+        showToast('Failed to initiate payment: ' + (error.message || 'Unknown error'), 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay with Paystack';
+      }
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? '#00f2ea' : type === 'error' ? '#ff0050' : '#ffc107'};
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showError(message) {
+      document.getElementById('error-message').textContent = message;
+      document.getElementById('error-section').style.display = 'block';
+      document.getElementById('loading-section').style.display = 'none';
+    }
+
+    // Load order on page load if orderId exists
+    if (orderId) {
+      loadOrder();
+    }
+  </script>
+</body>
+</html>

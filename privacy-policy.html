@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
     <title>Privacy Policy - Tanda</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
@@ -31,6 +36,46 @@
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
+        }
+
+        /* Safe area insets for iPhone notches and home indicator */
+        @supports (padding: env(safe-area-inset-top)) {
+            .container {
+                padding-left: calc(2rem + env(safe-area-inset-left));
+                padding-right: calc(2rem + env(safe-area-inset-right));
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding-left: calc(1rem + env(safe-area-inset-left));
+                    padding-right: calc(1rem + env(safe-area-inset-right));
+                }
+            }
+        }
+
+        /* iOS keyboard handling - prevent zoom on input focus */
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="tel"],
+        input[type="url"],
+        input[type="search"],
+        textarea,
+        select {
+            font-size: 16px !important;
+        }
+
+        input[type="number"] {
+            inputmode: "numeric";
+        }
+
+        input[type="tel"] {
+            inputmode: "tel";
+        }
+
+        input[type="email"] {
+            inputmode: "email";
         }
 
         body {
@@ -172,8 +217,21 @@
                 padding: 1rem;
             }
             
+            .header {
+                padding: 1rem 0;
+                margin-bottom: 2rem;
+            }
+
             h1 {
                 font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
             }
             
             .logo {
@@ -182,6 +240,28 @@
             
             .logo img {
                 height: 32px;
+            }
+
+            p, li {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .logo {
+                font-size: 1.3rem;
             }
         }
     </style>

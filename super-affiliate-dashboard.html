@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
   <title>Super Affiliate Dashboard - Tanda</title>
   <meta name="description" content="Your Tanda Super Affiliate dashboard - track referrals, earnings, and performance.">
   
@@ -31,6 +35,52 @@
       margin: 0; 
       padding: 0; 
       box-sizing: border-box; 
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
     }
 
     body {
@@ -288,18 +338,38 @@
       .header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
       }
 
       .header h1 {
         font-size: 1.5rem;
       }
 
+      .header-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .header-actions .btn {
+        width: 100%;
+      }
+
       .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .stat-card {
+        padding: 1.5rem;
+      }
+
+      .stat-value {
+        font-size: 2rem;
       }
 
       .referral-link {
         flex-direction: column;
+        gap: 1rem;
       }
 
       .referral-link-input {
@@ -310,6 +380,29 @@
       .copy-btn {
         width: 100%;
       }
+
+      .card {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .header h1 {
+        font-size: 1.3rem;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+    }
     }
   </style>
 </head>
@@ -375,7 +468,7 @@
       <div class="main-card">
         <h2>Your Referral Link</h2>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-          Share this link to earn 6% commission on all referrals:
+          Share this link to earn up to 30% commission on all referrals:
         </p>
         <div class="referral-link">
           <input 
@@ -406,11 +499,33 @@
         </div>
         <div class="info-row">
           <span class="info-label">Commission Rate:</span>
-          <span class="info-value">6% on all referrals</span>
+          <span class="info-value" id="commission-rate-display">Up to 30% on all referrals</span>
         </div>
         <div class="info-row">
           <span class="info-label">Payment Terms:</span>
           <span class="info-value">Monthly (minimum $50)</span>
+        </div>
+      </div>
+
+      <!-- Referrals List Card -->
+      <div class="main-card">
+        <h2>📋 Your Referrals</h2>
+        <div id="referrals-list" style="min-height: 100px;">
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Loading referrals...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commission Transactions Card -->
+      <div class="main-card">
+        <h2>💰 Commission History</h2>
+        <div id="transactions-list" style="min-height: 100px;">
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Loading transactions...</p>
+          </div>
         </div>
       </div>
 
@@ -507,6 +622,135 @@
       }
 
       console.log('✅ Dashboard loaded successfully');
+      
+      // Load referrals and transactions
+      loadReferrals();
+      loadTransactions();
+    }
+
+    async function loadReferrals() {
+      try {
+        const response = await SuperAffiliateAPI.getAffiliateReferrals(1, 10);
+        const referrals = response.results || response || [];
+        displayReferrals(referrals);
+      } catch (error) {
+        console.error('Error loading referrals:', error);
+        document.getElementById('referrals-list').innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Unable to load referrals</p>
+          </div>
+        `;
+      }
+    }
+
+    function displayReferrals(referrals) {
+      const container = document.getElementById('referrals-list');
+      
+      if (!referrals || referrals.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>No referrals yet. Share your link to start earning!</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = referrals.map(ref => {
+        const date = new Date(ref.created_at || ref.referred_at);
+        const converted = ref.referred_user_converted ? 
+          '<span style="color: #00f2ea;">✓ Converted</span>' : 
+          '<span style="color: var(--text-secondary);">Pending</span>';
+        
+        return `
+          <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                @${ref.referred_user?.username || ref.referred_user_username || 'Unknown'}
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                ${date.toLocaleDateString()} • ${converted}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 600; color: var(--accent-color);">
+                ₦${parseFloat(ref.lifetime_revenue || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                Lifetime Revenue
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+    }
+
+    async function loadTransactions() {
+      try {
+        const response = await SuperAffiliateAPI.getCommissionTransactions(1, 10);
+        const transactions = response.results || response || [];
+        displayTransactions(transactions);
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        document.getElementById('transactions-list').innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Unable to load transactions</p>
+          </div>
+        `;
+      }
+    }
+
+    function displayTransactions(transactions) {
+      const container = document.getElementById('transactions-list');
+      
+      if (!transactions || transactions.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <i class="fas fa-receipt" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>No commission transactions yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = transactions.map(txn => {
+        const date = new Date(txn.created_at);
+        const statusBadge = txn.status === 'paid' ? 
+          '<span style="color: #00f2ea;">Paid</span>' : 
+          txn.status === 'approved' ?
+          '<span style="color: #ffd700;">Pending</span>' :
+          '<span style="color: var(--text-secondary);">' + (txn.status || 'Pending') + '</span>';
+        
+        const revenueType = (txn.revenue_type || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        return `
+          <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                ${revenueType}
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                ${date.toLocaleDateString()} • ${statusBadge}
+              </div>
+              ${txn.revenue_user_username ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">From: @${txn.revenue_user_username}</div>` : ''}
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 600; color: var(--accent-color);">
+                ₦${parseFloat(txn.super_affiliate_share || txn.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                Commission
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
     }
 
     function getStatusBadge(status) {

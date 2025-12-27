@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>User Profile - Tanda</title>
+  <meta name="description" content="View user profile on Tanda.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/ios-enhancements.js"></script>
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Safe area insets */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(1rem + env(safe-area-inset-top));
+        padding-left: calc(1rem + env(safe-area-inset-left));
+        padding-right: calc(1rem + env(safe-area-inset-right));
+      }
+      .container {
+        padding-left: calc(1rem + env(safe-area-inset-left));
+        padding-right: calc(1rem + env(safe-area-inset-right));
+      }
+    }
+
+    /* iOS keyboard handling */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea {
+      font-size: 16px !important;
+    }
+
+    .header {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .back-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .profile-header {
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: white;
+      border: 4px solid rgba(255,255,255,0.2);
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .username {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .bio {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+      min-height: 44px;
+      min-width: 44px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      padding: 1rem 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .video-card {
+      aspect-ratio: 9/16;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: var(--bg-card);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .video-card:hover {
+      transform: scale(1.05);
+    }
+
+    .video-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-card .play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-card:hover .play-overlay {
+      opacity: 1;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .error {
+      text-align: center;
+      padding: 3rem;
+      color: #ff4444;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .stats {
+        gap: 1rem;
+      }
+      .videos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1 style="flex: 1; font-size: 1.2rem; font-weight: 700;">Profile</h1>
+  </div>
+
+  <div class="container">
+    <div id="loading" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading profile...</p>
+    </div>
+
+    <div id="error" class="error" style="display: none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <p id="error-message"></p>
+    </div>
+
+    <div id="profile-content" style="display: none;">
+      <div class="profile-header">
+        <div class="avatar" id="avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <h2 class="username" id="username">@username</h2>
+        <p class="bio" id="bio"></p>
+        
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value" id="followers-count">0</div>
+            <div class="stat-label">Followers</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="following-count">0</div>
+            <div class="stat-label">Following</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="videos-count">0</div>
+            <div class="stat-label">Videos</div>
+          </div>
+        </div>
+
+        <div class="actions" id="actions">
+          <!-- Follow/Unfollow button will be inserted here -->
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('videos')">
+          <i class="fas fa-video"></i> Videos
+        </button>
+        <button class="tab" onclick="switchTab('liked')">
+          <i class="fas fa-heart"></i> Liked
+        </button>
+      </div>
+
+      <div id="tab-videos" class="tab-content active">
+        <div id="videos-container" class="videos-grid"></div>
+      </div>
+
+      <div id="tab-liked" class="tab-content">
+        <div id="liked-container" class="videos-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUsername = null;
+    let isOwnProfile = false;
+    let isFollowing = false;
+    let profileData = null;
+
+    // Get username from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentUsername = urlParams.get('username');
+
+    // If no username, try to get current user's profile
+    if (!currentUsername && SuperAffiliateAPI.isAuthenticated()) {
+      // Redirect to own profile page
+      window.location.href = 'profile.html';
+      currentUsername = null; // Prevent loading
+    }
+
+    async function loadProfile() {
+      if (!currentUsername) {
+        console.warn('No username provided');
+        return;
+      }
+
+      try {
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const contentEl = document.getElementById('profile-content');
+        
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'none';
+
+        console.log('Loading profile for username:', currentUsername);
+
+        // Get current user to check if this is own profile
+        let currentUser = null;
+        if (SuperAffiliateAPI.isAuthenticated()) {
+          try {
+            currentUser = await SuperAffiliateAPI.apiRequest('/users/profile/');
+            isOwnProfile = currentUser && currentUser.username === currentUsername;
+            console.log('Is own profile:', isOwnProfile);
+          } catch (e) {
+            console.warn('Could not get current user:', e);
+            // Continue without knowing if it's own profile
+          }
+        }
+
+        // Load profile data
+        const profileUrl = `/users/users/${encodeURIComponent(currentUsername)}/`;
+        console.log('Fetching profile from:', profileUrl);
+        const response = await SuperAffiliateAPI.apiRequest(profileUrl);
+        
+        if (!response) {
+          throw new Error('No response from server');
+        }
+        
+        if (!response.username) {
+          throw new Error('Invalid profile data: missing username');
+        }
+        
+        console.log('Profile data received:', response);
+        profileData = response;
+
+        // Check follow status if not own profile
+        if (!isOwnProfile && SuperAffiliateAPI.isAuthenticated()) {
+          try {
+            const followStatus = await SuperAffiliateAPI.apiRequest(`/users/following-status/${encodeURIComponent(currentUsername)}/`);
+            isFollowing = followStatus.is_following || false;
+            console.log('Follow status:', isFollowing);
+          } catch (e) {
+            console.warn('Could not get follow status:', e);
+            isFollowing = false; // Default to not following
+          }
+        }
+
+        displayProfile(response);
+        await loadVideos(); // Wait for videos to load
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
+        console.log('Profile loaded successfully');
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const errorMsgEl = document.getElementById('error-message');
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'block';
+        if (errorMsgEl) {
+          errorMsgEl.textContent = error.message || 'Failed to load profile. Please try again.';
+        }
+      }
+    }
+
+    function displayProfile(data) {
+      // Avatar
+      const avatarEl = document.getElementById('avatar');
+      if (data.avatar) {
+        avatarEl.innerHTML = `<img src="${data.avatar}" alt="${data.username}">`;
+      } else {
+        avatarEl.innerHTML = `<i class="fas fa-user"></i>`;
+      }
+
+      // Username
+      document.getElementById('username').textContent = `@${data.username}`;
+
+      // Bio
+      const bioEl = document.getElementById('bio');
+      if (data.bio) {
+        bioEl.textContent = data.bio;
+      } else {
+        bioEl.textContent = 'No bio yet';
+        bioEl.style.opacity = '0.5';
+      }
+
+      // Stats
+      document.getElementById('followers-count').textContent = 
+        (data.total_followers || 0).toLocaleString();
+      document.getElementById('following-count').textContent = 
+        (data.total_following || 0).toLocaleString();
+      document.getElementById('videos-count').textContent = 
+        (data.total_videos || 0).toLocaleString();
+
+      // Actions
+      const actionsEl = document.getElementById('actions');
+      if (isOwnProfile) {
+        actionsEl.innerHTML = `
+          <button class="btn btn-primary" onclick="window.location.href='profile.html'">
+            <i class="fas fa-cog"></i> Edit Profile
+          </button>
+        `;
+      } else if (SuperAffiliateAPI.isAuthenticated()) {
+        actionsEl.innerHTML = `
+          <button class="btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}" 
+                  id="follow-btn" 
+                  onclick="toggleFollow()">
+            <i class="fas fa-${isFollowing ? 'check' : 'user-plus'}"></i> 
+            ${isFollowing ? 'Following' : 'Follow'}
+          </button>
+        `;
+      } else {
+        actionsEl.innerHTML = `
+          <button class="btn btn-primary" onclick="window.location.href='super-affiliate-login.html'">
+            <i class="fas fa-sign-in-alt"></i> Login to Follow
+          </button>
+        `;
+      }
+    }
+
+    async function toggleFollow() {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      const btn = document.getElementById('follow-btn');
+      const wasFollowing = isFollowing;
+
+      try {
+        btn.disabled = true;
+        
+        if (wasFollowing) {
+          await SuperAffiliateAPI.apiRequest('/users/unfollow/', {
+            method: 'POST',
+            body: { username: currentUsername }
+          });
+          isFollowing = false;
+        } else {
+          await SuperAffiliateAPI.apiRequest('/users/follow/', {
+            method: 'POST',
+            body: { username: currentUsername }
+          });
+          isFollowing = true;
+        }
+
+        // Update button
+        btn.className = `btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`;
+        btn.innerHTML = `
+          <i class="fas fa-${isFollowing ? 'check' : 'user-plus'}"></i> 
+          ${isFollowing ? 'Following' : 'Follow'}
+        `;
+
+        // Update followers count
+        const followersEl = document.getElementById('followers-count');
+        const currentCount = parseInt(followersEl.textContent.replace(/,/g, '')) || 0;
+        followersEl.textContent = (currentCount + (isFollowing ? 1 : -1)).toLocaleString();
+      } catch (error) {
+        console.error('Error toggling follow:', error);
+        alert(error.message || 'Failed to update follow status');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadVideos() {
+      if (!currentUsername) return;
+
+      try {
+        // Load user's videos
+        const videosResponse = await SuperAffiliateAPI.apiRequest(
+          `/videos/user/${currentUsername}/`
+        );
+        
+        // Handle paginated response or direct array
+        let videos = [];
+        if (videosResponse) {
+          if (Array.isArray(videosResponse)) {
+            videos = videosResponse;
+          } else if (videosResponse.results) {
+            videos = videosResponse.results;
+          } else if (videosResponse.videos) {
+            videos = videosResponse.videos;
+          }
+        }
+        
+        // Extract video objects from the response (may be wrapped in 'video' property)
+        const videoList = videos.map(item => {
+          // Handle both direct video objects and wrapped objects with 'video' property
+          return item.video || item;
+        }).filter(v => v && v.id); // Filter out invalid entries
+        
+        displayVideos(videoList, 'videos-container');
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        const container = document.getElementById('videos-container');
+        if (container) {
+          container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <i class="fas fa-video-slash"></i>
+              <p>Failed to load videos</p>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function displayVideos(videos, containerId) {
+      const container = document.getElementById(containerId);
+      
+      if (!videos || videos.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="fas fa-video-slash"></i>
+            <p>No videos yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      function getBackendOrigin() {
+        // API_BASE_URL is defined in js/super-affiliate-api.js (classic script scope)
+        try {
+          if (typeof API_BASE_URL === 'string' && API_BASE_URL.includes('/api')) {
+            return API_BASE_URL.replace(/\/api\/?$/, '');
+          }
+        } catch (_) {}
+        // Fallback: assume backend on same host:8000 in local dev
+        return 'http://127.0.0.1:8000';
+      }
+
+      function absolutizeMediaUrl(url) {
+        if (!url) return '';
+        const u = String(url);
+        if (/^https?:\/\//i.test(u)) return u;
+        if (u.startsWith('/media/')) return `${getBackendOrigin()}${u}`;
+        if (u.startsWith('media/')) return `${getBackendOrigin()}/${u}`;
+        return u;
+      }
+
+      container.innerHTML = videos.map(video => {
+        const videoId = video.id || video.video_id;
+        // Only use thumbnail fields for previews.
+        // Never use video_file as an <img> src (it causes broken requests / wrong origin).
+        const thumbUrl = absolutizeMediaUrl(video.thumbnail_url || video.thumbnail || '');
+        const title = video.title || video.description || 'Video';
+        return `
+          <div class="video-card" onclick="window.location.href='feed.html?video=${videoId}'">
+            ${thumbUrl ? `<img src="${thumbUrl}" alt="${title}" onerror="this.style.display='none'">` : ''}
+            <div class="play-overlay">
+              <i class="fas fa-play" style="font-size: 2rem; color: white;"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+
+      // Load content if needed
+      if (tabName === 'liked' && document.getElementById('liked-container').innerHTML === '') {
+        // TODO: Load liked videos
+        document.getElementById('liked-container').innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="fas fa-heart"></i>
+            <p>Liked videos coming soon</p>
+          </div>
+        `;
+      }
+    }
+
+    // Haptic feedback is already available as HapticFeedback object (not a constructor)
+    // No initialization needed - use HapticFeedback.light(), HapticFeedback.medium(), etc.
+
+    // Load profile on page load
+    if (currentUsername) {
+      loadProfile();
+    } else if (!SuperAffiliateAPI.isAuthenticated()) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error-message').textContent = 'Please provide a username or log in to view your profile.';
+    }
+  </script>
+</body>
+</html>
+

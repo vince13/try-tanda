@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wallet - Tanda Web</title>
+  <meta name="description" content="Manage your Tanda wallet, transactions, and withdrawals.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .balance-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .balance-label {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .balance-amount {
+      font-size: 3rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .balance-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      margin-bottom: 1.5rem;
+      color: var(--accent-color);
+      font-size: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .tab {
+      padding: 1rem 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .tab.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .transaction-item {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+
+    .transaction-info {
+      flex: 1;
+    }
+
+    .transaction-type {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .transaction-date {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .transaction-amount {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .transaction-amount.positive {
+      color: #00ff88;
+    }
+
+    .transaction-amount.negative {
+      color: #ff6b6b;
+    }
+
+    .btn {
+      padding: 0.9rem 2rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.6rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .error-message {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #ff6b6b;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #00ff88;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .balance-card {
+        padding: 1.5rem;
+      }
+
+      .balance-amount {
+        font-size: 2rem;
+      }
+
+      .balance-actions {
+        flex-direction: column;
+      }
+
+      .balance-actions .btn {
+        width: 100%;
+      }
+
+      .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.5rem;
+      }
+
+      .tab {
+        white-space: nowrap;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      .balance-amount {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Wallet</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Loading wallet...</p>
+    </div>
+
+    <div id="wallet-section" style="display: none;">
+      <div id="error-message" class="error-message"></div>
+      <div id="success-message" class="success-message"></div>
+
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-amount" id="balance-amount">₦0.00</div>
+        <div class="balance-actions">
+          <button class="btn" onclick="switchTab('deposit')">
+            <i class="fas fa-plus"></i> Deposit
+          </button>
+          <button class="btn btn-secondary" onclick="switchTab('withdraw')">
+            <i class="fas fa-minus"></i> Withdraw
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Earned</div>
+          <div class="stat-value" id="stat-earned">₦0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Withdrawn</div>
+          <div class="stat-value" id="stat-withdrawn">₦0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Earnings</div>
+          <div class="stat-value" id="stat-pending">₦0.00</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('transactions')">
+          <i class="fas fa-list"></i> Transactions
+        </button>
+        <button class="tab" onclick="switchTab('withdraw')">
+          <i class="fas fa-money-bill-wave"></i> Withdraw
+        </button>
+        <button class="tab" onclick="switchTab('deposit')">
+          <i class="fas fa-plus-circle"></i> Deposit
+        </button>
+      </div>
+
+      <!-- Transactions Tab -->
+      <div id="tab-transactions" class="tab-content active">
+        <div class="card">
+          <h2>Transaction History</h2>
+          <div id="transactions-list">
+            <div class="loading">Loading transactions...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdraw Tab -->
+      <div id="tab-withdraw" class="tab-content">
+        <div class="card">
+          <h2>Withdraw Funds</h2>
+          <form id="withdraw-form" onsubmit="handleWithdraw(event)">
+            <div class="form-group">
+              <label for="withdraw-amount">Amount (NGN)</label>
+              <input type="number" id="withdraw-amount" name="amount" min="100" step="0.01" required>
+              <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                Minimum withdrawal: ₦100
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Select Bank Account</label>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.5rem;">
+                  <input type="radio" name="account-selection" value="saved" id="use-saved-account" checked onchange="toggleAccountSelection()">
+                  <span>Use saved account</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="radio" name="account-selection" value="new" id="use-new-account" onchange="toggleAccountSelection()">
+                  <span>Add new account</span>
+                </label>
+            </div>
+
+              <!-- Saved Accounts Dropdown -->
+              <div id="saved-accounts-section">
+                <select id="saved-payment-method" class="form-group select" style="width: 100%; padding: 0.9rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 0.6rem; color: var(--text-primary); font-size: 1rem; font-family: inherit;" onchange="loadSavedAccountDetails()">
+                  <option value="">Loading saved accounts...</option>
+                </select>
+                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                  Select a verified bank account from your saved payment methods
+                </small>
+              </div>
+
+              <!-- New Account Form -->
+              <div id="new-account-section" style="display: none;">
+                <!-- Test Mode Helper -->
+                <div id="test-mode-helper" style="display: none; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-info-circle" style="color: #ffd700;"></i>
+                    <strong style="color: #ffd700;">Test Mode - Use Test Bank Details</strong>
+                  </div>
+                  <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    To avoid hitting the daily limit, use these test bank details:
+                  </p>
+                  <div style="background: rgba(0, 0, 0, 0.3); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem;">
+                    <div><strong>Bank:</strong> Access Bank (001)</div>
+                    <div><strong>Account Number:</strong> 0000000000</div>
+                    <div><strong>Account Name:</strong> Test Account</div>
+                  </div>
+                  <button type="button" onclick="fillTestBankDetails()" style="margin-top: 0.75rem; padding: 0.5rem 1rem; background: rgba(255, 215, 0, 0.2); border: 1px solid rgba(255, 215, 0, 0.5); border-radius: 0.5rem; color: #ffd700; cursor: pointer; font-size: 0.85rem;">
+                    <i class="fas fa-magic"></i> Fill Test Details
+                  </button>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                  <label for="withdraw-bank-select">Bank</label>
+                  <select id="withdraw-bank-select" class="form-group select" style="width: 100%; padding: 0.9rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 0.6rem; color: var(--text-primary); font-size: 1rem; font-family: inherit;" required>
+                    <option value="">Loading banks...</option>
+                  </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+              <label for="withdraw-account">Account Number</label>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="withdraw-account" name="account_number" style="flex: 1;" placeholder="Enter account number" required onkeypress="if(event.key === 'Enter') { event.preventDefault(); verifyBankAccount(); }">
+                    <button type="button" id="verify-account-btn" class="btn btn-secondary" onclick="verifyBankAccount()" style="white-space: nowrap;">
+                      <i class="fas fa-check-circle"></i> Verify
+                    </button>
+                  </div>
+                  <small id="verify-status" style="color: var(--text-secondary); display: block; margin-top: 0.5rem;"></small>
+                  <!-- Skip verification button for test mode -->
+                  <button type="button" id="skip-verification-btn" onclick="skipVerificationForTestAccount()" style="display: none; margin-top: 0.5rem; padding: 0.5rem 1rem; background: rgba(255, 215, 0, 0.2); border: 1px solid rgba(255, 215, 0, 0.5); border-radius: 0.5rem; color: #ffd700; cursor: pointer; font-size: 0.85rem; width: 100%;">
+                    <i class="fas fa-forward"></i> Skip Verification (Test Mode)
+                  </button>
+            </div>
+
+            <div class="form-group">
+              <label for="withdraw-account-name">Account Name</label>
+                  <input type="text" id="withdraw-account-name" name="account_name" readonly style="background: rgba(255, 255, 255, 0.03);" placeholder="Will be filled after verification">
+                  <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                    Account name will be automatically filled after verification
+                  </small>
+            </div>
+
+                <div style="margin-bottom: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" id="save-account-checkbox">
+                    <span>Save this account for future withdrawals</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn" id="withdraw-submit-btn">
+              <i class="fas fa-paper-plane"></i> Request Withdrawal
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Deposit Tab -->
+      <div id="tab-deposit" class="tab-content">
+        <div class="card">
+          <h2>Deposit Funds</h2>
+          <form id="deposit-form" onsubmit="handleDeposit(event)">
+            <div class="form-group">
+              <label for="deposit-amount">Amount (NGN)</label>
+              <input type="number" id="deposit-amount" name="amount" min="100" step="0.01" required>
+              <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                Minimum deposit: ₦100
+              </small>
+            </div>
+
+            <button type="submit" class="btn">
+              <i class="fas fa-credit-card"></i> Proceed to Payment
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    let walletData = null;
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html';
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+
+    // Global variables for bank/account data
+    let banksList = [];
+    let savedPaymentMethods = [];
+    let verifiedAccountData = null;
+
+    // Check if we're in test/development mode
+    function isTestMode() {
+      const hostname = window.location.hostname;
+      // Show test helper only on localhost, 127.0.0.1, or ngrok tunnels
+      return hostname === 'localhost' || 
+             hostname === '127.0.0.1' || 
+             hostname.includes('ngrok') ||
+             hostname.includes('ngrok-free.app') ||
+             hostname.includes('ngrok.io');
+    }
+
+    // Load banks list and saved payment methods when page loads
+    async function initializeWithdrawalForm() {
+      try {
+        // Load banks list
+        const banksResponse = await SuperAffiliateAPI.apiRequest('/wallet/banks-list/');
+        if (banksResponse.success && banksResponse.banks) {
+          banksList = banksResponse.banks;
+          const bankSelect = document.getElementById('withdraw-bank-select');
+          if (bankSelect) {
+            bankSelect.innerHTML = '<option value="">Select a bank</option>' +
+              banksList.map(bank => `<option value="${bank.code}" data-name="${bank.name}">${bank.name}</option>`).join('');
+          }
+        }
+
+        // Load saved payment methods
+        await loadSavedPaymentMethods();
+      } catch (error) {
+        console.error('Error initializing withdrawal form:', error);
+      }
+    }
+
+    // Skip verification for test accounts (manual bypass)
+    function skipVerificationForTestAccount() {
+      const bankSelect = document.getElementById('withdraw-bank-select');
+      const accountNumberInput = document.getElementById('withdraw-account');
+      const accountNameInput = document.getElementById('withdraw-account-name');
+      const verifyStatus = document.getElementById('verify-status');
+      const skipBtn = document.getElementById('skip-verification-btn');
+
+      const bankCode = bankSelect ? bankSelect.value : '';
+      const accountNumber = accountNumberInput ? accountNumberInput.value.trim() : '';
+
+      if (!bankCode || !accountNumber) {
+        showError('Please fill in bank and account number first');
+        return;
+      }
+
+      // Auto-fill test account details
+      // IMPORTANT: In test mode, always force Paystack test bank code (001) regardless of selected bank.
+      verifiedAccountData = {
+        bank_code: '001',
+        bank_name: 'Access Bank',
+        account_number: accountNumber,
+        account_name: 'Test Account'
+      };
+
+      accountNameInput.value = 'Test Account';
+      accountNameInput.style.background = 'rgba(255, 215, 0, 0.1)';
+      accountNameInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+
+      verifyStatus.textContent = '✓ Test Account (verification skipped)';
+      verifyStatus.style.color = '#ffd700';
+      
+      if (skipBtn) {
+        skipBtn.style.display = 'none';
+      }
+      
+      showSuccess('Test account details filled. You can proceed with withdrawal.');
+    }
+
+    // Fill test bank details for testing
+    function fillTestBankDetails() {
+      const bankSelect = document.getElementById('withdraw-bank-select');
+      const accountInput = document.getElementById('withdraw-account');
+      const accountNameInput = document.getElementById('withdraw-account-name');
+      const verifyStatus = document.getElementById('verify-status');
+      
+      if (bankSelect) {
+        // Find Access Bank (001)
+        const accessBankOption = Array.from(bankSelect.options).find(opt => opt.value === '001');
+        if (accessBankOption) {
+          bankSelect.value = '001';
+        }
+      }
+      
+      if (accountInput) {
+        accountInput.value = '0000000000';
+      }
+      
+      // In test mode, directly fill test account without API call
+      if (isTestMode() && bankSelect && accountInput) {
+        const bankCode = bankSelect.value;
+        const accountNumber = accountInput.value.trim();
+        
+        if (isTestAccount(bankCode, accountNumber)) {
+          verifiedAccountData = {
+            bank_code: '001',
+            bank_name: 'Access Bank',
+            account_number: accountNumber,
+            account_name: 'Test Account'
+          };
+
+          accountNameInput.value = 'Test Account';
+          accountNameInput.style.background = 'rgba(255, 215, 0, 0.1)';
+          accountNameInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+
+          if (verifyStatus) {
+            verifyStatus.textContent = '✓ Test Account (verification bypassed)';
+            verifyStatus.style.color = '#ffd700';
+          }
+          showSuccess('Test account details filled. Verification bypassed in test mode.');
+        } else {
+          // If not detected as test account, try verification
+          setTimeout(() => {
+            verifyBankAccount();
+          }, 100);
+        }
+      } else {
+        // Not in test mode, try verification
+        setTimeout(() => {
+          verifyBankAccount();
+        }, 100);
+      }
+    }
+
+    // Load saved payment methods
+    async function loadSavedPaymentMethods() {
+      try {
+        const paymentMethods = await SuperAffiliateAPI.apiRequest('/wallet/payment-methods/');
+        savedPaymentMethods = Array.isArray(paymentMethods) ? paymentMethods.filter(pm => pm.type === 'bank' && pm.bank) : [];
+        
+        const savedSelect = document.getElementById('saved-payment-method');
+        if (savedSelect) {
+          if (savedPaymentMethods.length === 0) {
+            savedSelect.innerHTML = '<option value="">No saved bank accounts. Add a new account below.</option>';
+            // Auto-select "new account" if no saved accounts
+            document.getElementById('use-new-account').checked = true;
+            toggleAccountSelection();
+          } else {
+            savedSelect.innerHTML = '<option value="">Select a saved account</option>' +
+              savedPaymentMethods.map(pm => {
+                const bank = pm.bank || {};
+                const displayName = `${bank.bank_name || 'Bank'} • ${bank.account_number ? '****' + bank.account_number.slice(-4) : ''} - ${bank.account_name || ''}`;
+                return `<option value="${pm.id}" data-bank-code="${bank.bank_code || ''}" data-bank-name="${bank.bank_name || ''}" data-account-number="${bank.account_number || ''}" data-account-name="${bank.account_name || ''}">${displayName}</option>`;
+              }).join('');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading payment methods:', error);
+        const savedSelect = document.getElementById('saved-payment-method');
+        if (savedSelect) {
+          savedSelect.innerHTML = '<option value="">Error loading saved accounts</option>';
+        }
+      }
+    }
+
+    // Toggle between saved and new account selection
+    function toggleAccountSelection() {
+      const useSaved = document.getElementById('use-saved-account').checked;
+      const savedSection = document.getElementById('saved-accounts-section');
+      const newSection = document.getElementById('new-account-section');
+      
+      if (useSaved) {
+        savedSection.style.display = 'block';
+        newSection.style.display = 'none';
+        // Clear new account fields
+        document.getElementById('withdraw-bank-select').value = '';
+        document.getElementById('withdraw-account').value = '';
+        document.getElementById('withdraw-account-name').value = '';
+        verifiedAccountData = null;
+      } else {
+        savedSection.style.display = 'none';
+        newSection.style.display = 'block';
+        // Clear saved account selection
+        document.getElementById('saved-payment-method').value = '';
+        // Show test mode helper only in test/development mode
+        const testHelper = document.getElementById('test-mode-helper');
+        if (testHelper) {
+          testHelper.style.display = isTestMode() ? 'block' : 'none';
+        }
+      }
+    }
+
+    // Load saved account details when selected
+    function loadSavedAccountDetails() {
+      const selectedId = document.getElementById('saved-payment-method').value;
+      if (!selectedId) return;
+      
+      const selectedMethod = savedPaymentMethods.find(pm => pm.id == selectedId);
+      if (selectedMethod && selectedMethod.bank) {
+        verifiedAccountData = {
+          bank_code: selectedMethod.bank.bank_code,
+          bank_name: selectedMethod.bank.bank_name,
+          account_number: selectedMethod.bank.account_number,
+          account_name: selectedMethod.bank.account_name,
+          payment_method_id: selectedMethod.id
+        };
+      }
+    }
+
+    // Check if account is a known test account
+    function isTestAccount(bankCode, accountNumber) {
+      // Test accounts: bank code 001 (Access Bank) with test account numbers
+      const testAccountNumbers = ['0000000000', '0000000001', '0000000002', '0000000003'];
+      return bankCode === '001' && testAccountNumbers.includes(accountNumber);
+    }
+
+    // Verify bank account using Paystack API
+    async function verifyBankAccount() {
+      const bankSelect = document.getElementById('withdraw-bank-select');
+      const accountNumberInput = document.getElementById('withdraw-account');
+      const accountNameInput = document.getElementById('withdraw-account-name');
+      const verifyBtn = document.getElementById('verify-account-btn');
+      const verifyStatus = document.getElementById('verify-status');
+
+      const bankCode = bankSelect.value;
+      const accountNumber = accountNumberInput.value.trim();
+
+      if (!bankCode) {
+        showError('Please select a bank');
+        return;
+      }
+
+      if (!accountNumber || accountNumber.length < 10) {
+        showError('Please enter a valid account number (minimum 10 digits)');
+        return;
+      }
+
+      // In test mode, bypass verification for known test accounts
+      // Check multiple patterns to catch all test account variations
+      const isTestAccountPattern = isTestAccount(bankCode, accountNumber) || 
+                                   (isTestMode() && bankCode === '001' && accountNumber.startsWith('00000000'));
+      
+      if (isTestMode() && isTestAccountPattern) {
+        // Auto-fill test account details without API call
+        verifiedAccountData = {
+          bank_code: '001',
+          bank_name: 'Access Bank',
+          account_number: accountNumber,
+          account_name: 'Test Account'
+        };
+
+        accountNameInput.value = 'Test Account';
+        accountNameInput.style.background = 'rgba(255, 215, 0, 0.1)';
+        accountNameInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+
+        verifyStatus.textContent = '✓ Test Account (verification bypassed)';
+        verifyStatus.style.color = '#ffd700';
+        showSuccess('Test account details filled. Verification bypassed in test mode.');
+        return;
+      }
+
+      // Disable verify button and show loading
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+      verifyStatus.textContent = 'Verifying account...';
+      verifyStatus.style.color = 'var(--text-secondary)';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/verify-bank-account/', {
+          method: 'POST',
+          body: JSON.stringify({
+            bank_code: bankCode,
+            account_number: accountNumber
+          }),
+        });
+
+        if (response.success) {
+          // Store verified account data
+          // IMPORTANT: bank_name should be the BANK NAME from dropdown, NOT the account holder name
+          const bankNameFromDropdown = bankSelect.options[bankSelect.selectedIndex].text;
+          verifiedAccountData = {
+            bank_code: bankCode,
+            bank_name: bankNameFromDropdown, // Always use bank name from dropdown (e.g., "Stanbic IBTC Bank")
+            account_number: accountNumber,
+            account_name: response.account_name // Account holder name (e.g., "TECHMALOO ANALYTICA LIMITED")
+          };
+
+          // Fill account name field
+          accountNameInput.value = response.account_name;
+          accountNameInput.style.background = 'rgba(0, 255, 136, 0.1)';
+          accountNameInput.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+
+          verifyStatus.textContent = `✓ Verified: ${response.account_name}`;
+          verifyStatus.style.color = '#00ff88';
+          showSuccess('Bank account verified successfully!');
+        } else {
+          // Check if error is about test mode daily limit
+          const errorMsg = response.error || '';
+          if (errorMsg.includes('Test mode daily limit') && isTestMode()) {
+            // If it's a test account, auto-fill it anyway
+            if (isTestAccount(bankCode, accountNumber)) {
+              verifiedAccountData = {
+                bank_code: '001',
+                bank_name: 'Access Bank',
+                account_number: accountNumber,
+                account_name: 'Test Account'
+              };
+
+              accountNameInput.value = 'Test Account';
+              accountNameInput.style.background = 'rgba(255, 215, 0, 0.1)';
+              accountNameInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+
+              verifyStatus.textContent = '✓ Test Account (verification bypassed - daily limit reached)';
+              verifyStatus.style.color = '#ffd700';
+              showSuccess('Test account details filled. Verification bypassed due to daily limit.');
+            } else {
+              // Not a test account, show error
+              verifyStatus.innerHTML = '⚠ Test mode limit reached. Use test account (001:0000000000) or try again later.';
+              verifyStatus.style.color = '#ffd700';
+              showError('Test mode daily limit reached. Please use the test account details shown above, or try again tomorrow.');
+            }
+          } else {
+            verifiedAccountData = null;
+            accountNameInput.value = '';
+            verifyStatus.textContent = `✗ ${errorMsg || 'Verification failed'}`;
+            verifyStatus.style.color = '#ff6b6b';
+            showError(errorMsg || 'Bank account verification failed');
+          }
+        }
+      } catch (error) {
+        // Check if error is about test mode daily limit
+        const errorMsg = error.message || '';
+        const isDailyLimitError = errorMsg.includes('Test mode daily limit') || 
+                                  errorMsg.includes('daily limit') ||
+                                  errorMsg.includes('Use test bank codes 001');
+        
+        if (isDailyLimitError && isTestMode()) {
+          // If it's a test account (001 with test account number), auto-fill it anyway
+          const isTest = isTestAccount(bankCode, accountNumber) || 
+                        (bankCode === '001' && accountNumber.startsWith('00000000'));
+          
+          if (isTest) {
+            verifiedAccountData = {
+              bank_code: '001',
+              bank_name: 'Access Bank',
+              account_number: accountNumber,
+              account_name: 'Test Account'
+            };
+
+            accountNameInput.value = 'Test Account';
+            accountNameInput.style.background = 'rgba(255, 215, 0, 0.1)';
+            accountNameInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+
+            verifyStatus.textContent = '✓ Test Account (verification bypassed - daily limit reached)';
+            verifyStatus.style.color = '#ffd700';
+            showSuccess('Test account details filled. Verification bypassed due to daily limit.');
+          } else {
+            // Not a test account, show error
+            verifyStatus.innerHTML = '⚠ Test mode limit reached. Use test account (001:0000000000) or try again later.';
+            verifyStatus.style.color = '#ffd700';
+            // Show skip verification button for test mode
+            const skipBtn = document.getElementById('skip-verification-btn');
+            if (skipBtn && isTestMode()) {
+              skipBtn.style.display = 'block';
+            }
+            showError('Test mode daily limit reached. Please use the test account details shown above, or try again tomorrow.');
+          }
+        } else {
+          verifiedAccountData = null;
+          accountNameInput.value = '';
+          verifyStatus.textContent = `✗ ${errorMsg || 'Verification failed'}`;
+          verifyStatus.style.color = '#ff6b6b';
+          showError(errorMsg || 'Failed to verify bank account');
+        }
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verify';
+      }
+    }
+
+    // Load wallet data
+    async function loadWallet() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/');
+        walletData = response;
+        displayWallet(response);
+        loadTransactions();
+      } catch (error) {
+        console.error('Error loading wallet:', error);
+        showError('Failed to load wallet. Please try again.');
+      }
+    }
+
+    function displayWallet(data) {
+      document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('wallet-section').style.display = 'block';
+
+      // Format currency
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      document.getElementById('balance-amount').textContent = formatCurrency(data.balance);
+      document.getElementById('stat-earned').textContent = formatCurrency(data.total_earned);
+      document.getElementById('stat-withdrawn').textContent = formatCurrency(data.total_withdrawn);
+      document.getElementById('stat-pending').textContent = formatCurrency(data.ad_earnings_pending || 0);
+    }
+
+    async function loadTransactions() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/transactions/');
+        // Backend returns {success: true, transactions: [...]} format
+        // Also handle paginated format {results: [...]} for compatibility
+        const transactions = response.transactions || response.results || (Array.isArray(response) ? response : []);
+        displayTransactions(transactions);
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        document.getElementById('transactions-list').innerHTML = '<p style="color: var(--text-secondary);">Failed to load transactions</p>';
+      }
+    }
+
+    function displayTransactions(transactions) {
+      const list = document.getElementById('transactions-list');
+      
+      if (!transactions || transactions.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No transactions yet</p>';
+        return;
+      }
+
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-NG', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      };
+
+      const getTransactionTypeLabel = (type) => {
+        const labels = {
+          'deposit': 'Deposit',
+          'withdrawal': 'Withdrawal',
+          'tip': 'Tip',
+          'affiliate_commission': 'Affiliate Commission',
+          'ad_earnings': 'Ad Earnings',
+          'purchase': 'Purchase',
+          'refund': 'Refund',
+        };
+        return labels[type] || type;
+      };
+
+      list.innerHTML = transactions.map(txn => {
+        const isPositive = ['deposit', 'tip', 'affiliate_commission', 'ad_earnings', 'refund'].includes(txn.transaction_type);
+        const amountClass = isPositive ? 'positive' : 'negative';
+        const amountPrefix = isPositive ? '+' : '-';
+
+        return `
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <div class="transaction-type">${getTransactionTypeLabel(txn.transaction_type)}</div>
+              <div class="transaction-date">${formatDate(txn.created_at)}</div>
+            </div>
+            <div class="transaction-amount ${amountClass}">
+              ${amountPrefix}${formatCurrency(Math.abs(txn.amount))}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleWithdraw(event) {
+      event.preventDefault();
+      const amount = parseFloat(document.getElementById('withdraw-amount').value);
+
+      if (!amount || amount < 100) {
+        showError('Minimum withdrawal is ₦100');
+        return;
+      }
+
+      const useSaved = document.getElementById('use-saved-account').checked;
+      let paymentMethodId = null;
+      let accountInfo = null;
+
+      if (useSaved) {
+        // Using saved account
+        const selectedId = document.getElementById('saved-payment-method').value;
+        if (!selectedId) {
+          showError('Please select a saved bank account');
+          return;
+        }
+        paymentMethodId = parseInt(selectedId);
+        const selectedMethod = savedPaymentMethods.find(pm => pm.id == selectedId);
+        if (selectedMethod && selectedMethod.bank) {
+          accountInfo = selectedMethod.bank;
+        }
+      } else {
+        // Using new account - must be verified
+        if (!verifiedAccountData) {
+          showError('Please verify the bank account before submitting');
+          return;
+        }
+
+        let saveAccount = document.getElementById('save-account-checkbox').checked;
+
+        // Validate verified account data before creating payment method
+        const bankCode = String(verifiedAccountData.bank_code || '').trim();
+        const accountNumber = String(verifiedAccountData.account_number || '').trim();
+        
+        if (!bankCode || !accountNumber) {
+          showError('Bank code and account number are required. Please verify the account again.');
+          return;
+        }
+
+        if (accountNumber.length < 10) {
+          showError('Account number must be at least 10 digits. Please verify the account again.');
+          return;
+        }
+
+        // Generate name and last_four_digits from account number (used for both save and temp)
+        const lastFour = accountNumber.slice(-4);
+        
+        // Backend bank_account field has max_length=50, but JSON format exceeds this
+        // The serializer supports legacy format CODE:NUMBER:NAME which is shorter
+        // Use legacy format to fit in 50 char limit: CODE:NUMBER:NAME
+        // Calculate max account_name length: 50 - bankCode - accountNumber - 2 colons
+        const maxAccountNameLength = Math.max(0, 50 - bankCode.length - accountNumber.length - 2);
+        const accountName = (verifiedAccountData.account_name || '').substring(0, maxAccountNameLength);
+        const legacyFormat = `${bankCode}:${accountNumber}:${accountName}`;
+        
+        // Create payment method if user wants to save it
+        if (saveAccount) {
+          try {
+            const paymentMethodData = {
+              type: 'bank',
+              name: `${(verifiedAccountData.bank_name || 'Bank').substring(0, 20)} • ${lastFour}`,
+              last_four_digits: lastFour,
+              bank_account: legacyFormat, // Send legacy format directly to avoid JSON conversion
+              bank_code: verifiedAccountData.bank_code, // REQUIRED: Paystack bank code
+              bank_name: verifiedAccountData.bank_name, // REQUIRED: Bank name (e.g., "Stanbic IBTC Bank")
+              is_default: false
+            };
+
+            console.log('Creating payment method with data:', paymentMethodData);
+
+            const response = await SuperAffiliateAPI.apiRequest('/wallet/payment-methods/', {
+              method: 'POST',
+              body: JSON.stringify(paymentMethodData),
+            });
+
+            // Backend returns {success: true, payment_method: {...}} or throws error with details
+            if (response && response.payment_method) {
+              paymentMethodId = response.payment_method.id;
+              accountInfo = verifiedAccountData;
+              // Reload saved payment methods
+              await loadSavedPaymentMethods();
+            } else {
+              throw new Error(response?.error || 'Failed to create payment method');
+            }
+          } catch (pmError) {
+            console.error('Failed to save payment method:', pmError);
+            // Extract detailed error message if available
+            let errorMsg = pmError.message || 'Failed to save account for future use';
+            if (pmError.details) {
+              // Format validation errors
+              const errorParts = [];
+              if (typeof pmError.details === 'object') {
+                Object.entries(pmError.details).forEach(([key, value]) => {
+                  if (Array.isArray(value)) {
+                    errorParts.push(`${key}: ${value.join(', ')}`);
+                  } else if (typeof value === 'object') {
+                    Object.entries(value).forEach(([subKey, subValue]) => {
+                      errorParts.push(`${key}.${subKey}: ${Array.isArray(subValue) ? subValue.join(', ') : subValue}`);
+                    });
+                  } else {
+                    errorParts.push(`${key}: ${value}`);
+                  }
+                });
+                if (errorParts.length > 0) {
+                  errorMsg = errorParts.join('; ');
+                }
+              }
+            }
+            showError(`Withdrawal will proceed, but ${errorMsg.toLowerCase()}`);
+            // Continue without saving - create temporary payment method
+            saveAccount = false; // Fall through to create temporary method
+          }
+        }
+
+        // Create temporary payment method if not saved or if save failed
+        if (!paymentMethodId) {
+          try {
+            const paymentMethodData = {
+              type: 'bank',
+              name: `${(verifiedAccountData.bank_name || 'Bank').substring(0, 20)} • ${lastFour}`,
+              last_four_digits: lastFour,
+              bank_account: legacyFormat, // Send legacy format directly to avoid JSON conversion
+              bank_code: verifiedAccountData.bank_code, // REQUIRED: Paystack bank code
+              bank_name: verifiedAccountData.bank_name, // REQUIRED: Bank name (e.g., "Stanbic IBTC Bank")
+              is_default: false
+            };
+
+            console.log('Creating temporary payment method with data:', paymentMethodData);
+
+            const response = await SuperAffiliateAPI.apiRequest('/wallet/payment-methods/', {
+              method: 'POST',
+              body: JSON.stringify(paymentMethodData),
+            });
+
+            if (response && response.payment_method) {
+              paymentMethodId = response.payment_method.id;
+              accountInfo = verifiedAccountData;
+            } else {
+              throw new Error(response?.error || 'Failed to create payment method');
+            }
+          } catch (pmError) {
+            console.error('Payment method creation failed:', pmError);
+            // Extract detailed error message if available
+            let errorMsg = pmError.message || 'Failed to set up payment method. Please check your bank details.';
+            if (pmError.details) {
+              // Format validation errors
+              const errorParts = [];
+              if (typeof pmError.details === 'object') {
+                Object.entries(pmError.details).forEach(([key, value]) => {
+                  if (Array.isArray(value)) {
+                    errorParts.push(`${key}: ${value.join(', ')}`);
+                  } else if (typeof value === 'object') {
+                    Object.entries(value).forEach(([subKey, subValue]) => {
+                      errorParts.push(`${key}.${subKey}: ${Array.isArray(subValue) ? subValue.join(', ') : subValue}`);
+                    });
+                  } else {
+                    errorParts.push(`${key}: ${value}`);
+                  }
+                });
+                if (errorParts.length > 0) {
+                  errorMsg = `Failed to set up payment method: ${errorParts.join('; ')}`;
+                }
+              }
+            }
+            showError(errorMsg);
+            return;
+          }
+        }
+      }
+
+      if (!paymentMethodId) {
+        showError('Payment method is required for withdrawal');
+        return;
+      }
+
+      // Create withdrawal request
+      const withdrawalData = {
+        amount: amount,
+        description: accountInfo ? `Withdrawal to ${accountInfo.bank_name || 'Bank'} - ${accountInfo.account_number || ''}` : 'Withdrawal request'
+      };
+      
+      withdrawalData.payment_method = paymentMethodId;
+
+      try {
+        const submitBtn = document.getElementById('withdraw-submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/withdraw/', {
+          method: 'POST',
+          body: JSON.stringify(withdrawalData),
+        });
+        
+        console.log('Withdrawal response:', response);
+        
+        // Check for success - backend returns {success: true, message: '...', transaction: {...}}
+        // or {success: false, error: '...'}
+        if (response && (response.success === true || (response.success !== false && !response.error))) {
+          const successMessage = response.message || 
+                                 `Withdrawal request of ₦${amount.toLocaleString('en-NG', {minimumFractionDigits: 0, maximumFractionDigits: 0})} submitted successfully!`;
+          
+          console.log('Withdrawal successful, showing message:', successMessage);
+          showSuccess(successMessage);
+          
+          // Reset form
+          document.getElementById('withdraw-form').reset();
+          verifiedAccountData = null;
+          
+          // Reset form state
+          document.getElementById('use-saved-account').checked = true;
+          toggleAccountSelection();
+          
+          // Reload wallet data to show updated balance
+          await loadSavedPaymentMethods();
+          await loadWallet();
+          await loadTransactions();
+        } else {
+          const errorMessage = response?.error || 
+                               response?.details || 
+                               (typeof response === 'string' ? response : 'Failed to submit withdrawal request');
+          console.error('Withdrawal failed:', errorMessage);
+          showError(errorMessage);
+        }
+      } catch (error) {
+        console.error('Withdrawal error:', error);
+        showError(error.message || 'Failed to submit withdrawal request');
+      } finally {
+        const submitBtn = document.getElementById('withdraw-submit-btn');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Withdrawal';
+      }
+    }
+
+    async function handleDeposit(event) {
+      event.preventDefault();
+      const amount = parseFloat(document.getElementById('deposit-amount').value);
+
+      if (!amount || amount < 100) {
+        showError('Minimum deposit is ₦100');
+        return;
+      }
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/deposit/real/', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            amount,
+            payment_method: 'paystack' // Default to Paystack
+          }),
+        });
+        
+        // Backend returns 'payment_url', not 'authorization_url'
+        const paymentUrl = response.payment_url || response.authorization_url;
+        
+        if (paymentUrl) {
+          // Redirect to payment page
+          window.location.href = paymentUrl;
+        } else {
+          showError(response.error || 'Failed to initiate payment. Please try again.');
+        }
+      } catch (error) {
+        console.error('Deposit error:', error);
+        showError(error.message || 'Failed to initiate deposit');
+      }
+    }
+
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+      setTimeout(() => errorDiv.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.getElementById('success-message');
+      if (successDiv) {
+        successDiv.textContent = message;
+        successDiv.classList.add('show');
+        // Keep message visible longer for important actions like withdrawals
+        const duration = message.includes('Withdrawal') ? 8000 : 5000;
+        setTimeout(() => successDiv.classList.remove('show'), duration);
+        
+        // Scroll to top to ensure message is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Fallback: use alert if element doesn't exist
+        alert(message);
+      }
+    }
+
+    // Initialize
+    loadWallet();
+    initializeWithdrawalForm();
+  </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Payment Processing - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      body {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    input[type="number"] {
+      inputmode: "numeric";
+    }
+
+    input[type="tel"] {
+      inputmode: "tel";
+    }
+
+    input[type="email"] {
+      inputmode: "email";
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .icon-success {
+      color: var(--accent-color);
+    }
+
+    .icon-error {
+      color: #f44336;
+    }
+
+    .icon-loading {
+      color: var(--accent-color);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .btn {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .container {
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .icon {
+        font-size: 3rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+      }
+
+      .icon {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loading-state">
+      <i class="fas fa-spinner icon icon-loading"></i>
+      <h1>Processing Payment...</h1>
+      <p>Please wait while we verify your payment.</p>
+    </div>
+
+    <div id="success-state" style="display: none;">
+      <i class="fas fa-check-circle icon icon-success"></i>
+      <h1>Payment Successful!</h1>
+      <p>Your order has been confirmed. You will receive a confirmation email shortly.</p>
+      <a href="#" id="view-order-btn" class="btn">
+        <i class="fas fa-shopping-bag"></i> View Order
+      </a>
+    </div>
+
+    <div id="error-state" style="display: none;">
+      <i class="fas fa-times-circle icon icon-error"></i>
+      <h1>Payment Failed</h1>
+      <p id="error-message">There was an issue processing your payment. Please try again.</p>
+      <a href="orders.html" class="btn">
+        <i class="fas fa-arrow-left"></i> Back to Orders
+      </a>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    (async function() {
+      // Get parameters from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const reference = urlParams.get('reference');
+      const orderId = urlParams.get('order_id');
+      const trxref = urlParams.get('trxref'); // Paystack sometimes uses this
+
+      // Use reference or trxref
+      const paymentReference = reference || trxref;
+
+      if (!paymentReference && !orderId) {
+        showError('Payment reference not found');
+        return;
+      }
+
+      // Verify payment
+      async function verifyPayment() {
+      try {
+        if (paymentReference) {
+          // Verify payment by reference
+          const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/payment/verify/${paymentReference}/`);
+          
+          if (response.success || response.payment_status === 'paid' || response.status === 'success') {
+            showSuccess(response.order_id || orderId);
+          } else {
+            showError(response.message || 'Payment verification failed');
+          }
+        } else if (orderId) {
+          // If no reference, check order status directly
+          const orderResponse = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
+          
+          if (orderResponse.payment_status === 'paid' || orderResponse.status === 'paid') {
+            showSuccess(orderId);
+          } else {
+            // Wait a bit and check again (payment might still be processing)
+            setTimeout(() => {
+              verifyPayment();
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        // If verification fails, check order status as fallback
+        if (orderId) {
+          try {
+            const orderResponse = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
+            if (orderResponse.payment_status === 'paid') {
+              showSuccess(orderId);
+            } else {
+              showError('Payment verification failed. Please check your order status.');
+            }
+          } catch (err) {
+            showError('Unable to verify payment. Please check your orders.');
+          }
+        } else {
+          showError('Payment verification failed. Please check your orders.');
+        }
+      }
+    }
+
+    function showSuccess(orderId) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('success-state').style.display = 'block';
+      
+      if (orderId) {
+        document.getElementById('view-order-btn').href = `order-detail.html?id=${orderId}`;
+      } else {
+        document.getElementById('view-order-btn').href = 'orders.html';
+      }
+
+      // Redirect after 5 seconds
+      setTimeout(() => {
+        if (orderId) {
+          window.location.href = `order-detail.html?id=${orderId}`;
+        } else {
+          window.location.href = 'orders.html';
+        }
+      }, 5000);
+    }
+
+    function showError(message) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      if (message) {
+        document.getElementById('error-message').textContent = message;
+      }
+    }
+
+      // Start verification
+      await verifyPayment();
+    })();
+  </script>
+</body>
+</html>

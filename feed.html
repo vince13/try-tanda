@@ -1,0 +1,3161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tanda Feed</title>
+  <meta name="description" content="Watch Tanda videos in a TikTok-like scrolling feed." />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/ios-enhancements.js"></script>
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.75);
+      --bg: #000000;
+      --panel: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(1200px 800px at 30% 10%, rgba(255,0,80,0.10), transparent 60%),
+                  radial-gradient(900px 700px at 70% 20%, rgba(0,242,234,0.08), transparent 55%),
+                  var(--bg);
+      color: var(--text-primary);
+      overflow: hidden; /* the feed container scrolls */
+    }
+
+    /* Safe area insets for iPhone notches and home indicator */
+    @supports (padding: env(safe-area-inset-top)) {
+      .topbar {
+        padding-top: calc(12px + env(safe-area-inset-top));
+        padding-left: calc(16px + env(safe-area-inset-left));
+        padding-right: calc(16px + env(safe-area-inset-right));
+      }
+
+      .feed {
+        padding-top: calc(64px + env(safe-area-inset-top));
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    }
+
+    /* iOS keyboard handling - prevent zoom on input focus */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.72), rgba(0,0,0,0));
+      pointer-events: none; /* allow feed scroll */
+    }
+    .topbar > * { pointer-events: auto; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+    .brand img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+    }
+    .brand span {
+      font-size: 16px;
+    }
+    .auth {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Feed container uses scroll-snap to keep TikTok effect */
+    .feed {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y; /* Allow vertical scrolling, prevent horizontal */
+    }
+
+    .item {
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 12px 14px; /* leave space for topbar */
+    }
+
+    /* Desktop: mimic TikTok web — phone stage centered with side actions */
+    .stage {
+      width: min(520px, 92vw);
+      height: min(88vh, 920px);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+    }
+
+    .video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      display: block;
+    }
+    
+
+    .gradientTop {
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 160px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0));
+      pointer-events: none;
+    }
+    .gradientBottom {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 220px;
+      background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0));
+      pointer-events: none;
+    }
+
+    /* Video Progress Bar */
+    .video-progress-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      z-index: 4;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .video-progress-bar {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .video-progress-filled {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-gradient);
+      transition: width 0.1s linear;
+      position: relative;
+    }
+
+    .video-progress-filled::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .video-progress-container:hover .video-progress-filled::after {
+      opacity: 1;
+    }
+
+    .video-progress-container:hover {
+      height: 6px;
+    }
+
+    .meta {
+      position: absolute;
+      left: 14px;
+      right: 80px; /* make room for action rail */
+      bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 3;
+    }
+    .username {
+      font-weight: 800;
+      font-size: 15px;
+    }
+    .caption {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .actions {
+      position: absolute;
+      right: 10px;
+      bottom: 92px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .actionBtn {
+      width: 48px;
+      height: 48px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+    }
+    .actionBtn:hover { opacity: 0.92; }
+
+    /* Profile Avatar Icon */
+    .profileAvatarBtn {
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      min-height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: var(--primary-gradient);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+    .profileAvatarBtn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profileAvatarBtn .avatarFallback {
+      color: #fff;
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .profileAvatarBtn .playOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .profileAvatarBtn:hover .playOverlay {
+      opacity: 1;
+    }
+    .profileAvatarBtn .playOverlay i {
+      color: #fff;
+      font-size: 18px;
+    }
+
+    /* Follow Badge */
+    .followBadge {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: #ff3040;
+      border: 2px solid #000;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Tip Button */
+    .tipBtn {
+      width: 48px;
+      height: 48px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffd700, #ffb347);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(255,215,0,0.3);
+    }
+    .tipBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255,215,0,0.5);
+    }
+    .tipBtn i {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Shop Button */
+    .shopBtn {
+      width: 48px;
+      height: 48px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4a90e2, #357abd);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(74,144,226,0.3);
+    }
+    .shopBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(74,144,226,0.5);
+    }
+    .shopBtn i {
+      font-size: 18px;
+    }
+
+    /* Ensure all touch targets meet iOS minimum 44x44px */
+    button, .btn, a.btn {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .actionCount {
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+      margin-top: -6px;
+    }
+
+    .status {
+      max-width: min(520px, 92vw);
+      margin: 8px auto 0;
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+    }
+
+    .loginGate {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,0.74);
+      backdrop-filter: blur(10px);
+    }
+    .gateCard {
+      width: min(520px, 92vw);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(15,15,15,0.78);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+      padding: 18px;
+    }
+    .gateTitle {
+      font-weight: 900;
+      font-size: 18px;
+      margin: 0 0 6px;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gateText {
+      margin: 0 0 14px;
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .gateActions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .btnPrimary {
+      background: var(--primary-gradient);
+      border: none;
+    }
+    .btn:hover { opacity: 0.92; }
+
+    /* Mobile: true full-screen video (stage fills) */
+    @media (max-width: 720px) {
+      .item { padding: 0; }
+      .stage {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+      .meta { right: 76px; }
+      .topbar {
+        height: 56px;
+        padding: 10px 12px;
+      }
+    }
+
+    /* iOS Bottom Sheet Modal */
+    .ios-bottom-sheet {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      pointer-events: none;
+    }
+
+    .ios-bottom-sheet.show {
+      pointer-events: auto;
+    }
+
+    .ios-bottom-sheet-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .ios-bottom-sheet.show .ios-bottom-sheet-backdrop {
+      opacity: 1;
+    }
+
+    .ios-bottom-sheet-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border-radius: 20px 20px 0 0;
+      height: 60vh;
+      max-height: 60vh;
+      overflow: hidden; /* Changed from overflow-y: auto to overflow: hidden */
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ios-bottom-sheet.show .ios-bottom-sheet-content {
+      transform: translateY(0);
+    }
+
+    .ios-bottom-sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin: 12px auto;
+    }
+
+    .ios-bottom-sheet-body {
+      padding: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Comments Modal Styles */
+    .comments-modal {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 60vh;
+      position: relative;
+    }
+
+    .comments-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .comments-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .comments-close {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      line-height: 1;
+    }
+
+    .comments-list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1rem 1.5rem;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0; /* Important for flex scrolling */
+    }
+
+    .comment-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-replies {
+      margin-left: calc(32px + 0.75rem);
+      margin-top: 0.75rem;
+      padding-left: 1rem;
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .comment-reply-item {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .comment-reply-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-reply-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .comment-reply-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .comment-reply-user {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .comment-reply-time {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+
+    .comment-reply-content {
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-left: calc(24px + 0.5rem);
+    }
+
+    .comment-reply-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-left: calc(24px + 0.5rem);
+      margin-top: 0.25rem;
+    }
+
+    .comment-reply-action {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .comment-reply-action:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+
+    .reply-input-wrapper {
+      margin-left: calc(32px + 0.75rem);
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .reply-input-wrapper.active {
+      display: block;
+    }
+
+    .reply-input-area {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .reply-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      resize: none;
+      min-height: 36px;
+      max-height: 100px;
+      font-family: inherit;
+    }
+
+    .reply-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .reply-send {
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 36px;
+      font-size: 0.85rem;
+      transition: transform 0.2s ease;
+    }
+
+    .reply-send:hover {
+      transform: translateY(-1px);
+    }
+
+    .reply-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .view-replies-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent-color);
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      margin-left: calc(32px + 0.75rem);
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .view-replies-btn:hover {
+      text-decoration: underline;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .comment-user {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .comment-time {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+
+    .comment-content {
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-left: calc(32px + 0.75rem);
+    }
+
+    .comment-actions {
+      display: flex;
+      gap: 1rem;
+      margin-left: calc(32px + 0.75rem);
+      margin-top: 0.5rem;
+    }
+
+    .comment-action {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .comment-action:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+
+    .comments-input-area {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .comments-input-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .comments-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      font-family: inherit;
+    }
+
+    .comments-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .comments-send {
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      transition: transform 0.2s ease;
+    }
+
+    .comments-send:hover {
+      transform: translateY(-1px);
+    }
+
+    .comments-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .comments-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .comments-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    /* Pull to Refresh */
+    .pull-to-refresh-indicator {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .pull-to-refresh-indicator i {
+      font-size: 1.5rem;
+    }
+
+    .pull-to-refresh-indicator.ready {
+      color: var(--accent-color);
+    }
+
+    .pull-to-refresh-indicator.refreshing i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Touch gesture improvements */
+    .video {
+      touch-action: pan-y pinch-zoom;
+    }
+
+    /* Swipe gesture hints */
+    @media (max-width: 720px) {
+      .stage {
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    /* Product Tag Overlays */
+    .product-tag-overlay {
+      position: absolute;
+      z-index: 10;
+      cursor: pointer;
+      /* IMPORTANT: Do not animate/override transform here.
+         JS uses transform for positioning (translate(-50%, -50%)). */
+      transition: opacity 0.2s ease;
+      pointer-events: auto;
+      max-width: 200px;
+    }
+
+    .product-tag-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .product-tag-card {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 160px;
+      max-width: 200px;
+      transform-origin: center;
+      animation: tagFadeIn 0.18s ease-out;
+    }
+
+    .product-tag-overlay.hidden .product-tag-card {
+      transform: scale(0.92);
+    }
+
+    @keyframes tagFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .product-tag-image {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .product-tag-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-tag-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .product-tag-price {
+      font-size: 0.75rem;
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    .product-tag-overlay.compact .product-tag-card {
+      padding: 8px;
+      min-width: 120px;
+      max-width: 150px;
+    }
+
+    .product-tag-overlay.compact .product-tag-image {
+      width: 40px;
+      height: 40px;
+    }
+
+    .product-tag-overlay.compact .product-tag-name {
+      font-size: 0.75rem;
+    }
+
+    .product-tag-overlay.compact .product-tag-price {
+      font-size: 0.7rem;
+    }
+
+    .product-tag-overlay.minimal {
+      max-width: 80px;
+    }
+
+    .product-tag-overlay.minimal .product-tag-card {
+      padding: 6px;
+      min-width: 60px;
+      max-width: 80px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .product-tag-overlay.minimal .product-tag-image {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 4px;
+    }
+
+    .product-tag-overlay.minimal .product-tag-name {
+      font-size: 0.7rem;
+      white-space: normal;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+
+    .product-tag-overlay.minimal .product-tag-price {
+      font-size: 0.65rem;
+    }
+
+    /* Glassmorphism style */
+    .product-tag-overlay.glassmorphism .product-tag-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Gradient style */
+    .product-tag-overlay.gradient .product-tag-card {
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.9), rgba(0, 242, 234, 0.9));
+      border: none;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 720px) {
+      .product-tag-overlay {
+        max-width: 180px;
+      }
+
+      .product-tag-card {
+        padding: 8px;
+        min-width: 140px;
+        max-width: 180px;
+      }
+
+      .product-tag-image {
+        width: 45px;
+        height: 45px;
+      }
+
+      .product-tag-name {
+        font-size: 0.8rem;
+      }
+
+      .product-tag-price {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <img src="Tanda logo.png" alt="Tanda">
+      <span>Feed</span>
+    </div>
+    <div class="auth tanda-nav-container" id="authNav"></div>
+  </div>
+
+  <div class="feed" id="feed"></div>
+  <div class="status" id="status"></div>
+
+  <!-- Add to Home Screen Prompt -->
+  <div id="pwaInstallPrompt" class="pwa-install-prompt" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 1rem 1.5rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); z-index: 10000; align-items: center; gap: 1rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);">
+    <div style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <img src="Tanda logo.png" alt="Tanda" style="width: 32px; height: 32px; border-radius: 8px;">
+    </div>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Install Tanda App</div>
+      <div style="font-size: 0.85rem; color: var(--text-secondary);">Add to your home screen for a better experience</div>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <button id="pwaInstallBtn" style="padding: 0.5rem 1rem; background: var(--primary-gradient); color: white; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap;">Install</button>
+      <button id="pwaInstallDismiss" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0.25rem; line-height: 1;" aria-label="Dismiss">×</button>
+    </div>
+  </div>
+
+  <div class="loginGate" id="loginGate">
+    <div class="gateCard">
+      <div class="gateTitle">Login required</div>
+      <p class="gateText">
+        The feed API is currently protected. Login (or create an account) to keep the TikTok-like scrolling feed.
+      </p>
+      <div class="gateActions">
+        <a class="btn btnPrimary" href="super-affiliate-login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a class="btn" href="signup.html"><i class="fas fa-user-plus"></i> Sign up</a>
+        <a class="btn" href="index.html"><i class="fas fa-home"></i> Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    const feedEl = document.getElementById('feed');
+    const statusEl = document.getElementById('status');
+    const loginGateEl = document.getElementById('loginGate');
+
+    let page = 1;
+    let loading = false;
+    let hasNext = true;
+    let observer = null;
+    let activeVideoEl = null;
+
+    function showStatus(text) {
+      statusEl.textContent = text || '';
+    }
+
+    function safeText(v) {
+      if (v === null || v === undefined) return '';
+      return String(v);
+    }
+
+    // The backend feed mixes native/imported/ads; normalize to a common shape.
+    function normalizeFeedItem(item) {
+      if (item && item._is_ad) {
+        return { kind: 'ad', id: item._ad_rotation_key || `ad_${item._ad_index || ''}`, raw: item };
+      }
+
+      const type = item?.type || item?.kind || 'native';
+      const v = item?.video || item;
+
+      // Candidate URL keys (backend serializers differ slightly across models)
+      const videoUrl = v?.video_url || v?.video_file || v?.video || v?.url || v?.videoUrl;
+      const thumbUrl = v?.thumbnail_url || v?.thumbnail || v?.thumb || v?.thumbnailUrl;
+      const username = v?.user?.username || v?.creator_username || v?.creator_name || v?.uploaded_by?.username || 'tanda';
+      const caption = v?.description || v?.caption || v?.title || '';
+      const avatarUrl = v?.user?.avatar || v?.user?.avatar_url || v?.user?.profile_image || null;
+      const userId = v?.user?.id || v?.user_id || null;
+      const productTags = v?.product_tags || [];
+
+      return {
+        kind: type === 'imported' ? 'imported' : 'native',
+        id: v?.id || item?.id || `${type}_${Math.random().toString(16).slice(2)}`,
+        videoUrl,
+        thumbUrl,
+        username,
+        caption,
+        avatarUrl,
+        userId,
+        productTags,
+        likes: v?.likes || v?.like_count || v?.tanda_likes || 0,
+        comments: v?.comment_count || v?.tanda_comments || 0,
+        shares: v?.shares || v?.tanda_shares || 0,
+        isLiked: v?.is_liked || item?.is_liked || false,
+        raw: item
+      };
+    }
+
+    function createAdCard(adItem) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'item';
+      wrapper.innerHTML = `
+        <div class="stage" style="display:flex; align-items:center; justify-content:center; padding:16px;">
+          <div style="text-align:center; max-width:420px;">
+            <div style="font-weight:900; font-size:18px; background: var(--primary-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Sponsored</div>
+            <div style="margin-top:10px; color: rgba(255,255,255,0.75); font-size:13px; line-height:1.5;">
+              Ad content will appear here (delivered by the backend).
+            </div>
+          </div>
+        </div>
+      `;
+      return wrapper;
+    }
+
+    function createVideoCard(normalized) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'item';
+      wrapper.dataset.itemId = normalized.id;
+
+      const videoUrl = safeText(normalized.videoUrl);
+      const thumbUrl = safeText(normalized.thumbUrl);
+
+      // Validate video URL - all videos should play natively from Tanda's backend
+      if (!videoUrl || videoUrl === 'null' || videoUrl === 'undefined' || videoUrl.trim() === '') {
+        console.warn('Invalid video URL for video:', normalized.id, 'URL:', videoUrl, 'isInvalidFileUrl:', isInvalidFileUrl);
+        // Show placeholder instead of video
+        wrapper.innerHTML = `
+          <div class="stage" style="display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3);">
+            <div style="text-align: center; color: rgba(255,255,255,0.5);">
+              <i class="fas fa-video-slash" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+              <div>Video unavailable</div>
+            </div>
+          </div>
+        `;
+        return wrapper;
+      }
+
+      // Use muted autoplay with inline playback to keep the "scrolling feed" feel.
+      // We only actively play the video that's currently in view (via IntersectionObserver).
+      wrapper.innerHTML = `
+        <div class="stage">
+          <video class="video"
+                 playsinline
+                 webkit-playsinline
+                 muted
+                 preload="auto"
+                 x-webkit-airplay="allow"
+                 ${thumbUrl ? `poster="${thumbUrl.replaceAll('"', '&quot;')}"` : ''}
+                 ${videoUrl ? `src="${videoUrl.replaceAll('"', '&quot;')}"` : ''}>
+            ${videoUrl ? `<source src="${videoUrl.replaceAll('"', '&quot;')}" type="video/mp4">` : ''}
+          </video>
+
+          <!-- Video Progress Bar -->
+          <div class="video-progress-container">
+            <div class="video-progress-bar">
+              <div class="video-progress-filled"></div>
+            </div>
+          </div>
+
+          <div class="gradientTop"></div>
+          <div class="gradientBottom"></div>
+
+          <div class="actions">
+            <!-- Profile Avatar -->
+            <a href="user-profile.html?username=${safeText(normalized.username)}" class="profileAvatarBtn" title="@${safeText(normalized.username)}">
+              ${normalized.avatarUrl ? 
+                `<img src="${normalized.avatarUrl.replaceAll('"', '&quot;')}" alt="${safeText(normalized.username)}" onerror="this.parentElement.innerHTML='<div class=\\'avatarFallback\\'>${safeText(normalized.username).charAt(0).toUpperCase()}</div>'">` :
+                `<div class="avatarFallback">${safeText(normalized.username).charAt(0).toUpperCase()}</div>`
+              }
+              <div class="playOverlay">
+                <i class="fas fa-play"></i>
+              </div>
+              ${SuperAffiliateAPI.isAuthenticated() ? `<div class="followBadge">+</div>` : ''}
+            </a>
+
+            <button class="actionBtn ${normalized.isLiked ? 'liked' : ''}" data-action="like" data-video-id="${normalized.id}" title="Like">
+              <i class="${normalized.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+            </button>
+            <div class="actionCount" data-like-count="${normalized.id}">${Number(normalized.likes || 0).toLocaleString()}</div>
+
+            <button class="actionBtn" data-action="comment" data-video-id="${normalized.id}" title="Comments">
+              <i class="fa-solid fa-comment-dots"></i>
+            </button>
+            <div class="actionCount" data-comment-count="${normalized.id}">${Number(normalized.comments || 0).toLocaleString()}</div>
+
+            <button class="actionBtn" data-action="share" data-video-id="${normalized.id}" title="Share">
+              <i class="fa-solid fa-share"></i>
+            </button>
+            <div class="actionCount">${Number(normalized.shares || 0).toLocaleString()}</div>
+
+            <!-- Tip Button -->
+            ${SuperAffiliateAPI.isAuthenticated() && normalized.userId ? `
+              <button class="tipBtn" data-action="tip" data-video-id="${normalized.id}" data-user-id="${normalized.userId}" title="Tip Creator">
+                <i class="fas fa-dollar-sign"></i>
+              </button>
+              <div class="actionCount" style="color: rgba(255,215,0,0.9);">Tip</div>
+            ` : ''}
+
+            <!-- Shop Button (show on all videos) -->
+            <button class="shopBtn" data-action="shop" data-video-id="${normalized.id}" title="Shop Products">
+              <i class="fas fa-shopping-bag"></i>
+            </button>
+            <div class="actionCount" style="color: rgba(74,144,226,0.9);">Shop</div>
+          </div>
+
+          <div class="meta">
+            <div class="username">
+              <a href="user-profile.html?username=${safeText(normalized.username)}" style="color: inherit; text-decoration: none;">
+                @${safeText(normalized.username)}
+              </a>
+              <span class="follow-btn-container" data-username="${safeText(normalized.username)}" data-user-id="${normalized.userId || ''}"></span>
+            </div>
+            <div class="caption">${safeText(normalized.caption)}</div>
+          </div>
+        </div>
+      `;
+
+      const videoEl = wrapper.querySelector('video');
+      const stageEl = wrapper.querySelector('.stage');
+
+      // Initialize product tag overlays if video has tags
+      if (normalized.productTags && normalized.productTags.length > 0) {
+        // Fetch full tag details if needed (async, but don't block video rendering)
+        fetchAndInitializeProductTags(videoEl, stageEl, normalized.id, normalized.productTags);
+      }
+
+      // Auto-replay when video ends
+      videoEl.addEventListener('ended', () => {
+        // Reset video to beginning and play again
+        videoEl.currentTime = 0;
+        videoEl.play().catch(err => {
+          // Silently handle autoplay errors (e.g., if user paused)
+          if (err.name !== 'NotAllowedError') {
+            console.warn('Auto-replay error:', err);
+          }
+        });
+      });
+
+      // Progress bar setup
+      const progressContainer = wrapper.querySelector('.video-progress-container');
+      const progressFilled = wrapper.querySelector('.video-progress-filled');
+      
+      if (progressContainer && progressFilled) {
+        // Update progress bar as video plays
+        const updateProgress = () => {
+          if (videoEl.duration && isFinite(videoEl.duration)) {
+            const progress = (videoEl.currentTime / videoEl.duration) * 100;
+            progressFilled.style.width = `${progress}%`;
+          }
+        };
+        
+        videoEl.addEventListener('timeupdate', updateProgress);
+        videoEl.addEventListener('loadedmetadata', updateProgress);
+        
+        // Allow seeking by clicking on progress bar
+        progressContainer.addEventListener('click', (e) => {
+          if (!videoEl.duration || !isFinite(videoEl.duration)) return;
+          
+          const rect = progressContainer.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const percentage = clickX / rect.width;
+          const newTime = percentage * videoEl.duration;
+          
+          videoEl.currentTime = Math.max(0, Math.min(newTime, videoEl.duration));
+          updateProgress();
+          triggerHapticFeedback('selection');
+        });
+      }
+
+      // Tap/click toggles play/pause on the focused video.
+      stageEl.addEventListener('click', async (e) => {
+        // Don't toggle if clicking on action buttons, product tags, or progress bar
+        if (e.target.closest('.actions') || e.target.closest('.meta') || e.target.closest('.product-tag-overlay') || e.target.closest('.video-progress-container')) return;
+        
+        if (!videoEl) return;
+        try {
+          if (videoEl.paused) {
+            triggerHapticFeedback('selection');
+            await videoEl.play();
+          } else {
+            triggerHapticFeedback('selection');
+            videoEl.pause();
+          }
+        } catch (_) {}
+      });
+
+      // Add advanced gestures to video stage
+      if (window.GestureHandler) {
+        new GestureHandler(stageEl, {
+          onDoubleTap: () => {
+            // Double tap to like
+            if (likeBtn && SuperAffiliateAPI.isAuthenticated()) {
+              triggerHapticFeedback('medium');
+              handleLike(normalized.id, likeBtn, wrapper.querySelector(`[data-like-count="${normalized.id}"]`));
+            }
+          },
+          onLongPress: () => {
+            // Long press to show video options
+            triggerHapticFeedback('medium');
+            // Could show bottom sheet with options
+          }
+        });
+      }
+
+      // Add interaction handlers
+      const likeBtn = wrapper.querySelector('[data-action="like"]');
+      const commentBtn = wrapper.querySelector('[data-action="comment"]');
+      const shareBtn = wrapper.querySelector('[data-action="share"]');
+      const tipBtn = wrapper.querySelector('[data-action="tip"]');
+      const shopBtn = wrapper.querySelector('[data-action="shop"]');
+      // Conditionally show follow button
+      const followBtnContainer = wrapper.querySelector('.follow-btn-container');
+
+      if (likeBtn && SuperAffiliateAPI.isAuthenticated()) {
+        likeBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          triggerHapticFeedback('light');
+          await handleLike(normalized.id, likeBtn, wrapper.querySelector(`[data-like-count="${normalized.id}"]`));
+        });
+      }
+
+      if (commentBtn && SuperAffiliateAPI.isAuthenticated()) {
+        commentBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          triggerHapticFeedback('light');
+          await handleComment(normalized.id);
+        });
+      }
+
+      if (shareBtn) {
+        shareBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          triggerHapticFeedback('medium');
+          await handleShare(normalized.id, normalized.videoUrl);
+        });
+      }
+
+      if (tipBtn && SuperAffiliateAPI.isAuthenticated()) {
+        tipBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          triggerHapticFeedback('medium');
+          await handleTip(normalized.id, normalized.userId, normalized.username);
+        });
+      }
+
+      if (shopBtn) {
+        shopBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          triggerHapticFeedback('light');
+          await handleShop(normalized.id, normalized.productTags);
+        });
+      }
+
+      if (followBtnContainer && SuperAffiliateAPI.isAuthenticated()) {
+        // Check if current user is the video owner or already following
+        (async () => {
+          try {
+            const currentUser = await SuperAffiliateAPI.getUserProfile();
+            if (!currentUser) return;
+            
+            const videoOwnerId = normalized.userId;
+            const currentUserId = currentUser.id;
+            
+            // Hide if current user is the video owner
+            if (videoOwnerId && String(currentUserId) === String(videoOwnerId)) {
+              followBtnContainer.style.display = 'none';
+              return;
+            }
+            
+            // Check if already following
+            try {
+              const followStatus = await SuperAffiliateAPI.apiRequest(`/users/following-status/${encodeURIComponent(normalized.username)}/`);
+              if (followStatus && followStatus.is_following) {
+                followBtnContainer.style.display = 'none';
+                return;
+              }
+            } catch (e) {
+              // If check fails, show button anyway (user can still follow)
+              console.warn('Could not check follow status:', e);
+            }
+            
+            // Show follow button if not owner and not already following
+            const followBtn = document.createElement('button');
+            followBtn.className = 'follow-btn';
+            followBtn.setAttribute('data-username', normalized.username);
+            followBtn.style.cssText = 'margin-left: 0.5rem; padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--accent-color); cursor: pointer; font-size: 0.85rem;';
+            followBtn.textContent = 'Follow';
+            followBtnContainer.appendChild(followBtn);
+            
+        followBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+              triggerHapticFeedback('light');
+          await handleFollow(normalized.username, followBtn);
+        });
+          } catch (e) {
+            console.warn('Error checking follow button visibility:', e);
+            // On error, hide the container to avoid showing incorrect state
+            followBtnContainer.style.display = 'none';
+          }
+        })();
+      }
+
+      return wrapper;
+    }
+
+    function pauseActiveVideo() {
+      if (activeVideoEl) {
+        try {
+          if (!activeVideoEl.paused) {
+            activeVideoEl.pause();
+          }
+        } catch (e) {
+          console.warn('Error pausing video:', e);
+        }
+      }
+      activeVideoEl = null;
+    }
+
+    async function playVideoInCard(cardEl) {
+      if (!cardEl) return;
+      
+      // Check if this is a placeholder (video unavailable)
+      const placeholder = cardEl.querySelector('.stage .fa-video-slash');
+      if (placeholder) {
+        // Video unavailable, skip
+        return;
+      }
+      
+      const videoEl = cardEl.querySelector('video');
+      if (!videoEl) {
+        console.warn('No video element found in card:', cardEl.dataset.itemId);
+        return;
+      }
+
+      // Check if video has a valid source
+      const source = videoEl.querySelector('source');
+      const videoSrc = videoEl.src || (source ? source.src : null);
+      
+      if (!videoSrc || videoSrc === '' || videoSrc === 'null' || videoSrc === 'undefined') {
+        console.warn('Video has no valid source:', cardEl.dataset.itemId, 'src:', videoSrc);
+        return;
+      }
+
+      // Validate URL format
+      if (!videoSrc.startsWith('http://') && !videoSrc.startsWith('https://') && !videoSrc.startsWith('/')) {
+        console.warn('Invalid video URL format:', videoSrc);
+        return;
+      }
+
+      // Load video if not loaded
+      if (videoEl.readyState < 2) {
+        videoEl.load();
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          const onCanPlay = () => {
+            videoEl.removeEventListener('canplay', onCanPlay);
+            videoEl.removeEventListener('error', onError);
+            videoEl.removeEventListener('loadeddata', onCanPlay);
+            resolve();
+          };
+          const onError = (e) => {
+            videoEl.removeEventListener('canplay', onCanPlay);
+            videoEl.removeEventListener('error', onError);
+            videoEl.removeEventListener('loadeddata', onCanPlay);
+            
+            // Only log if it's a real error (not just loading)
+            if (videoEl.error && videoEl.error.code !== 0) {
+              const errorCode = videoEl.error.code;
+              const errorMessages = {
+                1: 'MEDIA_ERR_ABORTED',
+                2: 'MEDIA_ERR_NETWORK',
+                3: 'MEDIA_ERR_DECODE',
+                4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+              };
+              console.warn(`Video load error (${errorMessages[errorCode] || 'Unknown'}):`, videoSrc);
+            }
+            resolve(); // Continue even on error
+          };
+          videoEl.addEventListener('canplay', onCanPlay, { once: true });
+          videoEl.addEventListener('loadeddata', onCanPlay, { once: true });
+          videoEl.addEventListener('error', onError, { once: true });
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            videoEl.removeEventListener('canplay', onCanPlay);
+            videoEl.removeEventListener('error', onError);
+            videoEl.removeEventListener('loadeddata', onCanPlay);
+            resolve();
+          }, 5000);
+        });
+      }
+
+      // Check if video actually loaded successfully
+      if (videoEl.error && videoEl.error.code !== 0) {
+        // Video failed to load, don't try to play
+        return;
+      }
+
+      if (activeVideoEl && activeVideoEl !== videoEl) {
+        pauseActiveVideo();
+      }
+
+      activeVideoEl = videoEl;
+      
+      // Ensure video is muted for iOS autoplay
+      if (!videoEl.muted) {
+        videoEl.muted = true;
+      }
+      
+      try {
+        await videoEl.play();
+        console.log('Video playing:', cardEl.dataset.itemId);
+      } catch (error) {
+        // Handle iOS-specific video errors
+        if (error.name === 'NotAllowedError') {
+          // Autoplay blocked - user interaction required
+          console.log('Autoplay blocked, waiting for user interaction');
+          // Try to play on next user interaction
+          const tryPlayOnInteraction = () => {
+            videoEl.play().catch(() => {});
+            document.removeEventListener('click', tryPlayOnInteraction, { once: true });
+            document.removeEventListener('touchstart', tryPlayOnInteraction, { once: true });
+          };
+          document.addEventListener('click', tryPlayOnInteraction, { once: true });
+          document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
+        } else if (error.name === 'AbortError') {
+          // Play was interrupted by pause - this is normal, ignore
+          // This happens when scrolling quickly between videos
+        } else if (error.name === 'NotSupportedError') {
+          // Video codec not supported or no source
+          // Check if it's actually a source issue
+          if (!videoEl.src && !videoEl.querySelector('source')?.src) {
+            console.warn('Video has no source, skipping play attempt');
+            return;
+          }
+          console.warn('Video codec not supported:', error, 'Video URL:', videoEl.src || videoEl.querySelector('source')?.src);
+          // Try to show error message to user
+          const errorMsg = cardEl.querySelector('.video-error');
+          if (!errorMsg) {
+            const msg = document.createElement('div');
+            msg.className = 'video-error';
+            msg.style.cssText = 'position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.85rem;';
+            msg.textContent = 'Video format not supported';
+            cardEl.querySelector('.stage').appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+          }
+        } else {
+          // Only log non-AbortError warnings
+          if (error.name !== 'AbortError') {
+            console.warn('Video playback error:', error, 'Video URL:', videoEl.src || videoEl.querySelector('source')?.src);
+          }
+        }
+      }
+    }
+
+    function setupVisibilityObserver() {
+      if (observer) observer.disconnect();
+      
+      observer = new IntersectionObserver((entries) => {
+        // Pick the most visible entry to play
+        let best = null;
+        let bestRatio = 0;
+        
+        for (const e of entries) {
+          if (!e.isIntersecting) {
+            // Pause video if it goes out of view
+            const videoEl = e.target.querySelector('video');
+            if (videoEl && !videoEl.paused) {
+              videoEl.pause();
+            }
+            continue;
+          }
+          
+          if (e.intersectionRatio > bestRatio) {
+            best = e;
+            bestRatio = e.intersectionRatio;
+          }
+        }
+        
+        if (best && best.target && bestRatio > 0.5) {
+          playVideoInCard(best.target);
+        }
+      }, { 
+        root: feedEl, 
+        rootMargin: '0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1.0] // More granular thresholds
+      });
+
+      // Observe all video items
+      const items = document.querySelectorAll('.item');
+      console.log(`Setting up observer for ${items.length} items`);
+      items.forEach((el) => {
+        observer.observe(el);
+      });
+      
+      // Also try to play the first visible video immediately
+      if (items.length > 0) {
+        const firstItem = items[0];
+        const rect = firstItem.getBoundingClientRect();
+        const feedRect = feedEl.getBoundingClientRect();
+        if (rect.top < feedRect.bottom && rect.bottom > feedRect.top) {
+          // First item is visible, try to play it
+          setTimeout(() => playVideoInCard(firstItem), 100);
+        }
+      }
+    }
+
+    function setupLoadMoreObserver(lastEl) {
+      const loadMoreObs = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            loadMoreObs.disconnect();
+            loadNextPage();
+          }
+        });
+      }, { root: feedEl, threshold: 0.1 });
+      loadMoreObs.observe(lastEl);
+    }
+
+    function extractItemsFromFeedResponse(data) {
+      // Most likely shape: { results: [...], next: true/false, page: 1, total_pages: n }
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.results)) return data.results;
+      if (Array.isArray(data?.videos)) return data.videos;
+      if (Array.isArray(data?.data)) return data.data;
+      return [];
+    }
+
+    function computeHasNext(data) {
+      if (typeof data?.has_next === 'boolean') return data.has_next;
+      if (typeof data?.next === 'boolean') return data.next;
+      if (typeof data?.total_pages === 'number' && typeof data?.page === 'number') {
+        return data.page < data.total_pages;
+      }
+      // fallback: if we got less than perPage items, probably no next
+      return true;
+    }
+
+    async function loadNextPage() {
+      if (loading || !hasNext) return;
+      loading = true;
+      showStatus('Loading…');
+
+      try {
+        const data = await SuperAffiliateAPI.getFeed({ page, perPage: 10 });
+        const rawItems = extractItemsFromFeedResponse(data);
+        hasNext = computeHasNext(data) && rawItems.length > 0;
+
+        const cards = [];
+        for (const raw of rawItems) {
+          const n = normalizeFeedItem(raw);
+          if (n.kind === 'ad') cards.push(createAdCard(n));
+          else cards.push(createVideoCard(n));
+        }
+
+        cards.forEach((c) => feedEl.appendChild(c));
+        setupVisibilityObserver();
+
+        // Infinite scroll trigger: observe the last appended item.
+        const last = cards[cards.length - 1];
+        if (last && hasNext) setupLoadMoreObserver(last);
+
+        page += 1;
+        showStatus(hasNext ? '' : 'You’re all caught up.');
+      } catch (err) {
+        const msg = (err && err.message) ? err.message : 'Failed to load feed.';
+        showStatus(msg);
+        if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('login')) {
+          loginGateEl.style.display = 'flex';
+        }
+      } finally {
+        loading = false;
+      }
+    }
+
+    // Use global HapticFeedback if available, otherwise fallback
+    function triggerHapticFeedback(type = 'light') {
+      if (window.HapticFeedback) {
+        window.HapticFeedback[type]();
+      } else if ('vibrate' in navigator) {
+        const patterns = {
+          light: 10,
+          medium: 20,
+          heavy: 30,
+          success: [10, 50, 10],
+          error: [20, 50, 20, 50, 20]
+        };
+        navigator.vibrate(patterns[type] || patterns.light);
+      }
+    }
+
+    // Touch gesture handler for swipe back
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    function handleSwipeGesture() {
+      const swipeThreshold = 50;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      
+      // Only handle horizontal swipes (not vertical scrolling)
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
+        // Swipe right (back gesture)
+        if (deltaX > 0 && window.history.length > 1) {
+          triggerHapticFeedback('light');
+          window.history.back();
+        }
+      }
+    }
+
+    // Boot
+    document.addEventListener('DOMContentLoaded', async () => {
+      SuperAffiliateAPI.renderAuthNav('authNav');
+      loginGateEl.style.display = SuperAffiliateAPI.isAuthenticated() ? 'none' : 'flex';
+
+      // Add touch gesture listeners for swipe back
+      document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipeGesture();
+      }, { passive: true });
+
+      // Pull to Refresh
+      if (SuperAffiliateAPI.isAuthenticated()) {
+        new PullToRefresh({
+          container: feedEl,
+          onRefresh: async (done) => {
+            page = 1;
+            hasNext = true;
+            feedEl.innerHTML = '';
+            activeVideoEl = null;
+            await loadNextPage();
+            done();
+          }
+        });
+      }
+
+      // If authed, load immediately.
+      if (SuperAffiliateAPI.isAuthenticated()) {
+        await loadNextPage();
+      } else {
+        showStatus('Login to start watching.');
+      }
+
+      // If user navigates away, pause active playback.
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) pauseActiveVideo();
+      });
+
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(console.error);
+      }
+
+      // Add to Home Screen Prompt
+      function initPWAInstallPrompt() {
+        const prompt = document.getElementById('pwaInstallPrompt');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const dismissBtn = document.getElementById('pwaInstallDismiss');
+        
+        if (!prompt || !installBtn || !dismissBtn) return;
+
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
+        const wasDismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+        const wasInstalled = localStorage.getItem('pwa-installed') === 'true';
+
+        if (isInstalled || wasDismissed || wasInstalled) return;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone === true;
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          setTimeout(() => {
+            if (!wasDismissed && !isStandalone) {
+              prompt.style.display = 'flex';
+            }
+          }, 3000);
+        });
+
+        if (isIOS && !isStandalone) {
+          setTimeout(() => {
+            if (!wasDismissed) {
+              prompt.style.display = 'flex';
+            }
+          }, 5000);
+        }
+
+        installBtn.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              localStorage.setItem('pwa-installed', 'true');
+              prompt.style.display = 'none';
+            }
+            deferredPrompt = null;
+          } else if (isIOS) {
+            const instructions = document.createElement('div');
+            instructions.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 2rem; color: white; text-align: center;';
+            instructions.innerHTML = `
+              <div>
+                <h2 style="margin-bottom: 1rem; font-size: 1.5rem;">Add to Home Screen</h2>
+                <p style="margin-bottom: 2rem; line-height: 1.6;">
+                  Tap the <i class="fas fa-share" style="margin: 0 0.5rem;"></i> share button, then select<br>
+                  <strong>"Add to Home Screen"</strong>
+                </p>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="padding: 0.75rem 2rem; background: var(--primary-gradient); 
+                               color: white; border: none; border-radius: 0.5rem; 
+                               font-weight: 600; cursor: pointer;">
+                  Got it
+                </button>
+              </div>
+            `;
+            document.body.appendChild(instructions);
+            localStorage.setItem('pwa-install-dismissed', 'true');
+            prompt.style.display = 'none';
+          }
+        });
+
+        dismissBtn.addEventListener('click', () => {
+          prompt.style.display = 'none';
+          localStorage.setItem('pwa-install-dismissed', 'true');
+        });
+
+        window.addEventListener('appinstalled', () => {
+          localStorage.setItem('pwa-installed', 'true');
+          prompt.style.display = 'none';
+        });
+      }
+
+      initPWAInstallPrompt();
+    });
+
+    // Video interaction handlers
+    async function handleLike(videoId, button, countEl) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      const isLiked = button.classList.contains('liked');
+      const action = isLiked ? 'unlike' : 'like';
+      
+      try {
+        const response = await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/like/`, {
+          method: 'POST',
+          body: JSON.stringify({ action })
+        });
+        
+        // Update UI based on response
+        if (response.liked !== undefined) {
+          if (response.liked) {
+            button.classList.add('liked');
+            button.querySelector('i').classList.remove('fa-regular');
+            button.querySelector('i').classList.add('fa-solid');
+          } else {
+            button.classList.remove('liked');
+            button.querySelector('i').classList.remove('fa-solid');
+            button.querySelector('i').classList.add('fa-regular');
+          }
+          
+          // Update count from server response if available
+          if (response.like_count !== undefined) {
+            countEl.textContent = Number(response.like_count).toLocaleString();
+          } else {
+            // Fallback to local calculation
+            const currentCount = parseInt(countEl.textContent.replace(/,/g, '')) || 0;
+            countEl.textContent = (isLiked ? currentCount - 1 : currentCount + 1).toLocaleString();
+          }
+        } else {
+          // Fallback if response doesn't have liked field
+        if (isLiked) {
+          button.classList.remove('liked');
+          button.querySelector('i').classList.remove('fa-solid');
+          button.querySelector('i').classList.add('fa-regular');
+        } else {
+          button.classList.add('liked');
+          button.querySelector('i').classList.remove('fa-regular');
+          button.querySelector('i').classList.add('fa-solid');
+        }
+        const currentCount = parseInt(countEl.textContent.replace(/,/g, '')) || 0;
+        countEl.textContent = (isLiked ? currentCount - 1 : currentCount + 1).toLocaleString();
+        }
+      } catch (error) {
+        console.error('Like error:', error);
+        showToast('Failed to like video', 'error');
+      }
+    }
+
+    async function handleComment(videoId) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      // Show comments modal
+      showCommentsModal(videoId);
+    }
+
+    async function showCommentsModal(videoId) {
+      // Create or get comments modal
+      let modal = document.getElementById('comments-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'comments-modal';
+        modal.className = 'ios-bottom-sheet';
+        modal.innerHTML = `
+          <div class="ios-bottom-sheet-backdrop"></div>
+          <div class="ios-bottom-sheet-content">
+            <div class="ios-bottom-sheet-handle"></div>
+            <div class="ios-bottom-sheet-body">
+              <div class="comments-modal">
+                <div class="comments-header">
+                  <h3>Comments</h3>
+                  <button class="comments-close" onclick="closeCommentsModal()">×</button>
+                </div>
+                <div class="comments-list" id="comments-list">
+                  <div class="comments-loading">Loading comments...</div>
+                </div>
+                <div class="comments-input-area">
+                  <div class="comments-input-wrapper">
+                    <textarea 
+                      class="comments-input" 
+                      id="comment-input" 
+                      placeholder="Add a comment..."
+                      rows="1"></textarea>
+                    <button class="comments-send" id="comment-send-btn" onclick="sendComment()">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Close on backdrop click
+        modal.querySelector('.ios-bottom-sheet-backdrop').addEventListener('click', closeCommentsModal);
+        
+        // Store video ID
+        modal.dataset.videoId = videoId;
+      } else {
+        modal.dataset.videoId = videoId;
+      }
+
+      // Show modal
+      modal.style.display = 'block';
+      requestAnimationFrame(() => {
+        modal.classList.add('show');
+      });
+
+      // Load comments
+      await loadComments(videoId);
+
+      // Setup input handlers
+      const input = document.getElementById('comment-input');
+      const sendBtn = document.getElementById('comment-send-btn');
+      
+      if (input) {
+        // Auto-resize textarea
+        input.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Send on Enter (but allow Shift+Enter for new line)
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendComment();
+          }
+        });
+
+        input.focus();
+      }
+
+      if (sendBtn) {
+        sendBtn.onclick = sendComment;
+      }
+    }
+
+    function closeCommentsModal() {
+      const modal = document.getElementById('comments-modal');
+      if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 300);
+      }
+    }
+
+    async function loadComments(videoId) {
+      const commentsList = document.getElementById('comments-list');
+      if (!commentsList) return;
+
+      commentsList.innerHTML = '<div class="comments-loading">Loading comments...</div>';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest(`/comments/video/${videoId}/`);
+        
+        // Handle paginated response (DRF ListAPIView returns {results: [...]})
+        // or direct array response
+        const comments = Array.isArray(response) 
+          ? response 
+          : (response?.results || response || []);
+        
+        if (!comments || comments.length === 0) {
+          commentsList.innerHTML = '<div class="comments-empty">No comments yet. Be the first to comment!</div>';
+          return;
+        }
+
+        commentsList.innerHTML = comments.map(comment => {
+          const username = comment.user?.username || 'Anonymous';
+          const avatarLetter = username.charAt(0).toUpperCase();
+          const timeAgo = formatTimeAgo(comment.created_at);
+          const replies = comment.replies || [];
+          const replyCount = comment.reply_count || replies.length;
+          
+          return `
+            <div class="comment-item" data-comment-id="${comment.id}">
+              <div class="comment-header">
+                <div class="comment-avatar">${avatarLetter}</div>
+                <div class="comment-user">@${username}</div>
+                <div class="comment-time">${timeAgo}</div>
+              </div>
+              <div class="comment-content">${escapeHtml(comment.content || '')}</div>
+              <div class="comment-actions">
+                <button class="comment-action" onclick="likeComment('${comment.id}', this)">
+                  <i class="fa-${comment.is_liked ? 'solid' : 'regular'} fa-heart"></i>
+                  <span>${comment.like_count || 0}</span>
+                </button>
+                <button class="comment-action" onclick="toggleReplyInput('${comment.id}')">
+                  <i class="fa-regular fa-comment"></i>
+                  <span>Reply</span>
+                </button>
+              </div>
+              ${replyCount > 0 ? `
+                <button class="view-replies-btn" onclick="toggleReplies('${comment.id}')">
+                  <i class="fa-solid fa-chevron-down" id="reply-icon-${comment.id}"></i>
+                  <span>View ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}</span>
+                </button>
+              ` : ''}
+              <div class="comment-replies" id="replies-${comment.id}" style="display: none;">
+                ${replies.map(reply => {
+                  const replyUsername = reply.user?.username || 'Anonymous';
+                  const replyAvatarLetter = replyUsername.charAt(0).toUpperCase();
+                  const replyTimeAgo = formatTimeAgo(reply.created_at);
+                  return `
+                    <div class="comment-reply-item">
+                      <div class="comment-reply-header">
+                        <div class="comment-reply-avatar">${replyAvatarLetter}</div>
+                        <div class="comment-reply-user">@${replyUsername}</div>
+                        <div class="comment-reply-time">${replyTimeAgo}</div>
+                      </div>
+                      <div class="comment-reply-content">${escapeHtml(reply.content || '')}</div>
+                      <div class="comment-reply-actions">
+                        <button class="comment-reply-action" onclick="likeComment('${reply.id}', this)">
+                          <i class="fa-${reply.is_liked ? 'solid' : 'regular'} fa-heart"></i>
+                          <span>${reply.like_count || 0}</span>
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="reply-input-wrapper" id="reply-input-${comment.id}">
+                <div class="reply-input-area">
+                  <textarea 
+                    class="reply-input" 
+                    id="reply-text-${comment.id}" 
+                    placeholder="Write a reply..."
+                    rows="1"></textarea>
+                  <button class="reply-send" onclick="sendReply('${comment.id}')">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Setup reply input handlers
+        comments.forEach(comment => {
+          const replyInput = document.getElementById(`reply-text-${comment.id}`);
+          if (replyInput) {
+            replyInput.addEventListener('input', function() {
+              this.style.height = 'auto';
+              this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            });
+
+            replyInput.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendReply(comment.id);
+              }
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error loading comments:', error);
+        commentsList.innerHTML = '<div class="comments-empty">Failed to load comments</div>';
+      }
+    }
+
+    async function sendComment() {
+      const modal = document.getElementById('comments-modal');
+      if (!modal) return;
+
+      const videoId = modal.dataset.videoId;
+      const input = document.getElementById('comment-input');
+      const sendBtn = document.getElementById('comment-send-btn');
+      
+      if (!input || !videoId) return;
+
+      const commentText = input.value.trim();
+      if (!commentText) return;
+
+      // Disable button
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+      try {
+        await SuperAffiliateAPI.apiRequest('/comments/create/', {
+          method: 'POST',
+          body: JSON.stringify({
+            video: videoId,
+            content: commentText,
+          }),
+        });
+
+        // Clear input
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Reload comments
+        await loadComments(videoId);
+
+        // Update comment count in feed
+        const commentCountEl = document.querySelector(`[data-comment-count="${videoId}"]`);
+        if (commentCountEl) {
+          const currentCount = parseInt(commentCountEl.textContent.replace(/,/g, '')) || 0;
+          commentCountEl.textContent = (currentCount + 1).toLocaleString();
+        }
+
+        triggerHapticFeedback('success');
+      } catch (error) {
+        console.error('Comment error:', error);
+        showToast('Failed to add comment', 'error');
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+      }
+    }
+
+    async function likeComment(commentId, buttonElement) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      try {
+        // Get current like state from button
+        const button = buttonElement || event?.target?.closest('.comment-action');
+        const icon = button?.querySelector('i');
+        const isLiked = icon?.classList.contains('fa-solid');
+        const action = isLiked ? 'unlike' : 'like';
+
+        // Toggle like
+        await SuperAffiliateAPI.apiRequest(`/comments/${commentId}/${action}/`, {
+          method: 'POST',
+          body: JSON.stringify({ action })
+        });
+
+        // Reload comments to update UI
+        const modal = document.getElementById('comments-modal');
+        if (modal) {
+          await loadComments(modal.dataset.videoId);
+        }
+        
+        triggerHapticFeedback('light');
+      } catch (error) {
+        console.error('Error liking comment:', error);
+      }
+    }
+
+    function formatTimeAgo(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function toggleReplyInput(commentId) {
+      const replyWrapper = document.getElementById(`reply-input-${commentId}`);
+      if (replyWrapper) {
+        replyWrapper.classList.toggle('active');
+        if (replyWrapper.classList.contains('active')) {
+          const input = document.getElementById(`reply-text-${commentId}`);
+          if (input) {
+            input.focus();
+          }
+        }
+      }
+    }
+
+    function toggleReplies(commentId) {
+      const repliesDiv = document.getElementById(`replies-${commentId}`);
+      const icon = document.getElementById(`reply-icon-${commentId}`);
+      if (repliesDiv) {
+        const isVisible = repliesDiv.style.display !== 'none';
+        repliesDiv.style.display = isVisible ? 'none' : 'block';
+        if (icon) {
+          icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+      }
+    }
+
+    async function sendReply(commentId) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      const modal = document.getElementById('comments-modal');
+      if (!modal) return;
+
+      const videoId = modal.dataset.videoId;
+      const input = document.getElementById(`reply-text-${commentId}`);
+      const sendBtn = input?.nextElementSibling;
+      
+      if (!input || !videoId) return;
+
+      const replyText = input.value.trim();
+      if (!replyText) return;
+
+      // Disable button
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest('/comments/create/', {
+          method: 'POST',
+          body: JSON.stringify({
+            video: videoId,
+            content: replyText,
+            parent: commentId
+          }),
+        });
+
+        // Clear input and hide
+        input.value = '';
+        input.style.height = 'auto';
+        const replyWrapper = document.getElementById(`reply-input-${commentId}`);
+        if (replyWrapper) {
+          replyWrapper.classList.remove('active');
+        }
+
+        // Reload comments to show new reply
+        await loadComments(videoId);
+
+        // Update comment count in feed
+        const commentCountEl = document.querySelector(`[data-comment-count="${videoId}"]`);
+        if (commentCountEl) {
+          const currentCount = parseInt(commentCountEl.textContent.replace(/,/g, '')) || 0;
+          commentCountEl.textContent = (currentCount + 1).toLocaleString();
+        }
+
+        triggerHapticFeedback('success');
+      } catch (error) {
+        console.error('Reply error:', error);
+        showToast('Failed to add reply', 'error');
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        }
+      }
+    }
+
+    // Make functions globally accessible
+    window.closeCommentsModal = closeCommentsModal;
+    window.sendComment = sendComment;
+    window.likeComment = likeComment;
+    window.toggleReplyInput = toggleReplyInput;
+    window.toggleReplies = toggleReplies;
+    window.sendReply = sendReply;
+
+
+    async function handleShare(videoId, videoUrl) {
+      const shareUrl = `${window.location.origin}/feed.html?video=${videoId}`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Check out this video on Tanda',
+            text: 'Watch this video',
+            url: shareUrl,
+          });
+          
+          // Track share
+          if (SuperAffiliateAPI.isAuthenticated()) {
+            try {
+              await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/share/`, { method: 'POST' });
+            } catch (e) {
+              console.warn('Share tracking failed:', e);
+            }
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            copyToClipboard(shareUrl);
+          }
+        }
+      } else {
+        copyToClipboard(shareUrl);
+      }
+    }
+
+    async function handleFollow(username, button) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      // Check if trying to follow self
+      try {
+        const currentUser = await SuperAffiliateAPI.getUserProfile();
+        if (currentUser && currentUser.username === username) {
+          showToast('You cannot follow yourself', 'error');
+          return;
+        }
+      } catch (e) {
+        // If we can't get current user, continue (backend will handle it)
+      }
+
+      const isFollowing = button.textContent === 'Following';
+      
+      try {
+        if (isFollowing) {
+          await SuperAffiliateAPI.apiRequest('/users/unfollow/', {
+            method: 'POST',
+            body: JSON.stringify({ username }),
+          });
+          button.textContent = 'Follow';
+          button.style.background = 'rgba(255,255,255,0.1)';
+        } else {
+          await SuperAffiliateAPI.apiRequest('/users/follow/', {
+            method: 'POST',
+            body: JSON.stringify({ username }),
+          });
+          button.textContent = 'Following';
+          button.style.background = 'var(--primary-gradient)';
+        }
+      } catch (error) {
+        console.error('Follow error:', error);
+        const errorMsg = error.message?.includes('cannot follow yourself')
+          ? 'You cannot follow yourself'
+          : error.message?.includes('not found')
+          ? 'User not found'
+          : 'Failed to follow user';
+        showToast(errorMsg, 'error');
+      }
+    }
+
+    async function handleTip(videoId, userId, username) {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html';
+        return;
+      }
+
+      // Check if trying to tip self
+      try {
+        const currentUser = await SuperAffiliateAPI.getUserProfile();
+        if (currentUser && String(currentUser.id) === String(userId)) {
+          showToast('You cannot tip yourself', 'error');
+          return;
+        }
+      } catch (e) {
+        // Continue if we can't get current user
+      }
+
+      // Prompt for tip amount
+      const amount = prompt(`Enter tip amount (₦) for @${username}:`, '500');
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return;
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest('/wallet/tip/', {
+          method: 'POST',
+          body: JSON.stringify({
+            to_user: username,
+            video_id: videoId,
+            amount: parseFloat(amount),
+          }),
+        });
+        showToast(`Tip of ₦${amount} sent to @${username}!`, 'success');
+      } catch (error) {
+        console.warn('Tip error:', error);
+        const msg = (error && error.message) ? String(error.message) : '';
+        const isInsufficient = msg.toLowerCase().includes('insufficient');
+
+        if (isInsufficient) {
+          showToast(`Insufficient balance to send ₦${amount}.`, 'error');
+          try {
+            const fundWallet = confirm(
+              `Insufficient balance to send ₦${amount} tip.\n\nWould you like to fund your wallet now?`
+            );
+            if (fundWallet) {
+              window.location.href = 'wallet.html';
+            } else {
+              showToast('Tip cancelled. Fund your wallet to send tips.', 'error');
+            }
+          } catch (_) {}
+          return;
+        }
+
+        const errorMsg = msg.includes('cannot tip yourself')
+          ? 'You cannot tip yourself'
+          : msg.includes('not found')
+          ? 'User not found'
+          : (msg || 'Failed to send tip');
+        showToast(errorMsg, 'error');
+      }
+    }
+
+    async function handleShop(videoId, productTags) {
+      if (!productTags || productTags.length === 0) {
+        showToast('No products available for this video', 'info');
+        return;
+      }
+
+      // Navigate to products page with video context or show product modal
+      // For now, navigate to products page - can be enhanced with modal later
+      const productIds = Array.isArray(productTags) 
+        ? productTags.map(tag => (typeof tag === 'object' ? tag.id || tag.product_id : tag)).filter(Boolean)
+        : [];
+      
+      if (productIds.length > 0) {
+        // Navigate to products page with filter
+        const params = new URLSearchParams({ video: videoId, products: productIds.join(',') });
+        window.location.href = `products.html?${params.toString()}`;
+      } else {
+        // Fallback to general products page
+        window.location.href = 'products.html';
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy link', 'error');
+      });
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: ${type === 'success' ? '#00f2ea' : '#ff0050'};
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Product Tag Overlay Functions
+    async function fetchAndInitializeProductTags(videoEl, stageEl, videoId, productTags) {
+      if (!videoEl || !stageEl || !productTags || productTags.length === 0) return;
+
+      let enrichedTags = productTags.map(tag => {
+        // Handle both object tags and simple IDs
+        if (typeof tag === 'string' || typeof tag === 'number') {
+          // Simple ID, will need to fetch details
+          return null;
+        }
+
+        // Check if tag has minimal required fields
+        const hasTimestamp = tag.timestamp !== undefined || tag.timestamp_seconds !== undefined;
+        // Backend uses internal_product/external_product (not product_id/external_product_id)
+        const hasProductInfo = tag.product_name || tag.name || tag.internal_product || tag.external_product || tag.product_id || tag.external_product_id;
+
+        if (!hasTimestamp || !hasProductInfo) {
+          // Incomplete tag, will fetch details
+          return null;
+        }
+
+        // Backend uses internal_product/external_product in API responses, but JSONField storage uses product_id/external_product_id
+        // Check both to handle all cases
+        const productId = tag.internal_product || tag.product_id || (tag.product_type === 'internal' ? tag.id : null);
+        const externalProductId = tag.external_product || tag.external_product_id || (tag.product_type === 'external' ? tag.id : null);
+        const productType = tag.product_type || (productId ? 'internal' : (externalProductId ? 'external' : null));
+
+        return {
+          id: tag.id || productId || externalProductId,
+          product_id: productId,
+          external_product_id: externalProductId,
+          internal_product: tag.internal_product, // Keep original for reference
+          external_product: tag.external_product, // Keep original for reference
+          product_type: productType,
+          timestamp: parseFloat(tag.timestamp || tag.timestamp_seconds || 0),
+          duration: parseFloat(tag.duration || 2.0),
+          end_timestamp: tag.end_timestamp ? parseFloat(tag.end_timestamp) : null,
+          // If duration is 0 or very small, make it stay visible for the rest of the video
+          // Default to top-right (matching Flutter app behavior)
+          // position_x: 0.75 = 75% from left (right side, matches backend 'top_right' preset)
+          // position_y: 0.15 = 15% from top (top area, matches backend 'top_right' preset)
+          // Override center positions (0.5, 0.5) to top-right for consistency
+          position_x: (() => {
+            const x = parseFloat(tag.position_x || (tag.position && tag.position.x) || 0.75);
+            // If position is center (0.5), use top-right instead (0.75)
+            return (x === 0.5) ? 0.75 : x;
+          })(),
+          position_y: (() => {
+            const y = parseFloat(tag.position_y || (tag.position && tag.position.y) || 0.15);
+            // If position is center (0.5), use top (0.15)
+            return (y === 0.5) ? 0.15 : y;
+          })(),
+          overlay_style: tag.overlay_style || tag.style || 'default',
+          product_name: tag.product_name || tag.name || 'Product',
+          product_price: tag.product_price || tag.price || '0',
+          product_currency: tag.product_currency || tag.currency || '₦',
+          product_image_url: tag.product_image_url || tag.image_url || tag.image || null,
+          _original: tag
+        };
+      });
+
+      // Check if any tags are missing product IDs - if so, fetch full details from API
+      const hasMissingProductIds = enrichedTags.some(tag => {
+        if (tag === null) return true;
+        // Check if product_id or external_product_id is missing
+        return !tag.product_id && !tag.external_product_id;
+      });
+
+      if (hasMissingProductIds && videoId) {
+        // videoId might be a UUID string or number - both are valid
+        const missingTags = enrichedTags.filter(t => t && !t.product_id && !t.external_product_id);
+        console.log('Fetching full product tag details for video:', videoId, 'Tags missing product IDs:', missingTags.map(t => ({ id: t.id, hasName: !!t.product_name })));
+        try {
+          const fullTags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+          console.log('Fetched tags from API:', fullTags?.length || 0, 'tags');
+          if (fullTags && fullTags.length > 0) {
+            // Merge fetched tags with existing tags, prioritizing fetched data
+            const fetchedTagsMap = new Map();
+            fullTags.forEach(tag => {
+              if (tag.id) {
+                // Store by both string and original type to handle ID mismatches
+                fetchedTagsMap.set(String(tag.id), tag);
+                fetchedTagsMap.set(tag.id, tag);
+              }
+            });
+            
+            console.log('Fetched tags map size:', fetchedTagsMap.size, 'Existing tags:', enrichedTags.length);
+
+            enrichedTags = enrichedTags.map(existingTag => {
+              if (existingTag === null) return null;
+              
+              // If this tag is missing product IDs, try to find it in fetched tags
+              if (!existingTag.product_id && !existingTag.external_product_id) {
+                // Try to find by ID (handle both string and number IDs)
+                const tagId = existingTag.id ? String(existingTag.id) : null;
+                const fetchedTag = tagId ? (fetchedTagsMap.get(tagId) || fetchedTagsMap.get(existingTag.id)) : null;
+                if (fetchedTag) {
+                  console.log('Found fetched tag for', existingTag.id, 'with product IDs:', {
+                    internal: fetchedTag.internal_product,
+                    external: fetchedTag.external_product
+                  });
+                  // Use fetched tag data
+                  // IMPORTANT: Use product_type from backend first, then extract IDs
+                  const productType = fetchedTag.product_type || (fetchedTag.internal_product ? 'internal' : (fetchedTag.external_product ? 'external' : null));
+                  const productId = fetchedTag.internal_product || fetchedTag.product_id;
+                  const externalProductId = fetchedTag.external_product || fetchedTag.external_product_id;
+                  
+                  return {
+                    id: fetchedTag.id || existingTag.id,
+                    product_id: productId,
+                    external_product_id: externalProductId,
+                    internal_product: fetchedTag.internal_product,
+                    external_product: fetchedTag.external_product,
+                    product_type: productType,
+                    timestamp: parseFloat(fetchedTag.timestamp || existingTag.timestamp || 0),
+                    duration: parseFloat(fetchedTag.duration || existingTag.duration || 2.0),
+                    end_timestamp: fetchedTag.end_timestamp ? parseFloat(fetchedTag.end_timestamp) : (existingTag.end_timestamp ? parseFloat(existingTag.end_timestamp) : null),
+                    // Default to top-right (matching Flutter app behavior)
+                    // position_x: 0.75 matches backend 'top_right' preset
+                    position_x: parseFloat(fetchedTag.position_x || existingTag.position_x || 0.75),
+                    position_y: parseFloat(fetchedTag.position_y || existingTag.position_y || 0.15),
+                    overlay_style: fetchedTag.overlay_style || existingTag.overlay_style || 'default',
+                    product_name: fetchedTag.product_name || existingTag.product_name || 'Product',
+                    product_price: fetchedTag.product_price || existingTag.product_price || '0',
+                    product_currency: fetchedTag.product_currency || existingTag.product_currency || '₦',
+                    product_image_url: fetchedTag.product_image_url || existingTag.product_image_url || null,
+                    _original: fetchedTag
+                  };
+                }
+              }
+              
+              // Tag already has product IDs, keep it as is
+              return existingTag;
+            });
+
+            // Add any new tags from the API that weren't in the original list
+            fullTags.forEach(fetchedTag => {
+              const exists = enrichedTags.some(t => t && t.id === fetchedTag.id);
+              if (!exists) {
+                // IMPORTANT: Use product_type from backend first, then extract IDs
+                const productType = fetchedTag.product_type || (fetchedTag.internal_product ? 'internal' : (fetchedTag.external_product ? 'external' : null));
+                const productId = fetchedTag.internal_product || fetchedTag.product_id;
+                const externalProductId = fetchedTag.external_product || fetchedTag.external_product_id;
+                
+                enrichedTags.push({
+                  id: fetchedTag.id,
+                  product_id: productId,
+                  external_product_id: externalProductId,
+                  internal_product: fetchedTag.internal_product,
+                  external_product: fetchedTag.external_product,
+                  product_type: productType,
+                  timestamp: parseFloat(fetchedTag.timestamp || 0),
+                  duration: parseFloat(fetchedTag.duration || 2.0),
+                  end_timestamp: fetchedTag.end_timestamp ? parseFloat(fetchedTag.end_timestamp) : null,
+                  // Default to top-right (matching Flutter app behavior)
+                  // Override center positions to top-right
+                  position_x: (() => {
+                    const x = parseFloat(fetchedTag.position_x || 0.75);
+                    return (x === 0.5) ? 0.75 : x;
+                  })(),
+                  position_y: (() => {
+                    const y = parseFloat(fetchedTag.position_y || 0.15);
+                    return (y === 0.5) ? 0.15 : y;
+                  })(),
+                  overlay_style: fetchedTag.overlay_style || 'default',
+                  product_name: fetchedTag.product_name || 'Product',
+                  product_price: fetchedTag.product_price || '0',
+                  product_currency: fetchedTag.product_currency || '₦',
+                  product_image_url: fetchedTag.product_image_url || null,
+                  _original: fetchedTag
+                });
+              }
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to fetch full product tag details:', error);
+          // Continue with what we have
+        }
+      }
+
+      enrichedTags = enrichedTags.filter(tag => tag !== null);
+      if (enrichedTags.length === 0) return;
+
+      initializeProductTagOverlays(videoEl, stageEl, videoId, enrichedTags);
+    }
+
+    function initializeProductTagOverlays(videoEl, stageEl, videoId, enrichedTags) {
+      if (!videoEl || !stageEl || !enrichedTags || enrichedTags.length === 0) return;
+
+      if (enrichedTags.length === 0) return;
+
+      // Create overlay container
+      const overlayContainer = document.createElement('div');
+      overlayContainer.className = 'product-tag-overlays';
+      overlayContainer.style.cssText = 'position: absolute; inset: 0; pointer-events: none; z-index: 5;';
+      stageEl.appendChild(overlayContainer);
+
+      // Create overlay elements for each tag
+      enrichedTags.forEach((tag, index) => {
+        const overlay = createProductTagOverlay(tag, index, videoId);
+        overlayContainer.appendChild(overlay);
+      });
+
+      // Monitor video playback time
+      let timeUpdateHandler = null;
+      const updateOverlays = () => {
+        if (!videoEl || videoEl.paused) {
+          // Hide all overlays when paused
+          enrichedTags.forEach((tag, index) => {
+            const overlay = overlayContainer.children[index];
+            if (overlay) overlay.classList.add('hidden');
+          });
+          return;
+        }
+
+        const currentTime = videoEl.currentTime || 0;
+        const videoDuration = videoEl.duration || Infinity;
+        
+        // Only update overlays if we have a valid video duration
+        if (!isFinite(videoDuration) || videoDuration <= 0) {
+          return; // Wait for video metadata to load
+        }
+
+        const clampOverlayToStage = (overlayEl) => {
+          try {
+            const stageRect = stageEl.getBoundingClientRect();
+            const overlayRect = overlayEl.getBoundingClientRect();
+            const actionsEl = stageEl.querySelector('.actions');
+            const actionsWidth = actionsEl ? actionsEl.getBoundingClientRect().width : 0;
+
+            // Safe padding from edges + keep out of the right action rail
+            const padTop = 14;
+            const padLeft = 12;
+            const padRight = Math.max(12, actionsWidth + 12);
+            const padBottom = 12;
+
+            let dx = 0;
+            let dy = 0;
+
+            // If overflowing into the action rail / right edge, pull left
+            const maxRight = stageRect.right - padRight;
+            if (overlayRect.right > maxRight) {
+              dx -= (overlayRect.right - maxRight);
+            }
+            // If overflowing left edge, push right
+            const minLeft = stageRect.left + padLeft;
+            if (overlayRect.left < minLeft) {
+              dx += (minLeft - overlayRect.left);
+            }
+
+            // Clamp vertically
+            const minTop = stageRect.top + padTop;
+            const maxBottom = stageRect.bottom - padBottom;
+            if (overlayRect.top < minTop) {
+              dy += (minTop - overlayRect.top);
+            }
+            if (overlayRect.bottom > maxBottom) {
+              dy -= (overlayRect.bottom - maxBottom);
+            }
+
+            // Apply pixel translation for clamping (transform is reserved for positioning/clamping)
+            // NOTE: overlay card animations are on .product-tag-card, so this won't conflict.
+            overlayEl.style.transform = `translate(${dx}px, ${dy}px)`;
+          } catch (e) {
+            // No-op
+          }
+        };
+
+        enrichedTags.forEach((tag, index) => {
+          const overlay = overlayContainer.children[index];
+          if (!overlay) return;
+
+          const startTime = parseFloat(tag.timestamp) || 0;
+          const tagDuration = parseFloat(tag.duration) || 0;
+          const endTimestamp = tag.end_timestamp !== null && tag.end_timestamp !== undefined ? parseFloat(tag.end_timestamp) : null;
+          
+          // Debug logging for tags that should span full video (only log once per tag)
+          if (index === 0 && currentTime < 1) {
+            console.log('Product tag visibility check:', {
+              tagId: tag.id,
+              startTime,
+              tagDuration,
+              endTimestamp,
+              videoDuration,
+              currentTime
+            });
+          }
+          
+          // Calculate the tag's end time
+          let endTime;
+          
+          // Priority 1: Use end_timestamp if available (most reliable)
+          if (endTimestamp !== null && endTimestamp !== undefined && !isNaN(endTimestamp)) {
+            const endTimeValue = endTimestamp;
+            // If end_timestamp is close to or exceeds video duration (within 1 second),
+            // treat it as "show for the rest of the video" (like Flutter app)
+            if (endTimeValue >= videoDuration - 1.0 || endTimeValue >= videoDuration) {
+              endTime = videoDuration;
+            } else {
+              endTime = endTimeValue;
+            }
+          } 
+          // Priority 2: If duration is 0 or very small (< 0.5s), show for the rest of the video
+          else if (tagDuration < 0.5) {
+            endTime = videoDuration;
+          } 
+          // Priority 3: Calculate end time based on start + duration
+          else {
+            const calculatedEndTime = startTime + tagDuration;
+            
+            // Detect tags that should span the entire video:
+            // - Starts at the beginning (startTime === 0 or very close)
+            // - Duration is significantly less than video duration (likely a default/short duration)
+            // - This matches Flutter behavior where tags from beginning to end stay visible
+            // Example: startTime=0, duration=2, videoDuration=8.8 → should show for full video
+            const isLikelyFullVideoTag = (startTime === 0 || startTime < 0.5) && 
+                                         tagDuration < videoDuration * 0.5; // Duration is less than 50% of video
+            
+            // If the calculated end time is close to or exceeds the video duration (within 1 second),
+            // OR if duration is very close to video duration (within 1 second), treat as full video
+            // OR if it's likely a full video tag (starts at 0, short duration), treat as full video
+            if (calculatedEndTime >= videoDuration - 1.0 || 
+                calculatedEndTime >= videoDuration ||
+                tagDuration >= videoDuration - 1.0 ||
+                isLikelyFullVideoTag) {
+              endTime = videoDuration;
+            } else {
+              endTime = calculatedEndTime;
+            }
+          }
+          
+          // Ensure endTime is valid
+          if (!isFinite(endTime) || endTime < startTime) {
+            endTime = videoDuration; // Fallback to full video
+          }
+          
+          // For tags that should span the entire video, always show if we're past the start time
+          const isFullVideoSpan = endTime >= videoDuration - 0.5; // Within 0.5s of video end
+          const isVisible = isFullVideoSpan 
+            ? (currentTime >= startTime) // For full video tags, just check if we're past start
+            : (currentTime >= startTime && currentTime <= endTime); // For timed tags, check both bounds
+
+          if (isVisible) {
+            overlay.classList.remove('hidden');
+            
+            // Debug: Log position for first tag
+            if (index === 0 && currentTime < 1) {
+              console.log('📍 Product tag position:', {
+                tagId: tag.id,
+                position_x: tag.position_x,
+                position_y: tag.position_y,
+                productName: tag.product_name
+              });
+            }
+            
+            // Position the tag in top-right area, accounting for tag width and action buttons
+            // position_x: 0.75 = intended for right side, but we need to cap it to avoid overflow
+            // The tag is ~200px wide, action rail is ~60px, so we need safe positioning
+            // Cap left at 48% to ensure full visibility with comfortable margin from right edge
+            const leftPercent = Math.min(tag.position_x * 100, 48); // Cap at 48% for safe top-right positioning
+            const topPercent = tag.position_y * 100;
+            
+            overlay.style.left = `${leftPercent}%`;
+            overlay.style.top = `${topPercent}%`;
+            overlay.style.right = 'auto';
+            overlay.style.bottom = 'auto';
+            overlay.style.transform = 'none';
+            overlay.style.marginRight = '0';
+          } else {
+            overlay.classList.add('hidden');
+          }
+        });
+      };
+
+      // Add timeupdate listener
+      timeUpdateHandler = updateOverlays;
+      videoEl.addEventListener('timeupdate', timeUpdateHandler);
+
+      // Also update on play/pause
+      videoEl.addEventListener('play', updateOverlays);
+      videoEl.addEventListener('pause', updateOverlays);
+
+      // Initial update
+      updateOverlays();
+
+      // Cleanup function (store on video element for later cleanup if needed)
+      videoEl._productTagCleanup = () => {
+        if (timeUpdateHandler) {
+          videoEl.removeEventListener('timeupdate', timeUpdateHandler);
+          videoEl.removeEventListener('play', updateOverlays);
+          videoEl.removeEventListener('pause', updateOverlays);
+        }
+        if (overlayContainer && overlayContainer.parentNode) {
+          overlayContainer.parentNode.removeChild(overlayContainer);
+        }
+      };
+    }
+
+    function createProductTagOverlay(tag, index, videoId) {
+      const overlay = document.createElement('div');
+      overlay.className = `product-tag-overlay ${tag.overlay_style || 'default'}`;
+      overlay.dataset.tagId = tag.id;
+      overlay.dataset.tagIndex = index;
+      overlay.dataset.videoId = videoId;
+
+      // Position (will be updated dynamically based on video time)
+      overlay.style.position = 'absolute';
+      overlay.style.pointerEvents = 'auto';
+      overlay.style.cursor = 'pointer';
+
+      // Build overlay content
+      const imageUrl = tag.product_image_url || '';
+      const productName = tag.product_name || 'Product';
+      const price = tag.product_price || '0';
+      const currency = tag.product_currency || '₦';
+      const formattedPrice = `${currency}${parseFloat(price).toLocaleString()}`;
+
+      const imageHtml = imageUrl ? `
+        <img src="${imageUrl.replaceAll('"', '&quot;')}" 
+             alt="${productName.replaceAll('"', '&quot;')}" 
+             class="product-tag-image"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div style="display: none; width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.1); align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-shopping-bag" style="color: rgba(255,255,255,0.5); font-size: 1.2rem;"></i>
+        </div>
+      ` : `
+        <div style="width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.1); align-items: center; justify-content: center; display: flex; flex-shrink: 0;">
+          <i class="fas fa-shopping-bag" style="color: rgba(255,255,255,0.5); font-size: 1.2rem;"></i>
+        </div>
+      `;
+
+      overlay.innerHTML = `
+        <div class="product-tag-card">
+          ${imageHtml}
+          <div class="product-tag-info">
+            <div class="product-tag-name">${safeText(productName)}</div>
+            <div class="product-tag-price">${safeText(formattedPrice)}</div>
+          </div>
+        </div>
+      `;
+
+      // Add click handler
+      overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleProductTagClick(tag, overlay, videoId);
+      });
+
+      // Initially hidden
+      overlay.classList.add('hidden');
+
+      return overlay;
+    }
+
+    async function handleProductTagClick(tag, overlayEl, videoId) {
+      triggerHapticFeedback('light');
+
+      try {
+        // Backend uses internal_product/external_product, but we normalized to product_id/external_product_id
+        // IMPORTANT: Check product_type FIRST to correctly identify external vs internal products
+        const originalTag = tag._original || {};
+        const productType = tag.product_type || originalTag.product_type;
+        const productId = tag.product_id || tag.internal_product || originalTag.product_id || originalTag.internal_product;
+        const externalProductId = tag.external_product_id || tag.external_product || originalTag.external_product_id || originalTag.external_product;
+
+        if (!productId && !externalProductId) {
+          console.warn('Product tag missing product ID:', {
+            tagId: tag.id,
+            tag: tag,
+            original: originalTag
+          });
+          
+          // Try to fetch the tag details one more time
+          if (videoId && tag.id) {
+            try {
+              const fullTags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+              const fullTag = fullTags.find(t => t.id === tag.id);
+              if (fullTag) {
+                const fetchedProductType = fullTag.product_type;
+                const fetchedProductId = fullTag.internal_product || fullTag.product_id;
+                const fetchedExternalProductId = fullTag.external_product || fullTag.external_product_id;
+                if (fetchedProductId || fetchedExternalProductId) {
+                  // Retry with fetched data - check product_type first
+                  if (fetchedProductType === 'external' && fetchedExternalProductId) {
+                    window.location.href = `products.html?external=${fetchedExternalProductId}`;
+                    return;
+                  } else if (fetchedProductType === 'internal' && fetchedProductId) {
+                    window.location.href = `product-detail.html?id=${fetchedProductId}`;
+                    return;
+                  } else if (fetchedExternalProductId) {
+                    // Fallback: if we have external_product_id, assume external
+                    window.location.href = `products.html?external=${fetchedExternalProductId}`;
+                    return;
+                  } else if (fetchedProductId) {
+                    // Fallback: if we have product_id, assume internal
+                    window.location.href = `product-detail.html?id=${fetchedProductId}`;
+                    return;
+                  }
+                }
+              }
+            } catch (e) {
+              console.warn('Failed to fetch tag details on click:', e);
+            }
+          }
+          
+          showToast('Product information not available', 'error');
+          return;
+        }
+
+        // Track click (optional - can be added later if endpoint exists)
+        if (videoId && tag.id && SuperAffiliateAPI.isAuthenticated()) {
+          try {
+            await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/product-tags/${tag.id}/click/`, { method: 'POST' });
+          } catch (e) {
+            // Silently fail - tracking is optional
+            console.warn('Product tag click tracking failed:', e);
+          }
+        }
+
+        // Navigate to product detail page
+        // IMPORTANT: Check product_type first, then check which ID is present
+        // External products should open the external product link, not Tanda product page
+        console.log('Product tag click:', { 
+          productType, 
+          productId, 
+          externalProductId, 
+          hasInternal: !!productId,
+          hasExternal: !!externalProductId,
+          tag: tag 
+        });
+        
+        // Get backend base URL (tracking endpoint is at root, not under /api)
+        const backendBase = window.location.origin.includes('127.0.0.1') 
+          ? 'http://127.0.0.1:8000' 
+          : window.location.origin.replace(/:\d+$/, ':8000'); // Fallback to port 8000
+        
+        // Check product_type FIRST, then fallback to ID presence
+        if (productType === 'external' && externalProductId) {
+          // External product - use tracking endpoint to open external product URL with click tracking
+          console.log('Opening external product via tracking endpoint:', externalProductId);
+          window.location.href = `${backendBase}/track/ext/${externalProductId}/?source=webapp`;
+        } else if (productType === 'internal' && productId) {
+          // Internal product - open Tanda product detail page
+          console.log('Opening internal product:', productId);
+          window.location.href = `product-detail.html?id=${productId}`;
+        } else if (externalProductId && !productId) {
+          // If we have external_product_id but NO product_id, assume external (even if product_type not set)
+          console.warn('Product type not set but external_product_id found (no product_id), treating as external:', tag);
+          window.location.href = `${backendBase}/track/ext/${externalProductId}/?source=webapp`;
+        } else if (productId && !externalProductId) {
+          // If we have product_id but NO external_product_id, assume internal (even if product_type not set)
+          console.warn('Product type not set but product_id found (no external_product_id), treating as internal:', tag);
+          window.location.href = `product-detail.html?id=${productId}`;
+        } else {
+          // No product IDs available or ambiguous (has both)
+          console.error('Product tag ambiguous or missing IDs:', { productType, productId, externalProductId, tag });
+          showToast('Product information not available', 'error');
+        }
+      } catch (error) {
+        console.error('Error handling product tag click:', error);
+        showToast('Failed to load product details', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
+
+
