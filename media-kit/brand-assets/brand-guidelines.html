@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tanda Brand Guidelines</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000000;
+      color: #ffffff;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #111111;
+      padding: 3rem;
+      border-radius: 1rem;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #00f2ea;
+      margin: 3rem 0 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid rgba(0, 242, 234, 0.3);
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 2rem 0 1rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #cccccc;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .color-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .color-swatch {
+      width: 100%;
+      height: 100px;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .color-primary {
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+    }
+
+    .color-pink {
+      background: #ff0050;
+    }
+
+    .color-cyan {
+      background: #00f2ea;
+    }
+
+    .color-black {
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .color-dark {
+      background: #111111;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .color-white {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .color-code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #00f2ea;
+      margin-top: 0.5rem;
+    }
+
+    .logo-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .logo-example {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .logo-example.dark-bg {
+      background: #000000;
+    }
+
+    .logo-example.light-bg {
+      background: #ffffff;
+    }
+
+    .logo-example img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+
+    .do-dont {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .do, .dont {
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .do {
+      background: rgba(0, 242, 234, 0.1);
+      border: 2px solid rgba(0, 242, 234, 0.3);
+    }
+
+    .dont {
+      background: rgba(255, 0, 80, 0.1);
+      border: 2px solid rgba(255, 0, 80, 0.3);
+    }
+
+    .do h4, .dont h4 {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .do h4 {
+      color: #00f2ea;
+    }
+
+    .dont h4 {
+      color: #ff0050;
+    }
+
+    .typography-sample {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .font-sample {
+      margin: 1.5rem 0;
+    }
+
+    .font-sample .label {
+      font-size: 0.85rem;
+      color: #888888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .font-sample .text {
+      font-size: 2rem;
+      color: #ffffff;
+    }
+
+    .spacing-example {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .spacing-box {
+      background: rgba(0, 242, 234, 0.2);
+      border: 1px solid rgba(0, 242, 234, 0.4);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    ul, ol {
+      margin: 1rem 0 1rem 2rem;
+      color: #cccccc;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      color: #888888;
+      font-size: 0.9rem;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+      .container {
+        background: white;
+        color: black;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tanda Brand Guidelines</h1>
+    <p style="font-size: 1.1rem; color: #cccccc; margin-bottom: 2rem;">
+      Version 1.0 | Last Updated: December 2025
+    </p>
+
+    <section>
+      <h2>1. Brand Overview</h2>
+      <p>
+        Tanda is Africa's native video-commerce platform, revolutionizing how creators, sellers, and consumers 
+        interact with commerce through short-form video content. Our brand represents innovation, trust, and 
+        the future of mobile commerce in emerging markets.
+      </p>
+      <p>
+        These guidelines ensure consistent representation of the Tanda brand across all media, marketing 
+        materials, and communications.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Logo Usage</h2>
+      
+      <h3>2.1 Logo Variations</h3>
+      <div class="logo-showcase">
+        <div class="logo-example dark-bg">
+          <h4 style="color: #ffffff; margin-bottom: 1rem;">Full Logo (Dark Background)</h4>
+          <p style="color: #888888; font-size: 0.9rem;">Use on dark backgrounds</p>
+        </div>
+        <div class="logo-example light-bg">
+          <h4 style="color: #000000; margin-bottom: 1rem;">Full Logo (Light Background)</h4>
+          <p style="color: #666666; font-size: 0.9rem;">Use on light backgrounds</p>
+        </div>
+        <div class="logo-example dark-bg">
+          <h4 style="color: #ffffff; margin-bottom: 1rem;">Icon Only</h4>
+          <p style="color: #888888; font-size: 0.9rem;">Square icon for app icons, favicons</p>
+        </div>
+      </div>
+
+      <h3>2.2 Logo Clear Space</h3>
+      <p>
+        Maintain clear space around the logo equal to at least the height of the "T" in the logo mark. 
+        Never place text, images, or other elements within this clear space.
+      </p>
+
+      <h3>2.3 Logo Sizing</h3>
+      <ul>
+        <li><strong>Minimum size:</strong> 120px width for full logo</li>
+        <li><strong>Recommended size:</strong> 200px+ width for print materials</li>
+        <li><strong>Icon minimum:</strong> 32x32px for favicons, 512x512px for app icons</li>
+      </ul>
+
+      <h3>2.4 Logo Do's and Don'ts</h3>
+      <div class="do-dont">
+        <div class="do">
+          <h4>✓ Do</h4>
+          <ul>
+            <li>Use the logo with proper clear space</li>
+            <li>Maintain aspect ratio when resizing</li>
+            <li>Use appropriate logo variation for background</li>
+            <li>Keep logo colors consistent with brand palette</li>
+          </ul>
+        </div>
+        <div class="dont">
+          <h4>✗ Don't</h4>
+          <ul>
+            <li>Stretch or distort the logo</li>
+            <li>Change logo colors</li>
+            <li>Place logo on busy backgrounds</li>
+            <li>Rotate or modify the logo</li>
+            <li>Add effects (shadows, outlines, etc.)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Color Palette</h2>
+      
+      <h3>3.1 Primary Colors</h3>
+      <div class="color-grid">
+        <div class="color-card">
+          <div class="color-swatch color-primary"></div>
+          <h4>Primary Gradient</h4>
+          <p class="color-code">#ff0050 → #00f2ea</p>
+          <p style="font-size: 0.9rem;">Main brand gradient for logos, CTAs, and key elements</p>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch color-pink"></div>
+          <h4>Tanda Pink</h4>
+          <p class="color-code">#ff0050</p>
+          <p style="font-size: 0.9rem;">Primary brand color - use for emphasis and highlights</p>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch color-cyan"></div>
+          <h4>Tanda Cyan</h4>
+          <p class="color-code">#00f2ea</p>
+          <p style="font-size: 0.9rem;">Accent color - use for secondary elements and links</p>
+        </div>
+      </div>
+
+      <h3>3.2 Neutral Colors</h3>
+      <div class="color-grid">
+        <div class="color-card">
+          <div class="color-swatch color-black"></div>
+          <h4>Black</h4>
+          <p class="color-code">#000000</p>
+          <p style="font-size: 0.9rem;">Primary background color</p>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch color-dark"></div>
+          <h4>Dark Gray</h4>
+          <p class="color-code">#111111</p>
+          <p style="font-size: 0.9rem;">Secondary background, cards</p>
+        </div>
+        <div class="color-card">
+          <div class="color-swatch color-white"></div>
+          <h4>White</h4>
+          <p class="color-code">#ffffff</p>
+          <p style="font-size: 0.9rem;">Primary text on dark backgrounds</p>
+        </div>
+      </div>
+
+      <h3>3.3 Text Colors</h3>
+      <ul>
+        <li><strong>Primary Text:</strong> #ffffff (White) - Main content</li>
+        <li><strong>Secondary Text:</strong> #cccccc (Light Gray) - Supporting content</li>
+        <li><strong>Muted Text:</strong> #888888 (Medium Gray) - Less important content</li>
+      </ul>
+
+      <h3>3.4 Color Usage Guidelines</h3>
+      <ul>
+        <li>Use the primary gradient for logos, CTAs, and key brand elements</li>
+        <li>Use pink (#ff0050) for primary actions and emphasis</li>
+        <li>Use cyan (#00f2ea) for secondary actions, links, and accents</li>
+        <li>Maintain sufficient contrast for accessibility (WCAG AA minimum)</li>
+        <li>Avoid using brand colors for large background areas (use neutrals instead)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Typography</h2>
+      
+      <h3>4.1 Primary Font Family</h3>
+      <div class="typography-sample">
+        <div class="font-sample">
+          <div class="label">Font Family</div>
+          <div class="text" style="font-family: 'Inter', sans-serif;">Inter</div>
+        </div>
+        <p>
+          Inter is our primary typeface. It's a modern, geometric sans-serif font designed for 
+          excellent readability on screens. Use Inter for all digital and print materials.
+        </p>
+      </div>
+
+      <h3>4.2 Font Weights</h3>
+      <div class="typography-sample">
+        <div class="font-sample">
+          <div class="label">Light (300)</div>
+          <div class="text" style="font-weight: 300;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <div class="font-sample">
+          <div class="label">Regular (400)</div>
+          <div class="text" style="font-weight: 400;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <div class="font-sample">
+          <div class="label">Medium (500)</div>
+          <div class="text" style="font-weight: 500;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <div class="font-sample">
+          <div class="label">Semi-Bold (600)</div>
+          <div class="text" style="font-weight: 600;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <div class="font-sample">
+          <div class="label">Bold (700)</div>
+          <div class="text" style="font-weight: 700;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <div class="font-sample">
+          <div class="label">Extra Bold (800)</div>
+          <div class="text" style="font-weight: 800;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+      </div>
+
+      <h3>4.3 Typography Scale</h3>
+      <ul>
+        <li><strong>H1 (Headings):</strong> 3rem (48px) - 800 weight</li>
+        <li><strong>H2 (Section Headings):</strong> 2rem (32px) - 700 weight</li>
+        <li><strong>H3 (Subheadings):</strong> 1.5rem (24px) - 600 weight</li>
+        <li><strong>Body Text:</strong> 1rem (16px) - 400 weight</li>
+        <li><strong>Small Text:</strong> 0.875rem (14px) - 400 weight</li>
+        <li><strong>Caption:</strong> 0.75rem (12px) - 400 weight</li>
+      </ul>
+
+      <h3>4.4 Typography Guidelines</h3>
+      <ul>
+        <li>Use Inter for all text elements</li>
+        <li>Maintain line height of 1.6 for body text</li>
+        <li>Use appropriate font weights for hierarchy</li>
+        <li>Ensure sufficient contrast for readability</li>
+        <li>Limit line length to 70-80 characters for optimal reading</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Spacing & Layout</h2>
+      
+      <h3>5.1 Spacing System</h3>
+      <div class="spacing-example">
+        <p>Use consistent spacing multiples of 0.5rem (8px):</p>
+        <ul>
+          <li><strong>XS:</strong> 0.5rem (8px) - Tight spacing</li>
+          <li><strong>SM:</strong> 1rem (16px) - Standard spacing</li>
+          <li><strong>MD:</strong> 1.5rem (24px) - Medium spacing</li>
+          <li><strong>LG:</strong> 2rem (32px) - Large spacing</li>
+          <li><strong>XL:</strong> 3rem (48px) - Extra large spacing</li>
+        </ul>
+      </div>
+
+      <h3>5.2 Border Radius</h3>
+      <ul>
+        <li><strong>Standard:</strong> 1rem (16px) - Cards, buttons, containers</li>
+        <li><strong>Small:</strong> 0.5rem (8px) - Small elements, badges</li>
+        <li><strong>Large:</strong> 1.5rem (24px) - Large cards, modals</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. Brand Voice & Tone</h2>
+      
+      <h3>6.1 Voice Characteristics</h3>
+      <ul>
+        <li><strong>Innovative:</strong> Forward-thinking, cutting-edge</li>
+        <li><strong>Trustworthy:</strong> Reliable, secure, transparent</li>
+        <li><strong>Empowering:</strong> Enabling creators and sellers</li>
+        <li><strong>Accessible:</strong> Clear, simple, inclusive</li>
+        <li><strong>African-First:</strong> Proudly African, globally relevant</li>
+      </ul>
+
+      <h3>6.2 Tone Guidelines</h3>
+      <ul>
+        <li>Use clear, direct language</li>
+        <li>Avoid jargon; explain technical terms</li>
+        <li>Be enthusiastic but professional</li>
+        <li>Focus on benefits, not just features</li>
+        <li>Use inclusive, diverse language</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Usage Examples</h2>
+      
+      <h3>7.1 Digital Applications</h3>
+      <ul>
+        <li>Website and web applications</li>
+        <li>Mobile apps (iOS and Android)</li>
+        <li>Social media profiles and posts</li>
+        <li>Email templates and newsletters</li>
+        <li>Digital advertisements</li>
+      </ul>
+
+      <h3>7.2 Print Applications</h3>
+      <ul>
+        <li>Business cards and letterheads</li>
+        <li>Marketing brochures and flyers</li>
+        <li>Event banners and signage</li>
+        <li>Press releases and media kits</li>
+        <li>Presentation decks</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. Contact & Resources</h2>
+      
+      <h3>8.1 Brand Assets</h3>
+      <p>
+        All brand assets including logos, color swatches, and templates are available in the 
+        <a href="../" style="color: #00f2ea;">media kit</a>.
+      </p>
+
+      <h3>8.2 Questions & Support</h3>
+      <p>
+        For questions about brand usage, logo requests, or brand guideline clarifications, 
+        please contact:
+      </p>
+      <ul>
+        <li><strong>Email:</strong> press@tanda.media</li>
+        <li><strong>Website:</strong> <a href="https://app.tanda.media" style="color: #00f2ea;">app.tanda.media</a></li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      <p>&copy; 2025 Tanda. All rights reserved.</p>
+      <p style="margin-top: 0.5rem;">Brand Guidelines v1.0 | December 2025</p>
+    </div>
+  </div>
+</body>
+</html>
+

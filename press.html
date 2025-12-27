@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tanda">
+  <title>Press & Media - Tanda</title>
+  <meta name="description" content="Press releases, media kit, and company information for journalists and media covering Tanda's video commerce platform.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/ios-enhancements.js"></script>
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --text-muted: #888888;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Safe area insets */
+    @supports (padding: env(safe-area-inset-top)) {
+      .header {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      .container {
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header */
+    .header {
+      padding: 2rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 40px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    .logo-text {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Style for auth nav buttons */
+    .auth-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .nav-link-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    
+    .nav-link-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .nav-link-btn i {
+      font-size: 0.9rem;
+    }
+    
+    .nav-link-btn-primary {
+      color: var(--text-primary) !important;
+      background: var(--primary-gradient) !important;
+    }
+    
+    .nav-link-btn-primary:hover {
+      background: linear-gradient(135deg, #ff0050, #00d4c8) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 242, 234, 0.3);
+    }
+
+    /* Hero Section */
+    .press-hero {
+      padding: 10rem 0 4rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.05), rgba(0, 242, 234, 0.05));
+    }
+
+    .press-hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .press-hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* Press Contact Section */
+    .press-contact {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      margin: 3rem 0;
+      text-align: center;
+    }
+
+    .press-contact h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .press-contact p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-info {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .contact-item:hover {
+      color: var(--text-primary);
+      transform: translateY(-2px);
+    }
+
+    /* Media Kit Section */
+    .media-kit {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      margin: 3rem 0;
+    }
+
+    .media-kit h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .media-kit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .media-kit-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .media-kit-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-color);
+      transform: translateY(-3px);
+    }
+
+    .media-kit-item i {
+      font-size: 2.5rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+
+    .media-kit-item h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .media-kit-item p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 0, 80, 0.3);
+    }
+
+    /* Company Fact Sheet */
+    .fact-sheet {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      margin: 3rem 0;
+    }
+
+    .fact-sheet h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .fact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .fact-item {
+      padding: 1rem;
+      border-left: 3px solid var(--accent-color);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 0.5rem;
+    }
+
+    .fact-item h3 {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .fact-item p {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Press Releases Section */
+    .press-releases {
+      margin: 3rem 0;
+    }
+
+    .press-releases h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: var(--text-primary);
+    }
+
+    .release-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .release-card:hover {
+      border-color: var(--accent-color);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .release-date {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      border-radius: 1rem;
+      color: var(--accent-color);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .release-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .release-card p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      line-height: 1.8;
+    }
+
+    .read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: gap 0.3s ease;
+    }
+
+    .read-more:hover {
+      gap: 0.75rem;
+    }
+
+    /* Press Release Detail */
+    .release-detail {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3rem;
+      margin: 2rem 0;
+    }
+
+    .release-detail .release-date {
+      margin-bottom: 1rem;
+    }
+
+    .release-detail h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .release-detail .release-meta {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .release-detail .release-content {
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .release-detail .release-content h2 {
+      font-size: 1.5rem;
+      margin: 2rem 0 1rem;
+      color: var(--text-primary);
+    }
+
+    .release-detail .release-content h3 {
+      font-size: 1.2rem;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .release-detail .release-content p {
+      margin-bottom: 1.5rem;
+    }
+
+    .release-detail .release-content ul,
+    .release-detail .release-content ol {
+      margin: 1.5rem 0;
+      padding-left: 2rem;
+    }
+
+    .release-detail .release-content li {
+      margin-bottom: 0.75rem;
+    }
+
+    .release-detail .release-content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent-color);
+      text-decoration: none;
+      margin-bottom: 2rem;
+      font-weight: 600;
+      transition: gap 0.3s ease;
+    }
+
+    .back-link:hover {
+      gap: 0.75rem;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--text-secondary);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .press-hero {
+        padding: 8rem 0 3rem;
+      }
+
+      .contact-info {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .media-kit-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .fact-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .release-detail {
+        padding: 2rem;
+      }
+
+      .release-detail h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="index.html" class="logo">
+          <img src="Tanda logo.png" alt="Tanda">
+          <span class="logo-text">Tanda</span>
+        </a>
+        <div id="authNav" class="tanda-nav-container"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="press-hero">
+      <div class="container">
+        <h1>Press & Media</h1>
+        <p>Latest news, press releases, and media resources for journalists and media professionals</p>
+      </div>
+    </section>
+
+    <!-- Press Contact -->
+    <section>
+      <div class="container">
+        <div class="press-contact">
+          <h2>Media Inquiries</h2>
+          <p>For press inquiries, interview requests, or media kit downloads, please contact us:</p>
+          <div class="contact-info">
+            <a href="mailto:press@tanda.media" class="contact-item">
+              <i class="fas fa-envelope"></i>
+              press@tanda.media
+            </a>
+            <a href="mailto:hello@tanda.media" class="contact-item">
+              <i class="fas fa-envelope"></i>
+              hello@tanda.media
+            </a>
+          </div>
+          <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+            We typically respond to media inquiries within 24 hours.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Media Kit -->
+    <section>
+      <div class="container">
+        <div class="media-kit">
+          <h2>Media Kit</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Download high-resolution logos, product screenshots, and brand assets for your articles and coverage.
+          </p>
+          <div class="media-kit-grid">
+            <div class="media-kit-item">
+              <i class="fas fa-image"></i>
+              <h3>Company Logo</h3>
+              <p>High-resolution Tanda logos in PNG and SVG formats</p>
+              <a href="media-kit/logos/tanda-logo-full.zip" class="download-btn" download onclick="return handleDownload(event, 'media-kit/logos/tanda-logo-full.zip', 'Tanda logo.png');">
+                <i class="fas fa-download"></i>
+                Download
+              </a>
+              <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                <a href="media-kit/logos/tanda-logo-white.png" download onclick="return handleDownload(event, 'media-kit/logos/tanda-logo-white.png', 'Tanda logo.png');" style="color: var(--accent-color); text-decoration: none;">PNG</a> | 
+                <a href="media-kit/logos/tanda-logo-full.svg" download onclick="return handleDownload(event, 'media-kit/logos/tanda-logo-full.svg', 'Tanda logo.png');" style="color: var(--accent-color); text-decoration: none;">SVG</a> | 
+                <a href="media-kit/logos/tanda-logo-full.zip" download onclick="return handleDownload(event, 'media-kit/logos/tanda-logo-full.zip', 'Tanda logo.png');" style="color: var(--accent-color); text-decoration: none;">ZIP</a>
+              </p>
+            </div>
+            <div class="media-kit-item">
+              <i class="fas fa-mobile-alt"></i>
+              <h3>Product Screenshots</h3>
+              <p>App screenshots and platform visuals for articles</p>
+              <a href="media-kit/screenshots/app-screenshots.zip" class="download-btn" download onclick="return handleDownload(event, 'media-kit/screenshots/app-screenshots.zip', null, 'Screenshots coming soon. Contact press@tanda.media for app screenshots.');">
+                <i class="fas fa-download"></i>
+                Download
+              </a>
+              <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                <a href="media-kit/screenshots/app-screenshots.zip" download onclick="return handleDownload(event, 'media-kit/screenshots/app-screenshots.zip', null, 'Screenshots coming soon. Contact press@tanda.media for app screenshots.');" style="color: var(--accent-color); text-decoration: none;">All Screenshots (ZIP)</a>
+              </p>
+            </div>
+            <div class="media-kit-item">
+              <i class="fas fa-palette"></i>
+              <h3>Brand Guidelines</h3>
+              <p>Color palette, typography, and brand usage guidelines</p>
+              <a href="media-kit/brand-assets/brand-guidelines.pdf" class="download-btn" download onclick="return handleDownload(event, 'media-kit/brand-assets/brand-guidelines.pdf', null, 'Brand guidelines coming soon. Contact press@tanda.media for brand assets.');">
+                <i class="fas fa-download"></i>
+                Download
+              </a>
+              <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                <a href="media-kit/brand-assets/brand-guidelines.pdf" download onclick="return handleDownload(event, 'media-kit/brand-assets/brand-guidelines.pdf', null, 'Brand guidelines coming soon. Contact press@tanda.media for brand assets.');" style="color: var(--accent-color); text-decoration: none;">PDF</a> | 
+                <a href="media-kit/media-kit.zip" download onclick="return handleDownload(event, 'media-kit/media-kit.zip', null, 'Full media kit coming soon. Contact press@tanda.media for all assets.');" style="color: var(--accent-color); text-decoration: none;">Full Kit (ZIP)</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Company Fact Sheet -->
+    <section>
+      <div class="container">
+        <div class="fact-sheet">
+          <h2>Company Fact Sheet</h2>
+          <div class="fact-grid">
+            <div class="fact-item">
+              <h3>Founded</h3>
+              <p>2024</p>
+            </div>
+            <div class="fact-item">
+              <h3>Headquarters</h3>
+              <p>Lagos, Nigeria</p>
+            </div>
+            <div class="fact-item">
+              <h3>Mission</h3>
+              <p>Revolutionizing video commerce in Africa through native, trust-backed shopping experiences</p>
+            </div>
+            <div class="fact-item">
+              <h3>Platform Type</h3>
+              <p>Video-First Social Commerce</p>
+            </div>
+            <div class="fact-item">
+              <h3>Target Market</h3>
+              <p>Africa (Expanding to Middle East, Southeast Asia, LATAM)</p>
+            </div>
+            <div class="fact-item">
+              <h3>Key Features</h3>
+              <p>Native Commerce, Escrow Protection, AI Shopping Assistant, Localized Payments</p>
+            </div>
+            <div class="fact-item">
+              <h3>Users</h3>
+              <p>16,000+ Waitlist, 98 Influencers, 1,400 SMEs</p>
+            </div>
+            <div class="fact-item">
+              <h3>Funding Status</h3>
+              <p>Seeking $500,000 in Pre-Seed Funding</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Press Releases -->
+    <section class="press-releases">
+      <div class="container">
+        <h2>Press Releases</h2>
+
+        <!-- Blog Launch Press Release -->
+        <article class="release-card" id="blog-launch-release">
+          <span class="release-date">December 27, 2025</span>
+          <h3>Tanda Launches Thought Leadership Blog to Drive Video Commerce Innovation in Africa</h3>
+          <p>
+            Tanda, Africa's native video-commerce platform, today announced the launch of its thought leadership blog, 
+            providing deep insights into video commerce trends, AI shopping innovation, and e-commerce opportunities across 
+            emerging markets. The blog positions Tanda as a leading voice in African tech innovation while educating creators, 
+            sellers, and investors on the future of mobile commerce.
+          </p>
+          <a href="#blog-launch-detail" class="read-more" onclick="showReleaseDetail('blog-launch'); return false;">
+            Read Full Release <i class="fas fa-arrow-right"></i>
+          </a>
+        </article>
+
+        <!-- FasterCapital Partnership Press Release -->
+        <article class="release-card" id="fastercapital-release">
+          <span class="release-date">December 24, 2025</span>
+          <h3>Tanda Joins FasterCapital EquityPilot to Scale Video-Commerce Infrastructure for Emerging Markets</h3>
+          <p>
+            Tanda and FasterCapital announced a strategic partnership today through the EquityPilot program to accelerate 
+            Tanda's rollout of video-commerce infrastructure for emerging markets, starting in Africa. The collaboration 
+            combines FasterCapital's global acceleration resources with Tanda's native short-video shopping platform.
+          </p>
+          <a href="#fastercapital-detail" class="read-more" onclick="showReleaseDetail('fastercapital'); return false;">
+            Read Full Release <i class="fas fa-arrow-right"></i>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Press Release Details (Hidden by default) -->
+    <section id="release-details" style="display: none;">
+      <div class="container">
+        <a href="#press-releases" class="back-link" onclick="hideReleaseDetail(); return false;">
+          <i class="fas fa-arrow-left"></i>
+          Back to Press Releases
+        </a>
+        <div id="release-content"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Tanda. All rights reserved.</p>
+      <p style="margin-top: 0.5rem;">
+        <a href="index.html" style="color: var(--accent-color); text-decoration: none;">Back to Home</a> | 
+        <a href="blog.html" style="color: var(--accent-color); text-decoration: none;">Blog</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Handle downloads with fallback
+    function handleDownload(event, filePath, fallbackPath, customMessage) {
+      // Try to fetch the file to see if it exists
+      fetch(filePath, { method: 'HEAD' })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('File not found');
+          }
+          // File exists, let the download proceed normally
+        })
+        .catch(error => {
+          // File doesn't exist, use fallback or show message
+          event.preventDefault();
+          if (fallbackPath) {
+            // Try fallback file
+            const link = document.createElement('a');
+            link.href = fallbackPath;
+            link.download = fallbackPath.split('/').pop();
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } else if (customMessage) {
+            alert(customMessage);
+          } else {
+            alert('This file is not available yet. Please contact press@tanda.media for media assets.');
+          }
+        });
+      
+      // If file exists, return true to allow normal download
+      return true;
+    }
+
+    // Press release content
+    const pressReleases = {
+      'blog-launch': {
+        date: 'December 27, 2025',
+        title: 'Tanda Launches Thought Leadership Blog to Drive Video Commerce Innovation in Africa',
+        location: 'Lagos, Nigeria',
+        content: `
+          <div class="release-detail">
+            <span class="release-date">December 27, 2025</span>
+            <h1>Tanda Launches Thought Leadership Blog to Drive Video Commerce Innovation in Africa</h1>
+            <div class="release-meta">
+              <span><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</span>
+              <span><i class="fas fa-user"></i> Tanda Media Team</span>
+            </div>
+            <div class="release-content">
+              <p>
+                <strong>Lagos, Nigeria - December 27, 2025</strong> - Tanda, Africa's native video-commerce platform, 
+                today announced the launch of its thought leadership blog, providing deep insights into video commerce 
+                trends, AI shopping innovation, and e-commerce opportunities across emerging markets. The blog positions 
+                Tanda as a leading voice in African tech innovation while educating creators, sellers, and investors 
+                on the future of mobile commerce.
+              </p>
+
+              <h2>Addressing the Knowledge Gap</h2>
+              <p>
+                Africa's e-commerce market is projected to reach $56.03 billion by 2029, driven by an 8.46% compound annual 
+                growth rate. Yet, quality content about video commerce, AI shopping, and localized payment solutions 
+                specifically tailored to African markets remains scarce. Tanda's blog fills this gap by providing 
+                data-driven insights, market analysis, and practical guidance for stakeholders across the ecosystem.
+              </p>
+
+              <h2>Content Focus Areas</h2>
+              <p>The blog will cover five core categories:</p>
+              <ul>
+                <li><strong>Industry Insights & Trends:</strong> Deep dives into African e-commerce growth, video commerce 
+                market analysis, and mobile-first shopping behaviors</li>
+                <li><strong>Creator & Seller Stories:</strong> Success stories, monetization strategies, and case studies 
+                from Tanda's growing creator and seller community</li>
+                <li><strong>AI & Technology:</strong> Hands-free shopping innovation, voice AI for low-literacy markets, 
+                and technology solutions built for Africa's unique challenges</li>
+                <li><strong>Market Analysis:</strong> Trust barriers, payment solutions, logistics challenges, and how 
+                escrow protection is revolutionizing African e-commerce</li>
+                <li><strong>Product Updates:</strong> Platform features, improvements, and announcements from Tanda</li>
+              </ul>
+
+              <h2>Thought Leadership Positioning</h2>
+              <p>
+                "We're not just building a platform—we're building a movement," said Vincent Ibekwe, Founder and CEO of Tanda. 
+                "Our blog allows us to share what we've learned building Africa's first native video-commerce platform, 
+                while positioning Tanda as the go-to resource for anyone interested in the future of commerce in emerging markets."
+              </p>
+              <p>
+                The blog launch comes at a critical time for Tanda, as the company seeks $500,000 in pre-seed funding to 
+                accelerate product development, influencer acquisition, and market expansion. Thought leadership content 
+                helps demonstrate market understanding, technical expertise, and vision—key factors investors evaluate when 
+                considering early-stage startups.
+              </p>
+
+              <h2>Initial Content</h2>
+              <p>
+                The blog launches with five comprehensive articles covering topics from Africa's $56B e-commerce opportunity 
+                to how AI is revolutionizing hands-free shopping for mobile-first users. Future content will be published 
+                weekly, with a focus on quality over quantity—ensuring each piece provides actionable insights backed by 
+                credible data and real-world examples.
+              </p>
+
+              <h2>Media and Investor Benefits</h2>
+              <p>
+                For journalists and media professionals, the blog serves as a resource for understanding video commerce trends 
+                and African tech innovation. For investors, it demonstrates Tanda's deep market knowledge and positions the 
+                company as a thought leader in a rapidly growing sector.
+              </p>
+
+              <h2>About Tanda</h2>
+              <p>
+                Tanda is a bottom-up video-commerce infrastructure company built for emerging markets, starting in Africa. 
+                The platform combines a native shop, affiliate payouts, escrow for trust, and localized payments to unlock 
+                video-commerce for creators, SMEs, and consumers. Founded by Vincent Ibekwe, Tanda is launching in Africa 
+                with a scalable architecture designed for expansion into other emerging regions including the Middle East, 
+                Southeast Asia, and Latin America.
+              </p>
+
+              <h2>Media Contact</h2>
+              <p>
+                For media inquiries, please contact:<br>
+                <strong>Press Team</strong><br>
+                Email: press@tanda.media<br>
+                Website: <a href="https://app.tanda.media" style="color: var(--accent-color);">app.tanda.media</a>
+              </p>
+            </div>
+          </div>
+        `
+      },
+      'fastercapital': {
+        date: 'December 24, 2025',
+        title: 'Tanda Joins FasterCapital EquityPilot to Scale Video-Commerce Infrastructure for Emerging Markets',
+        location: 'Lagos, Nigeria',
+        content: `
+          <div class="release-detail">
+            <span class="release-date">December 24, 2025</span>
+            <h1>Tanda Joins FasterCapital EquityPilot to Scale Video-Commerce Infrastructure for Emerging Markets, Starting in Africa</h1>
+            <div class="release-meta">
+              <span><i class="fas fa-map-marker-alt"></i> Lagos, Nigeria</span>
+              <span><i class="fas fa-user"></i> Tanda & FasterCapital</span>
+            </div>
+            <div class="release-content">
+              <p>
+                <strong>Lagos, Nigeria - December 24, 2025</strong> - Tanda and FasterCapital announced a strategic partnership 
+                today through the EquityPilot program to accelerate Tanda's rollout of video-commerce infrastructure for emerging 
+                markets, starting in Africa. The collaboration combines FasterCapital's global acceleration resources with Tanda's 
+                native short-video shopping platform, designed to solve fragmented buyer's journey and unlock a $5B+ video-commerce 
+                opportunity.
+              </p>
+
+              <h2>Market Opportunity & Problem</h2>
+              <p>
+                Africa's e-commerce market is forecast at $50B+ by 2025 with 450M+ smartphone users and rapid short-video 
+                consumption. Yet creators, SMEs and brands face broken buyer journeys: videos drive discovery but conversion 
+                requires cross-platform friction, trust gaps and limited localized payments. Global platforms offer reach but 
+                not native commerce or escrow payment for emerging markets like Africa. Tanda addresses this white space by 
+                marrying short-form content and commerce into a single, localized purchase flow optimized for trust and 
+                payments in emerging markets starting from Africa's payment and trust landscape.
+              </p>
+
+              <h2>Startup Solution & Differentiation</h2>
+              <p>
+                Tanda is a short-video social commerce platform with native "Buy Now" actions in promoted videos, an integrated 
+                Tanda Shop, affiliates dashboard, and an escrow-backed checkout supporting wallets, telcos and banks. Creators 
+                earn instant commissions; buyers gain purchase protection. Early traction includes a 16,000+ waitlist, 98 
+                influencers, and 1,400 SMEs onboarded, with an MVP launching within one month. Tanda targets $500K GMV in 
+                Nigeria by month six post-launch.
+              </p>
+              <p>
+                Tanda differentiates from global short-video apps by offering built-in commerce, automated affiliate payouts, 
+                escrow trust, and an Africa-first payments stack creating a defensible, localized alternative to link-based 
+                shopping experiences - foundational infrastructure designed to scale across emerging markets including the Middle 
+                East, Southeast Asia, and Latin America.
+              </p>
+
+              <h2>FasterCapital Partnership Value</h2>
+              <p>
+                Through EquityPilot, FasterCapital provides pre-seed capital, product scaling expertise, growth playbooks, 
+                introductions to strategic investors and distribution channels, and hands-on mentorship. FasterCapital's selective 
+                criteria and global track record validate Tanda's product-market fit and team readiness. The program will fund 
+                product development, influencer acquisition and escrow float to reach 50k–100k users in Nigeria within six months 
+                and accelerate multi-market expansion into Kenya, Ghana, South Africa and Egypt by month 12, followed by phased 
+                entry into other emerging regions including the Middle East, Southeast Asia, and Latin America. FasterCapital's 
+                investment and network will fast-track fundraising and go-to-market execution.
+              </p>
+
+              <h2>Executive Quotes</h2>
+              <blockquote>
+                "Hesham Zreik's investment thesis centers on founder-market fit and scalable, region-specific products. Tanda's 
+                combination of content-native commerce and escrow-backed trust addresses a critical African e-commerce gap," 
+                said Hesham Zreik, investor and EquityPilot lead. "FasterCapital's EquityPilot amplifies founders with capital, 
+                network and product expertise. Tanda is well-positioned to lead video-commerce in emerging markets starting from 
+                Africa."
+              </blockquote>
+              <blockquote>
+                "Consumers watch short videos; they shouldn't leave the app to buy. With FasterCapital's backing, we'll accelerate 
+                product-market fit, scale creator monetization and build a trusted, Africa-first checkout," said Vincent Ibekwe, 
+                founder and CEO of Tanda. "This partnership validates our vision and helps us move faster to serve creators, SMEs 
+                and young consumers."
+              </blockquote>
+
+              <h2>Growth Trajectory & Next Steps</h2>
+              <p>
+                Near-term priorities: launch MVP in Nigeria (month 1), reach 50k–100k users and $500K GMV by month six, and 
+                expand into two new markets by month 12. Funding use: product (35%), marketing (30%), market expansion (20%), 
+                team and ops (15%). Tanda plans Series A readiness by month 18–24, targeting pan-African scale and strategic 
+                partnerships with telcos and payment providers.
+              </p>
+
+              <h2>About Tanda</h2>
+              <p>
+                Tanda is a bottom-up video-commerce infrastructure company built for emerging markets, starting in Africa. The 
+                platform combines a native shop, affiliate payouts, escrow for trust, and localized payments to unlock 
+                video-commerce for creators, SMEs and consumers. Founded by Vincent Ibekwe, Tanda is launching in Africa with 
+                a scalable architecture designed for expansion into other emerging regions including the Middle East, Southeast 
+                Asia, and Latin America.
+              </p>
+
+              <h2>About FasterCapital</h2>
+              <p>
+                FasterCapital is a global venture builder and online incubator dedicated to co-funding and co-founding innovative 
+                startups. Established in 2014, we are now #1 venture builder in terms of number of startups that we have helped, 
+                money invested and money raised. It supports startups worldwide through various programs, including funding 
+                assistance, business development, and technical support. The EquityPilot program is designed to help early-stage 
+                startups build scalable solutions with mentorship, strategic guidance, and network support.
+              </p>
+
+              <h2>Media Contact</h2>
+              <p>
+                <strong>Tanda Media Relations</strong><br>
+                Email: press@tanda.media<br>
+                Website: <a href="https://app.tanda.media" style="color: var(--accent-color);">app.tanda.media</a>
+              </p>
+              <p>
+                <strong>FasterCapital Media Relations</strong><br>
+                Rasha Almasri<br>
+                Email: rasha.almasri@fastercapital.com<br>
+                Phone: +1 (512) 400-0256<br>
+                Website: <a href="https://www.fastercapital.com" style="color: var(--accent-color);" target="_blank">www.fastercapital.com</a>
+              </p>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    function showReleaseDetail(releaseId) {
+      const release = pressReleases[releaseId];
+      if (!release) return;
+
+      // Set content and show the section
+      document.getElementById('release-content').innerHTML = release.content;
+      document.getElementById('release-details').style.display = 'block';
+      
+      // Wait for content to render, then scroll to the release details section
+      setTimeout(() => {
+        const releaseDetailsSection = document.getElementById('release-details');
+        if (releaseDetailsSection) {
+          // Get the header height (fixed header)
+          const header = document.querySelector('.header');
+          const headerHeight = header ? header.offsetHeight : 100;
+          
+          // Calculate position with offset for fixed header
+          const elementPosition = releaseDetailsSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20; // Extra 20px padding
+          
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
+    }
+
+    function hideReleaseDetail() {
+      document.getElementById('release-details').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Handle hash navigation
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash;
+      if (hash === '#blog-launch-detail') {
+        showReleaseDetail('blog-launch');
+      } else if (hash === '#fastercapital-detail') {
+        showReleaseDetail('fastercapital');
+      }
+    });
+
+    // Render navigation
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SuperAffiliateAPI !== 'undefined') {
+        SuperAffiliateAPI.renderAuthNav('authNav');
+      } else {
+        setTimeout(() => {
+          if (typeof SuperAffiliateAPI !== 'undefined') {
+            SuperAffiliateAPI.renderAuthNav('authNav');
+          }
+        }, 100);
+      }
+    });
+  </script>
+</body>
+</html>
+
