@@ -6,8 +6,43 @@
  * Version: 1.0.0
  */
 
-// ⚠️ UPDATE THIS URL TO YOUR ACTUAL BACKEND API URL
-const API_BASE_URL = 'http://127.0.0.1:8000/api';  // CHANGE THIS IN PRODUCTION!
+// ⚠️ API Base URL Configuration
+// Automatically detects environment or uses meta tag configuration
+function getApiBaseUrl() {
+  // 1. Check for meta tag configuration (highest priority)
+  const metaTag = document.querySelector('meta[name="api-base-url"]');
+  if (metaTag && metaTag.content) {
+    return metaTag.content.endsWith('/api') ? metaTag.content : metaTag.content + '/api';
+  }
+  
+  // 2. Check for environment variable (if using build tools)
+  if (typeof process !== 'undefined' && process.env && process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL.endsWith('/api') ? process.env.API_BASE_URL : process.env.API_BASE_URL + '/api';
+  }
+  
+  // 3. Auto-detect based on current hostname
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+  
+  // Production domains
+  if (hostname.includes('tanda.media') || hostname.includes('railway.app') || hostname.includes('render.com')) {
+    // Use HTTPS for production
+    return 'https://api.tanda.media/api';
+  }
+  
+  // Development (localhost)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://127.0.0.1:8000/api';
+  }
+  
+  // Default fallback (use same origin)
+  return '/api';
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Log the API URL being used (helpful for debugging)
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 class SuperAffiliateAPI {
   /**
