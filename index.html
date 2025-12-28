@@ -141,7 +141,7 @@
       align-items: center;
       gap: 1rem;
       flex-wrap: nowrap;
-      overflow: hidden;
+      overflow: visible;
     }
     
     .nav-main {
@@ -152,7 +152,7 @@
       justify-content: flex-end;
       min-width: 0;
       flex-wrap: nowrap;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .logo {
@@ -187,12 +187,17 @@
       margin: 0;
       padding: 0;
       flex-shrink: 1;
-      overflow: hidden;
+      overflow: visible;
     }
     
     .nav-links li {
       flex-shrink: 0;
       white-space: nowrap;
+    }
+
+    /* Allow dropdown to overflow parent containers */
+    .nav-links li.dropdown {
+      overflow: visible;
     }
 
     .nav-links a {
@@ -230,6 +235,7 @@
     /* Dropdown Styles */
     .dropdown {
       position: relative;
+      overflow: visible;
     }
 
     .dropdown-toggle {
