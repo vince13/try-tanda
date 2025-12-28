@@ -247,6 +247,7 @@
       font-weight: 700;
       margin: 2rem 0 1rem;
       color: var(--text-primary);
+      text-align: left;
     }
 
     .post-content h3 {
@@ -254,12 +255,36 @@
       font-weight: 600;
       margin: 1.5rem 0 0.75rem;
       color: var(--text-primary);
+      text-align: left;
+    }
+
+    .post-content h4,
+    .post-content h5,
+    .post-content h6 {
+      text-align: left;
+    }
+
+    /* Justify other text elements */
+    .post-content blockquote {
+      text-align: justify;
+      font-style: italic;
+      border-left: 3px solid var(--accent-color);
+      padding-left: 1.5rem;
+      margin: 1.5rem 0;
+      color: var(--text-secondary);
+    }
+
+    .post-content strong,
+    .post-content b {
+      text-align: justify;
     }
 
     .post-content p {
       margin-bottom: 1.5rem;
       color: var(--text-secondary);
       line-height: 1.8;
+      text-align: justify;
+      font-size: 1.1rem;
     }
 
     .post-content ul,
@@ -272,6 +297,8 @@
     .post-content li {
       margin-bottom: 0.75rem;
       line-height: 1.8;
+      text-align: justify;
+      font-size: 1.1rem;
     }
 
     .post-content a {
@@ -363,12 +390,60 @@
       }
 
       .post-content {
-        padding: 2rem;
+        padding: 1.5rem;
+      }
+
+      .post-content p {
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 1.25rem;
+      }
+
+      .post-content h2 {
+        font-size: 1.5rem;
+        margin: 1.5rem 0 0.75rem;
+      }
+
+      .post-content h3 {
+        font-size: 1.25rem;
+        margin: 1.25rem 0 0.5rem;
+      }
+
+      .post-content h4 {
+        font-size: 1.1rem;
+      }
+
+      .post-content li {
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 0.5rem;
+      }
+
+      .post-content ul,
+      .post-content ol {
+        padding-left: 1.5rem;
+        margin: 1.25rem 0;
+      }
+
+      .post-content blockquote {
+        padding-left: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .post-title {
+        font-size: clamp(1.75rem, 6vw, 2.5rem);
+      }
+
+      .post-meta {
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
 
       .social-share {
         flex-direction: column;
         align-items: flex-start;
+        padding: 1.5rem;
       }
 
       /* Horizontal scroll for auth nav buttons on mobile */
