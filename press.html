@@ -1114,7 +1114,7 @@
 
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2025 Tanda. All rights reserved.</p>
+      <p>&copy; <span id="copyright-year">2025</span> Tanda. All rights reserved.</p>
       <p style="margin-top: 0.5rem;">
         <a href="index.html" style="color: var(--accent-color); text-decoration: none;">Back to Home</a> | 
         <a href="blog.html" style="color: var(--accent-color); text-decoration: none;">Blog</a>
@@ -1398,8 +1398,17 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // Set dynamic copyright year
+    function setCopyrightYear() {
+      const yearElement = document.getElementById('copyright-year');
+      if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+      }
+    }
+
     // Handle hash navigation
     window.addEventListener('DOMContentLoaded', () => {
+      setCopyrightYear();
       const hash = window.location.hash;
       if (hash === '#blog-launch-detail') {
         showReleaseDetail('blog-launch');
