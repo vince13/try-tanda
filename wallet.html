@@ -1274,7 +1274,7 @@
           showSuccess(successMessage);
           
           // Reset form
-          document.getElementById('withdraw-form').reset();
+        document.getElementById('withdraw-form').reset();
           verifiedAccountData = null;
           
           // Reset form state
@@ -1355,8 +1355,8 @@
     function showSuccess(message) {
       const successDiv = document.getElementById('success-message');
       if (successDiv) {
-        successDiv.textContent = message;
-        successDiv.classList.add('show');
+      successDiv.textContent = message;
+      successDiv.classList.add('show');
         // Keep message visible longer for important actions like withdrawals
         const duration = message.includes('Withdrawal') ? 8000 : 5000;
         setTimeout(() => successDiv.classList.remove('show'), duration);

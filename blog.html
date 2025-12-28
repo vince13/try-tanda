@@ -98,6 +98,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
+      flex-wrap: nowrap;
+      overflow: visible;
     }
 
     .logo {
@@ -108,6 +110,8 @@
       font-weight: 800;
       color: var(--text-primary);
       text-decoration: none;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .logo img {
@@ -414,6 +418,11 @@
       margin-top: 4rem;
     }
 
+    /* Horizontal scroll container for nav */
+    .tanda-nav-container {
+      flex-shrink: 0;
+    }
+
     @media (max-width: 768px) {
       .blog-hero {
         padding: 8rem 0 3rem;
@@ -426,6 +435,42 @@
 
       .social-follow-section {
         padding: 1.5rem;
+      }
+
+      /* Horizontal scroll for auth nav buttons on mobile */
+      .nav {
+        overflow-x: visible;
+        overflow-y: visible;
+        min-width: 0;
+      }
+
+      .logo {
+        margin-right: 1rem;
+        flex-shrink: 0;
+      }
+
+      .tanda-nav-container {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .tanda-nav-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .auth-nav-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        min-width: max-content;
+        width: max-content;
       }
     }
   </style>
