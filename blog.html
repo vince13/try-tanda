@@ -583,12 +583,43 @@
       try {
         const response = await SuperAffiliateAPI.apiRequest('/blog/posts/', 'GET');
         
-        if (!response || !response.results) {
-          // Show empty state
+        console.log('Blog API Response:', response);
+        
+        // Handle both paginated and non-paginated responses
+        let posts = [];
+        if (response) {
+          if (Array.isArray(response)) {
+            // Non-paginated response (array)
+            posts = response;
+          } else if (response.results && Array.isArray(response.results)) {
+            // Paginated response (object with results array)
+            posts = response.results;
+          } else if (response.data && Array.isArray(response.data)) {
+            // Alternative response format
+            posts = response.data;
+          }
+        }
+        
+        console.log('Extracted posts:', posts);
+        console.log('Number of posts:', posts.length);
+        
+        if (posts.length === 0) {
+          console.log('No blog posts found. Showing empty state.');
+          // Ensure empty state is visible
+          const container = document.getElementById('blog-posts-container');
+          if (container) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="fas fa-newspaper"></i>
+                <h3>Coming Soon</h3>
+                <p>We're preparing insightful content on video commerce, AI shopping, and the future of e-commerce in Africa.</p>
+                <p style="margin-top: 1rem;">Follow us on social media to be notified when we publish our first post!</p>
+              </div>
+            `;
+          }
           return;
         }
 
-        const posts = response.results;
         renderBlogPosts(posts);
       } catch (error) {
         console.error('Error loading blog posts:', error);
