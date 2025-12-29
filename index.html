@@ -177,7 +177,7 @@
       overflow: visible;
     }
 
-      .logo {
+    .logo {
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -187,8 +187,6 @@
       flex-shrink: 0;
       white-space: nowrap;
       margin-right: 1rem;
-      position: relative;
-      z-index: 10;
     }
 
     .logo picture {
@@ -1427,28 +1425,11 @@
       .nav {
         position: relative;
         overflow: visible !important;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 100%;
       }
       
       .nav-main {
         position: static;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .nav-main::-webkit-scrollbar {
-        display: none;
+        overflow: visible !important;
       }
       
       .container {
@@ -1580,30 +1561,22 @@
         flex: 1;
         justify-content: flex-end;
         min-width: 0;
-        display: flex;
-        align-items: center;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .nav-auth::-webkit-scrollbar {
-        display: none;
       }
 
       .nav-auth .user-menu-wrapper,
       .nav-auth .auth-nav-buttons {
         gap: 0.5rem;
         flex-wrap: nowrap;
-        display: flex;
-        align-items: center;
-        white-space: nowrap;
-        flex-shrink: 0;
-        min-width: max-content;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-right: 0.5rem;
+      }
+
+      .nav-auth .user-menu-wrapper::-webkit-scrollbar,
+      .nav-auth .auth-nav-buttons::-webkit-scrollbar {
+        display: none;
       }
 
       .nav-link-btn {
@@ -2759,51 +2732,38 @@
 
       // Register Service Worker for PWA with update handling
       if ('serviceWorker' in navigator) {
-        // Prevent reload loops - check if we're already reloading
-        const isReloading = sessionStorage.getItem('sw-reloading') === 'true';
-        if (isReloading) {
-          sessionStorage.removeItem('sw-reloading');
-          return; // Don't register if we're in the middle of a reload
-        }
-
-        let reloadPrevented = false; // Flag to prevent multiple reloads
-        
-        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
-          .then((registration) => {
-            console.log('✅ Service Worker registered:', registration.scope);
-            
-            // Only check for updates if service worker is already active
-            // Don't trigger immediate update check on fresh registration
-            if (registration.active) {
-              // Check for updates periodically, not immediately
-              setInterval(() => {
-                registration.update();
-              }, 60000); // Check every 60 seconds, not immediately
+        // First, unregister all old service workers
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          return Promise.all(
+            registrations.map((registration) => {
+              console.log('Unregistering old service worker:', registration.scope);
+              return registration.unregister();
+            })
+          );
+        }).then(() => {
+          // Then register the new one
+          return navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+        }).then((registration) => {
+          console.log('✅ New Service Worker registered:', registration.scope);
+          
+          // Check for updates immediately
+          registration.update();
+          
+          // Listen for updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  console.log('🔄 New service worker activated, reloading...');
+                  window.location.reload();
+                }
+              });
             }
-            
-            // Listen for updates (only reload once per update)
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              if (newWorker && !reloadPrevented) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'activated' && !reloadPrevented) {
-                    // Only reload if there's actually a new version
-                    if (registration.active && registration.active !== newWorker) {
-                      reloadPrevented = true;
-                      sessionStorage.setItem('sw-reloading', 'true');
-                      console.log('🔄 New service worker activated, reloading...');
-                      setTimeout(() => {
-                        window.location.reload();
-                      }, 100);
-                    }
-                  }
-                });
-              }
-            });
-          })
-          .catch((error) => {
-            console.log('⚠️ Service Worker registration failed:', error);
           });
+        }).catch((error) => {
+          console.log('⚠️ Service Worker registration failed:', error);
+        });
       }
 
       // Add to Home Screen Prompt
