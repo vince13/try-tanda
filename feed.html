@@ -158,6 +158,70 @@
       background: linear-gradient(to bottom, rgba(0,0,0,0.75), rgba(0,0,0,0));
       pointer-events: none;
     }
+    /* Pause Indicator - Centered Play Icon */
+    .pause-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .pause-indicator.show {
+      display: flex;
+    }
+    .pause-indicator i {
+      color: #fff;
+      font-size: 32px;
+      margin-left: 4px; /* Slight offset for visual centering */
+    }
+
+    /* Loading Indicator - Horizontal bar at bottom expanding from center */
+    .video-loading-indicator {
+      position: absolute;
+      bottom: 4px; /* Position above progress bar */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 3px;
+      background: var(--primary-gradient);
+      z-index: 11; /* Above progress bar (z-index 4) */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    .video-loading-indicator.show {
+      opacity: 1;
+      animation: loadingExpand 1.2s ease-in-out infinite;
+    }
+    @keyframes loadingExpand {
+      0% {
+        width: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      50% {
+        width: 100%;
+        left: 0;
+        transform: translateX(0);
+      }
+      100% {
+        width: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+
     .gradientBottom {
       position: absolute;
       left: 0; right: 0; bottom: 0;
@@ -1254,6 +1318,14 @@
             ${videoUrl ? `<source src="${videoUrl.replaceAll('"', '&quot;')}" type="video/mp4">` : ''}
           </video>
 
+          <!-- Pause Indicator -->
+          <div class="pause-indicator">
+            <i class="fas fa-play"></i>
+          </div>
+
+          <!-- Loading Indicator -->
+          <div class="video-loading-indicator"></div>
+
           <!-- Video Progress Bar -->
           <div class="video-progress-container">
             <div class="video-progress-bar">
@@ -1321,6 +1393,65 @@
 
       const videoEl = wrapper.querySelector('video');
       const stageEl = wrapper.querySelector('.stage');
+      const pauseIndicator = wrapper.querySelector('.pause-indicator');
+      const loadingIndicator = wrapper.querySelector('.video-loading-indicator');
+
+      // Function to update pause indicator visibility
+      const updatePauseIndicator = () => {
+        if (pauseIndicator) {
+          if (videoEl.paused) {
+            pauseIndicator.classList.add('show');
+          } else {
+            pauseIndicator.classList.remove('show');
+          }
+        }
+      };
+
+      // Function to update loading indicator visibility
+      const updateLoadingIndicator = () => {
+        if (loadingIndicator) {
+          // Show loading when video is waiting for data
+          if (videoEl.readyState < 3 || videoEl.networkState === 2) {
+            loadingIndicator.classList.add('show');
+          } else {
+            loadingIndicator.classList.remove('show');
+          }
+        }
+      };
+
+      // Video event listeners for indicators
+      videoEl.addEventListener('play', () => {
+        updatePauseIndicator();
+        updateLoadingIndicator();
+      });
+
+      videoEl.addEventListener('pause', () => {
+        updatePauseIndicator();
+      });
+
+      videoEl.addEventListener('waiting', () => {
+        updateLoadingIndicator();
+      });
+
+      videoEl.addEventListener('canplay', () => {
+        updateLoadingIndicator();
+      });
+
+      videoEl.addEventListener('canplaythrough', () => {
+        updateLoadingIndicator();
+      });
+
+      videoEl.addEventListener('loadstart', () => {
+        updateLoadingIndicator();
+      });
+
+      videoEl.addEventListener('loadeddata', () => {
+        updateLoadingIndicator();
+      });
+
+      // Initial state
+      updatePauseIndicator();
+      updateLoadingIndicator();
 
       // Initialize product tag overlays if video has tags
       if (normalized.productTags && normalized.productTags.length > 0) {
