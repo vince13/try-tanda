@@ -1228,7 +1228,8 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     
     let clickHandler = null;
     
-    menuToggle.addEventListener('click', (e) => {
+    // Use both click and touchstart for better iOS compatibility
+    const handleToggle = (e) => {
       e.stopPropagation();
       e.preventDefault();
       const isActive = userMenu.classList.contains('active');
@@ -1252,6 +1253,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         setTimeout(() => userMenu.classList.remove('closing'), 50);
         if (clickHandler) {
           document.removeEventListener('click', clickHandler);
+          document.removeEventListener('touchend', clickHandler);
           clickHandler = null;
         }
       } else {
@@ -1421,6 +1423,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
             userMenu.style.maxWidth = '';
             setTimeout(() => userMenu.classList.remove('closing'), 50);
             document.removeEventListener('click', clickHandler);
+            document.removeEventListener('touchend', clickHandler);
             clickHandler = null;
           }
         };
@@ -1428,9 +1431,15 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         // Use a small delay to avoid immediate closure
         setTimeout(() => {
           document.addEventListener('click', clickHandler);
+          // Also listen for touch events on iOS
+          document.addEventListener('touchend', clickHandler);
         }, 10);
       }
-    });
+    };
+
+    // Add both click and touchstart listeners for iOS compatibility
+    menuToggle.addEventListener('click', handleToggle);
+    menuToggle.addEventListener('touchend', handleToggle);
   }, 50);
   
   // Setup logout button
