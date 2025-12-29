@@ -1239,14 +1239,14 @@
         return wrapper;
       }
 
-      // Use muted autoplay with inline playback to keep the "scrolling feed" feel.
+      // Use autoplay with inline playback to keep the "scrolling feed" feel.
       // We only actively play the video that's currently in view (via IntersectionObserver).
+      // Note: Browsers may still mute autoplay videos until user interaction due to autoplay policies.
       wrapper.innerHTML = `
         <div class="stage">
           <video class="video"
                  playsinline
                  webkit-playsinline
-                 muted
                  preload="auto"
                  x-webkit-airplay="allow"
                  ${thumbUrl ? `poster="${thumbUrl.replaceAll('"', '&quot;')}"` : ''}
@@ -1605,10 +1605,10 @@
 
       activeVideoEl = videoEl;
       
-      // Ensure video is muted for iOS autoplay
-      if (!videoEl.muted) {
-        videoEl.muted = true;
-      }
+      // Try to play with audio (browsers may still mute until user interaction)
+      // Set volume to 1.0 to ensure audio is enabled
+      videoEl.volume = 1.0;
+      videoEl.muted = false;
       
       try {
         await videoEl.play();

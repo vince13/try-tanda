@@ -429,6 +429,12 @@ class SuperAffiliateAPI {
       
       // Fallback to basic status
       const status = await this.getMyStatus();
+      
+      // If status is null (user is not a Super Affiliate), return null
+      if (!status) {
+        return null;
+      }
+      
       return {
         affiliateCode: status.affiliate_code,
         totalReferrals: status.total_referrals || 0,

@@ -403,7 +403,6 @@
         padding: 1rem;
       }
     }
-    }
   </style>
 </head>
 <body>
@@ -559,6 +558,13 @@
       try {
         console.log('Loading dashboard data...');
         dashboardData = await SuperAffiliateAPI.getDashboardStats();
+        
+        // Check if user is not a Super Affiliate - redirect to video feed
+        if (!dashboardData) {
+          window.location.href = 'feed.html';
+          return;
+        }
+        
         displayDashboard(dashboardData);
       } catch (error) {
         console.error('Dashboard load error:', error);
@@ -567,6 +573,14 @@
         if (error.message.includes('Session expired') || error.message.includes('401')) {
           SuperAffiliateAPI.clearTokens();
           window.location.href = 'super-affiliate-login.html';
+          return;
+        }
+        
+        // If user is not a Super Affiliate (404 or similar), redirect to feed
+        if (error.message.includes('Not a Super Affiliate') || 
+            error.message.includes('No Super Affiliate') ||
+            error.message.includes('404')) {
+          window.location.href = 'feed.html';
           return;
         }
         
