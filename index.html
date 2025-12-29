@@ -1436,12 +1436,12 @@
       .nav-main {
         position: static;
         overflow-x: auto;
-        overflow-y: visible;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         flex: 1;
         min-width: 0;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 1rem;
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -1581,9 +1581,9 @@
         justify-content: flex-end;
         min-width: 0;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         overflow-x: auto;
-        overflow-y: visible;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -1604,8 +1604,6 @@
         white-space: nowrap;
         flex-shrink: 0;
         min-width: max-content;
-        overflow: visible;
-        position: relative;
       }
 
       .nav-link-btn {
@@ -1630,23 +1628,11 @@
         left: auto;
         min-width: 200px;
         max-width: calc(100vw - 2rem);
-        z-index: 10002;
-      }
-
-      .user-menu.active {
-        z-index: 10002 !important;
       }
 
       /* Ensure user menu dropdown doesn't get cut off on mobile */
       .user-menu-dropdown {
         position: relative;
-        z-index: 10001;
-        overflow: visible;
-      }
-
-      .user-menu-wrapper {
-        overflow: visible !important;
-        z-index: 10001;
       }
 
       /* Ensure cart badge is visible on mobile */
