@@ -1093,7 +1093,10 @@
 <body>
   <div class="topbar">
     <div class="brand">
-      <img src="Tanda logo.png" alt="Tanda">
+      <picture>
+        <source srcset="Tanda logo.webp" type="image/webp">
+        <img src="Tanda logo.png" alt="Tanda" width="32" height="32" loading="eager">
+      </picture>
       <span>Feed</span>
     </div>
     <div class="auth tanda-nav-container" id="authNav"></div>
@@ -1105,7 +1108,10 @@
   <!-- Add to Home Screen Prompt -->
   <div id="pwaInstallPrompt" class="pwa-install-prompt" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 1rem 1.5rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); z-index: 10000; align-items: center; gap: 1rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);">
     <div style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-      <img src="Tanda logo.png" alt="Tanda" style="width: 32px; height: 32px; border-radius: 8px;">
+      <picture>
+        <source srcset="Tanda logo.webp" type="image/webp">
+        <img src="Tanda logo.png" alt="Tanda" width="32" height="32" style="border-radius: 8px;" loading="eager">
+      </picture>
     </div>
     <div style="flex: 1;">
       <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Install Tanda App</div>

@@ -1,0 +1,17 @@
+# robots.txt for tanda.media
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin and internal pages
+Disallow: /admin/
+Disallow: /api/
+Disallow: /internal-files/
+
+# Sitemap location
+Sitemap: https://tanda.media/sitemap.xml
+
+# Crawl-delay (optional, adjust as needed)
+Crawl-delay: 1
+

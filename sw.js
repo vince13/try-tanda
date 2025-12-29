@@ -13,6 +13,7 @@ const urlsToCache = [
   '/search.html',
     '/js/super-affiliate-api.js?v=3',
   '/Tanda logo.png',
+  '/Tanda logo.webp',
   '/favicon-192x192.png',
   '/favicon-512x512.png',
 ];
