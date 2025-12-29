@@ -1,17 +1,55 @@
-# robots.txt for tanda.media
-# Allow all search engines to crawl the site
+# robots.txt for app.tanda.media
+# Allow search engines to crawl public pages only
 
 User-agent: *
 Allow: /
 
-# Disallow admin and internal pages
+# Public pages that should be indexed
+Allow: /blog.html
+Allow: /blog-post.html
+Allow: /press.html
+Allow: /investors.html
+Allow: /privacy-policy.html
+Allow: /tanda_safety_standards.html
+Allow: /index.html
+
+# Block private/user-specific pages
+Disallow: /feed.html
+Disallow: /profile.html
+Disallow: /user-profile.html
+Disallow: /cart.html
+Disallow: /checkout.html
+Disallow: /orders.html
+Disallow: /order-detail.html
+Disallow: /wallet.html
+Disallow: /upload.html
+Disallow: /my-videos.html
+Disallow: /tag-products.html
+Disallow: /search.html
+Disallow: /wishlist.html
+Disallow: /product-detail.html
+Disallow: /products.html
+Disallow: /add-product.html
+Disallow: /promote-products.html
+Disallow: /analytics.html
+Disallow: /super-affiliate-login.html
+Disallow: /super-affiliate-accept.html
+Disallow: /super-affiliate-dashboard.html
+Disallow: /affiliate-dashboard.html
+Disallow: /become-affiliate.html
+Disallow: /seller-dashboard.html
+Disallow: /become-seller.html
+Disallow: /payment-callback.html
+Disallow: /blog-edit.html
+Disallow: /signup.html
+
+# Block admin and internal pages
 Disallow: /admin/
 Disallow: /api/
 Disallow: /internal-files/
 
 # Sitemap location
-Sitemap: https://tanda.media/sitemap.xml
+Sitemap: https://app.tanda.media/sitemap.xml
 
 # Crawl-delay (optional, adjust as needed)
 Crawl-delay: 1
-
