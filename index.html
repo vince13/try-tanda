@@ -2759,38 +2759,51 @@
 
       // Register Service Worker for PWA with update handling
       if ('serviceWorker' in navigator) {
-        // First, unregister all old service workers
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          return Promise.all(
-            registrations.map((registration) => {
-              console.log('Unregistering old service worker:', registration.scope);
-              return registration.unregister();
-            })
-          );
-        }).then(() => {
-          // Then register the new one
-          return navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
-        }).then((registration) => {
-          console.log('✅ New Service Worker registered:', registration.scope);
-          
-          // Check for updates immediately
-          registration.update();
-          
-          // Listen for updates
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated') {
-                  console.log('🔄 New service worker activated, reloading...');
-                  window.location.reload();
-                }
-              });
+        // Prevent reload loops - check if we're already reloading
+        const isReloading = sessionStorage.getItem('sw-reloading') === 'true';
+        if (isReloading) {
+          sessionStorage.removeItem('sw-reloading');
+          return; // Don't register if we're in the middle of a reload
+        }
+
+        let reloadPrevented = false; // Flag to prevent multiple reloads
+        
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+          .then((registration) => {
+            console.log('✅ Service Worker registered:', registration.scope);
+            
+            // Only check for updates if service worker is already active
+            // Don't trigger immediate update check on fresh registration
+            if (registration.active) {
+              // Check for updates periodically, not immediately
+              setInterval(() => {
+                registration.update();
+              }, 60000); // Check every 60 seconds, not immediately
             }
+            
+            // Listen for updates (only reload once per update)
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker && !reloadPrevented) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'activated' && !reloadPrevented) {
+                    // Only reload if there's actually a new version
+                    if (registration.active && registration.active !== newWorker) {
+                      reloadPrevented = true;
+                      sessionStorage.setItem('sw-reloading', 'true');
+                      console.log('🔄 New service worker activated, reloading...');
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 100);
+                    }
+                  }
+                });
+              }
+            });
+          })
+          .catch((error) => {
+            console.log('⚠️ Service Worker registration failed:', error);
           });
-        }).catch((error) => {
-          console.log('⚠️ Service Worker registration failed:', error);
-        });
       }
 
       // Add to Home Screen Prompt
