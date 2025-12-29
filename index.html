@@ -1445,33 +1445,10 @@
         gap: 1rem;
         scrollbar-width: none;
         -ms-overflow-style: none;
-        touch-action: pan-x pan-y pinch-zoom;
-        will-change: scroll-position;
-        width: 100%;
-        max-width: 100%;
-        /* Force scrollable on Android */
-        overscroll-behavior-x: contain;
-        -webkit-overflow-scrolling: touch;
       }
 
       .nav-main::-webkit-scrollbar {
         display: none;
-      }
-
-      /* Force horizontal scroll on Android - ensure children don't shrink */
-      .nav-main > * {
-        flex-shrink: 0;
-        min-width: max-content;
-      }
-
-      .nav-main .nav-links {
-        flex-shrink: 0;
-        min-width: max-content;
-      }
-
-      .nav-main .nav-auth {
-        flex-shrink: 0;
-        min-width: max-content;
       }
       
       .container {
@@ -1612,26 +1589,10 @@
         -ms-overflow-style: none;
         width: 100%;
         max-width: 100%;
-        touch-action: pan-x pan-y pinch-zoom;
-        will-change: scroll-position;
-        /* Force scrollable on Android */
-        overscroll-behavior-x: contain;
       }
 
       .nav-auth::-webkit-scrollbar {
         display: none;
-      }
-
-      /* Force horizontal scroll on Android - ensure children don't shrink */
-      .nav-auth > * {
-        flex-shrink: 0;
-        min-width: max-content;
-      }
-
-      .nav-auth .user-menu-wrapper,
-      .nav-auth .auth-nav-buttons {
-        flex-shrink: 0;
-        min-width: max-content;
       }
 
       .nav-auth .user-menu-wrapper,
@@ -1686,41 +1647,6 @@
       .user-menu-wrapper {
         overflow: visible !important;
         z-index: 10001;
-        position: relative;
-      }
-
-      /* iOS-specific fix: Ensure dropdown is visible and clickable */
-      @supports (-webkit-touch-callout: none) {
-        .user-menu-dropdown {
-          position: relative;
-          z-index: 10003;
-          overflow: visible !important;
-        }
-
-        .user-menu-wrapper {
-          overflow: visible !important;
-          z-index: 10003;
-          position: relative;
-        }
-
-        .user-menu {
-          position: fixed !important;
-          z-index: 10003 !important;
-          -webkit-transform: translateZ(0);
-          transform: translateZ(0);
-        }
-
-        .user-menu.active {
-          position: fixed !important;
-          z-index: 10003 !important;
-          -webkit-transform: translateZ(0) translateY(0) !important;
-          transform: translateZ(0) translateY(0) !important;
-        }
-
-        .user-menu-toggle {
-          -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
-          touch-action: manipulation;
-        }
       }
 
       /* Ensure cart badge is visible on mobile */
