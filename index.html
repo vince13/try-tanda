@@ -177,7 +177,7 @@
       overflow: visible;
     }
 
-    .logo {
+      .logo {
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -187,6 +187,8 @@
       flex-shrink: 0;
       white-space: nowrap;
       margin-right: 1rem;
+      position: relative;
+      z-index: 10;
     }
 
     .logo picture {
@@ -1425,11 +1427,28 @@
       .nav {
         position: relative;
         overflow: visible !important;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
       }
       
       .nav-main {
         position: static;
-        overflow: visible !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .nav-main::-webkit-scrollbar {
+        display: none;
       }
       
       .container {
@@ -1561,22 +1580,30 @@
         flex: 1;
         justify-content: flex-end;
         min-width: 0;
+        display: flex;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .nav-auth::-webkit-scrollbar {
+        display: none;
       }
 
       .nav-auth .user-menu-wrapper,
       .nav-auth .auth-nav-buttons {
         gap: 0.5rem;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-right: 0.5rem;
-      }
-
-      .nav-auth .user-menu-wrapper::-webkit-scrollbar,
-      .nav-auth .auth-nav-buttons::-webkit-scrollbar {
-        display: none;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: max-content;
       }
 
       .nav-link-btn {
