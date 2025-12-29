@@ -31,7 +31,7 @@
   <meta name="twitter:url" content="https://app.tanda.media">
   <meta name="twitter:title" content="Tanda – Video Commerce Reimagined for Africa">
   <meta name="twitter:description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Now available on Google Play Store with AI shopping assistant for hands-free shopping.">
-  <meta name="twitter:image" content="https://app.tanda.media/Tanda%20logo.png">
+  <meta name="twitter:image" content="https://app.tanda.media/Tanda%20logo.webp">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
@@ -2023,7 +2023,7 @@
 </head>
 <body>
   <!-- Header -->
-  <header class="header" id="header">
+  <header class="header" id="header" role="banner">
     <div class="container">
       <nav class="nav">
         <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
@@ -2080,7 +2080,7 @@
             </a> 
             and is seeking a capital of <strong class="funding-amount">$500,000</strong>. 
             <a href="investors.html" class="fastercapital-link">
-              Learn more
+              Learn more about Tanda's investment opportunity
             </a>
           </p>
         </div>
@@ -2089,6 +2089,7 @@
   </section>
 
   <!-- Hero Section -->
+  <main role="main">
   <section class="hero" id="hero">
   <div class="container">
       <div class="hero-layout">
@@ -2117,10 +2118,10 @@
                     Your browser does not support the video tag.
                   </video>
                   <div class="video-controls">
-                    <button class="play-pause-btn" id="playPauseBtn">
+                    <button class="play-pause-btn" id="playPauseBtn" aria-label="Play or pause video">
                       <i class="fas fa-play"></i>
                     </button>
-                    <button class="volume-btn" id="volumeBtn">
+                    <button class="volume-btn" id="volumeBtn" aria-label="Toggle volume">
                       <i class="fas fa-volume-mute"></i>
                     </button>
                     <div class="video-progress">
@@ -2387,9 +2388,10 @@
       </div>
     </div>
   </section>
+  </main>
 
   <!-- Footer -->
-  <footer class="footer">
+  <footer class="footer" role="contentinfo">
     <div class="container">
       <div class="footer-content">
         <div class="footer-section">
@@ -2418,8 +2420,8 @@
           <h3>Contact</h3>
           <p>hello@tanda.media</p>
           <div class="social-links">
-            <a href="https://x.com/TandaAfrica"><i class="fab fa-x"></i></a>
-            <a href="https://www.linkedin.com/company/tanda-africa/"><i class="fab fa-linkedin"></i></a>
+            <a href="https://x.com/TandaAfrica" aria-label="Follow Tanda on X (formerly Twitter)"><i class="fab fa-x"></i></a>
+            <a href="https://www.linkedin.com/company/tanda-africa/" aria-label="Follow Tanda on LinkedIn"><i class="fab fa-linkedin"></i></a>
           </div>
       </div>
     </div>
