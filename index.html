@@ -2732,6 +2732,15 @@
 
       // Register Service Worker for PWA with update handling
       if ('serviceWorker' in navigator) {
+        // Prevent infinite reload loop
+        let isReloading = false;
+        const reloadFlag = sessionStorage.getItem('sw-reload-flag');
+        
+        // Clear the reload flag if it exists (prevents loop)
+        if (reloadFlag) {
+          sessionStorage.removeItem('sw-reload-flag');
+        }
+        
         // First, unregister all old service workers
         navigator.serviceWorker.getRegistrations().then((registrations) => {
           return Promise.all(
@@ -2746,17 +2755,30 @@
         }).then((registration) => {
           console.log('✅ New Service Worker registered:', registration.scope);
           
-          // Check for updates immediately
-          registration.update();
+          // Only check for updates if we haven't just reloaded
+          if (!reloadFlag) {
+            // Check for updates (but not immediately to avoid loop)
+            setTimeout(() => {
+              registration.update();
+            }, 1000);
+          }
           
           // Listen for updates
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated') {
-                  console.log('🔄 New service worker activated, reloading...');
-                  window.location.reload();
+                if (newWorker.state === 'activated' && !isReloading) {
+                  // Only reload if we haven't already set the flag
+                  if (!sessionStorage.getItem('sw-reload-flag')) {
+                    console.log('🔄 New service worker activated, reloading...');
+                    isReloading = true;
+                    sessionStorage.setItem('sw-reload-flag', 'true');
+                    // Small delay to prevent immediate loop
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 500);
+                  }
                 }
               });
             }

@@ -127,6 +127,44 @@
       font-size: 1rem;
     }
 
+    .email-verify-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .email-verify-container input {
+      flex: 1;
+    }
+
+    .verification-status {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .verification-code-group {
+      margin-top: 0.75rem;
+    }
+
+    .verification-code-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .verification-code-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .verification-code-container input {
+      flex: 1;
+    }
+
     input:focus, select:focus {
       outline: none;
       border-color: var(--accent-color);
@@ -154,6 +192,80 @@
 
     .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-verify {
+      background: var(--secondary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0.9rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-verify:hover:not(:disabled) { 
+      transform: translateY(-2px); 
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); 
+    }
+
+    .btn-verify:disabled { 
+      opacity: 0.6; 
+      cursor: not-allowed; 
+    }
+
+    .btn-verify-code {
+      background: var(--accent-color);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0.9rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-verify-code:hover:not(:disabled) { 
+      transform: translateY(-2px); 
+      box-shadow: 0 6px 20px rgba(0, 242, 234, 0.4); 
+    }
+
+    .btn-verify-code:disabled { 
+      opacity: 0.6; 
+      cursor: not-allowed; 
+    }
+
+    .verification-success {
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .verification-error {
+      color: #ff0050;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .verification-pending {
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #verification_code {
+      text-align: center;
+      letter-spacing: 0.5rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
 
     .error-message {
       background: rgba(255, 0, 80, 0.1);
@@ -188,6 +300,21 @@
 
       .btn {
         width: 100%;
+      }
+
+      .btn-verify,
+      .btn-verify-code {
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+
+      #email-verification-status {
+        font-size: 0.8rem;
+      }
+
+      #verification_code {
+        font-size: 1rem;
+        letter-spacing: 0.3rem;
       }
     }
 
@@ -239,7 +366,22 @@
         </div>
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" required placeholder="you@email.com">
+          <div class="email-verify-container">
+            <input type="email" id="email" required placeholder="you@email.com">
+            <button type="button" id="verify-email-btn" class="btn-verify">
+              <i class="fas fa-envelope"></i> <span class="btn-text">Verify</span>
+            </button>
+          </div>
+          <div id="email-verification-status" class="verification-status"></div>
+          <div id="verification-code-group" class="verification-code-group" style="display: none;">
+            <label for="verification_code" class="verification-code-label">Verification Code</label>
+            <div class="verification-code-container">
+              <input type="text" id="verification_code" placeholder="000000" maxlength="6" inputmode="numeric">
+              <button type="button" id="verify-code-btn" class="btn-verify-code">
+                <i class="fas fa-check"></i> <span class="btn-text">Verify Code</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -265,9 +407,12 @@
         </div>
       </div>
 
-      <button type="submit" class="btn" id="signup-btn">
+      <button type="submit" class="btn" id="signup-btn" disabled>
         <i class="fas fa-rocket"></i> Create Account
       </button>
+      <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); text-align: center;">
+        <i class="fas fa-info-circle"></i> Please verify your email before creating your account
+      </div>
     </form>
 
     <div class="links">
@@ -316,8 +461,170 @@
       setTimeout(() => box.classList.remove('show'), 7000);
     }
 
+    function showToast(msg, type = 'info') {
+      // Simple toast notification
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0, 242, 234, 0.9)' : 'rgba(255, 0, 80, 0.9)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        z-index: 10000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.3s ease;
+      `;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Email verification state
+    let emailVerified = false;
+    let verificationEmail = '';
+
+    // Send verification code
+    async function sendVerificationCode() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const verifyBtn = document.getElementById('verify-email-btn');
+      const statusDiv = document.getElementById('email-verification-status');
+      const codeGroup = document.getElementById('verification-code-group');
+
+      if (!email) {
+        showError('Please enter an email address first');
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      statusDiv.style.display = 'block';
+      statusDiv.className = 'verification-pending';
+      statusDiv.innerHTML = '<i class="fas fa-clock"></i> Sending verification code...';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/users/send-signup-verification/', {
+          method: 'POST',
+          body: JSON.stringify({ email }),
+        });
+
+        verificationEmail = email;
+        statusDiv.className = 'verification-success';
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Verification code sent! Check your email.';
+        codeGroup.style.display = 'block';
+        document.getElementById('verification_code').focus();
+        verifyBtn.innerHTML = '<i class="fas fa-redo"></i> Resend';
+        verifyBtn.disabled = false;
+      } catch (error) {
+        statusDiv.className = 'verification-error';
+        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message || 'Failed to send verification code'}`;
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fas fa-envelope"></i> Verify';
+      }
+    }
+
+    // Verify code
+    async function verifyCode() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const code = document.getElementById('verification_code').value.trim();
+      const verifyCodeBtn = document.getElementById('verify-code-btn');
+      const statusDiv = document.getElementById('email-verification-status');
+
+      if (!email) {
+        showError('Please enter an email address first');
+        return;
+      }
+
+      if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
+        showError('Please enter a valid 6-digit verification code');
+        return;
+      }
+
+      verifyCodeBtn.disabled = true;
+      verifyCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/users/verify-signup-email/', {
+          method: 'POST',
+          body: JSON.stringify({ email, code }),
+        });
+
+        emailVerified = true;
+        verificationEmail = email;
+        statusDiv.className = 'verification-success';
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Email verified successfully!';
+        document.getElementById('verification_code').setAttribute('readonly', 'readonly');
+        verifyCodeBtn.disabled = true;
+        verifyCodeBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
+        document.getElementById('signup-btn').disabled = false;
+        document.querySelector('#signup-btn + div').style.display = 'none';
+      } catch (error) {
+        statusDiv.className = 'verification-error';
+        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message || 'Invalid verification code'}`;
+        verifyCodeBtn.disabled = false;
+        verifyCodeBtn.innerHTML = '<i class="fas fa-check"></i> Verify Code';
+      }
+    }
+
+    // Check if email changed
+    function checkEmailChange() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      if (email !== verificationEmail) {
+        emailVerified = false;
+        const statusDiv = document.getElementById('email-verification-status');
+        const codeGroup = document.getElementById('verification-code-group');
+        statusDiv.style.display = 'none';
+        codeGroup.style.display = 'none';
+        document.getElementById('verification_code').value = '';
+        document.getElementById('verification_code').removeAttribute('readonly');
+        document.getElementById('verify-email-btn').innerHTML = '<i class="fas fa-envelope"></i> Verify';
+        document.getElementById('verify-code-btn').innerHTML = '<i class="fas fa-check"></i> Verify Code';
+        document.getElementById('verify-code-btn').disabled = false;
+        document.getElementById('signup-btn').disabled = true;
+        document.querySelector('#signup-btn + div').style.display = 'block';
+      }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('verify-email-btn').addEventListener('click', sendVerificationCode);
+      document.getElementById('verify-code-btn').addEventListener('click', verifyCode);
+      document.getElementById('email').addEventListener('blur', checkEmailChange);
+      document.getElementById('email').addEventListener('input', checkEmailChange);
+
+      // Allow Enter key to submit verification code
+      document.getElementById('verification_code').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          verifyCode();
+        }
+      });
+
+      // Auto-format verification code input (numbers only)
+      document.getElementById('verification_code').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+      });
+    });
+
     async function handleSignup(event) {
       event.preventDefault();
+
+      // Check if email is verified
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      if (!emailVerified || email !== verificationEmail) {
+        showError('Please verify your email address before submitting the form');
+        return;
+      }
 
       const btn = document.getElementById('signup-btn');
       btn.disabled = true;
@@ -366,9 +673,9 @@
           return;
         }
 
-        showToast('✅ Account created! Redirecting...', 'success');
+        showToast('✅ Account created! Redirecting to login...', 'success');
         setTimeout(() => {
-          window.location.href = 'super-affiliate-dashboard.html';
+          window.location.href = 'super-affiliate-login.html';
         }, 900);
       } catch (e) {
         showError(e.message || 'Signup failed. Please try again.');
