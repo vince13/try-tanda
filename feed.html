@@ -174,10 +174,15 @@
       justify-content: center;
       z-index: 10;
       pointer-events: none;
-      transition: opacity 0.3s ease;
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
     .pause-indicator.show {
       display: flex;
+      opacity: 1;
+    }
+    .pause-indicator.hiding {
+      opacity: 0;
     }
     .pause-indicator i {
       color: #fff;
@@ -1396,15 +1401,45 @@
       const pauseIndicator = wrapper.querySelector('.pause-indicator');
       const loadingIndicator = wrapper.querySelector('.video-loading-indicator');
 
-      // Function to update pause indicator visibility
-      const updatePauseIndicator = () => {
-        if (pauseIndicator) {
-          if (videoEl.paused) {
-            pauseIndicator.classList.add('show');
-          } else {
-            pauseIndicator.classList.remove('show');
-          }
+      // Track if video has been user-interacted with
+      let hasUserInteracted = false;
+      let pauseIndicatorTimeout = null;
+
+      // Function to show pause indicator briefly (only on user interaction)
+      const showPauseIndicatorBriefly = () => {
+        if (!pauseIndicator) return;
+        
+        // Clear any existing timeout
+        if (pauseIndicatorTimeout) {
+          clearTimeout(pauseIndicatorTimeout);
         }
+
+        // Show indicator
+        pauseIndicator.classList.remove('hiding');
+        pauseIndicator.classList.add('show');
+
+        // Hide after 1 second
+        pauseIndicatorTimeout = setTimeout(() => {
+          pauseIndicator.classList.add('hiding');
+          setTimeout(() => {
+            pauseIndicator.classList.remove('show');
+            pauseIndicator.classList.remove('hiding');
+          }, 200); // Wait for fade-out transition
+        }, 1000);
+      };
+
+      // Function to hide pause indicator immediately
+      const hidePauseIndicator = () => {
+        if (!pauseIndicator) return;
+        if (pauseIndicatorTimeout) {
+          clearTimeout(pauseIndicatorTimeout);
+          pauseIndicatorTimeout = null;
+        }
+        pauseIndicator.classList.add('hiding');
+        setTimeout(() => {
+          pauseIndicator.classList.remove('show');
+          pauseIndicator.classList.remove('hiding');
+        }, 200);
       };
 
       // Function to update loading indicator visibility
@@ -1421,12 +1456,22 @@
 
       // Video event listeners for indicators
       videoEl.addEventListener('play', () => {
-        updatePauseIndicator();
+        // Only show indicator if user explicitly played (not autoplay)
+        if (hasUserInteracted) {
+          showPauseIndicatorBriefly();
+        } else {
+          hidePauseIndicator();
+        }
         updateLoadingIndicator();
       });
 
       videoEl.addEventListener('pause', () => {
-        updatePauseIndicator();
+        // Only show indicator if user explicitly paused (not initial state)
+        if (hasUserInteracted) {
+          showPauseIndicatorBriefly();
+        } else {
+          hidePauseIndicator();
+        }
       });
 
       videoEl.addEventListener('waiting', () => {
@@ -1449,8 +1494,8 @@
         updateLoadingIndicator();
       });
 
-      // Initial state
-      updatePauseIndicator();
+      // Initial state - don't show pause indicator on initial load
+      hidePauseIndicator();
       updateLoadingIndicator();
 
       // Initialize product tag overlays if video has tags
@@ -1508,13 +1553,19 @@
         if (e.target.closest('.actions') || e.target.closest('.meta') || e.target.closest('.product-tag-overlay') || e.target.closest('.video-progress-container')) return;
         
         if (!videoEl) return;
+        
+        // Mark that user has interacted
+        hasUserInteracted = true;
+        
         try {
           if (videoEl.paused) {
             triggerHapticFeedback('selection');
             await videoEl.play();
+            // Indicator will show via 'play' event listener
           } else {
             triggerHapticFeedback('selection');
             videoEl.pause();
+            // Indicator will show via 'pause' event listener
           }
         } catch (_) {}
       });
@@ -2688,25 +2739,44 @@
     }
 
     async function handleShop(videoId, productTags) {
+      // If no products, redirect to shop page
       if (!productTags || productTags.length === 0) {
-        showToast('No products available for this video', 'info');
+        window.location.href = 'products.html';
         return;
       }
 
-      // Navigate to products page with video context or show product modal
-      // For now, navigate to products page - can be enhanced with modal later
-      const productIds = Array.isArray(productTags) 
-        ? productTags.map(tag => (typeof tag === 'object' ? tag.id || tag.product_id : tag)).filter(Boolean)
-        : [];
-      
-      if (productIds.length > 0) {
-        // Navigate to products page with filter
-        const params = new URLSearchParams({ video: videoId, products: productIds.join(',') });
-        window.location.href = `products.html?${params.toString()}`;
-      } else {
-        // Fallback to general products page
-        window.location.href = 'products.html';
+      // Extract product IDs from tags
+      const enrichedTags = productTags.map(tag => {
+        // Handle both object tags and simple IDs
+        if (typeof tag === 'string' || typeof tag === 'number') {
+          return { product_id: tag, product_type: 'internal' };
+        }
+
+        // Extract product ID (internal or external)
+        const productId = tag.internal_product || tag.product_id;
+        const externalProductId = tag.external_product || tag.external_product_id;
+        const productType = tag.product_type || (productId ? 'internal' : (externalProductId ? 'external' : null));
+
+        return {
+          product_id: productId,
+          external_product_id: externalProductId,
+          product_type: productType
+        };
+      }).filter(tag => tag.product_id || tag.external_product_id);
+
+      // If we have products, navigate to the first product's detail page
+      if (enrichedTags.length > 0) {
+        const firstTag = enrichedTags[0];
+        const productId = firstTag.product_id || firstTag.external_product_id;
+        
+        if (productId) {
+          window.location.href = `product-detail.html?id=${productId}`;
+          return;
+        }
       }
+
+      // Fallback to shop page if no valid product IDs found
+      window.location.href = 'products.html';
     }
 
     function copyToClipboard(text) {
