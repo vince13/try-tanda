@@ -472,10 +472,7 @@
 
   <div class="container">
     <p class="hint">
-      This page adds **unified product tags** for a video using the backend endpoints:
-      <code>/api/videos/product-tags/by_video/&lt;video_id&gt;/</code> and <code>/api/videos/product-tags/</code>.
-      <br><br>
-      **Internal products** use UUIDs (from `commerce.Product`). External products use numeric IDs (from `ExternalProductLink`).
+      Add product tags to your video. Select a product from your shop or add an external product link.
     </p>
 
     <div class="grid">
@@ -673,6 +670,107 @@
       }
     }
 
+    // Helper function to get product image URL (handles relative/absolute URLs)
+    function getProductImageUrl(product) {
+      // Get API base URL (same logic as in super-affiliate-api.js)
+      function getApiBaseUrl() {
+        const metaTag = document.querySelector('meta[name="api-base-url"]');
+        if (metaTag && metaTag.content) {
+          return metaTag.content.endsWith('/api') ? metaTag.content : metaTag.content + '/api';
+        }
+        if (typeof process !== 'undefined' && process.env && process.env.API_BASE_URL) {
+          return process.env.API_BASE_URL.endsWith('/api') ? process.env.API_BASE_URL : process.env.API_BASE_URL + '/api';
+        }
+        const hostname = window.location.hostname;
+        if (hostname.includes('tanda.media') || hostname.includes('railway.app') || hostname.includes('render.com')) {
+          return 'https://api.tanda.media/api';
+        }
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://127.0.0.1:8000/api';
+        }
+        return '/api';
+      }
+      
+      const apiBaseUrl = getApiBaseUrl();
+      
+      // Helper to normalize image URL
+      function normalizeImageUrl(url) {
+        if (!url || typeof url !== 'string' || url.trim() === '') {
+          return null;
+        }
+        
+        url = url.trim();
+        
+        // If it's already an absolute URL, use it directly
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          return url;
+        }
+        
+        // If it's a relative path starting with /, construct full URL
+        if (url.startsWith('/')) {
+          // For media files, we need the base URL without /api
+          // Get the origin from the API base URL
+          let baseUrl = apiBaseUrl;
+          if (baseUrl.includes('/api')) {
+            baseUrl = baseUrl.replace('/api', '');
+          }
+          // If baseUrl doesn't start with http, try to construct from current location
+          if (!baseUrl.startsWith('http')) {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            if (hostname.includes('tanda.media')) {
+              baseUrl = 'https://api.tanda.media';
+            } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+              baseUrl = 'http://127.0.0.1:8000';
+            } else {
+              baseUrl = `${protocol}//${hostname}`;
+            }
+          }
+          return baseUrl + url;
+        }
+        
+        // Otherwise, prepend API base URL with a slash
+        return apiBaseUrl + '/' + url;
+      }
+      
+      // Try images array first (most reliable source)
+      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        // Find primary image first, or use first image
+        let selectedImage = product.images.find(img => img && img.is_primary === true) || product.images[0];
+        
+        if (selectedImage) {
+          // Handle image field - could be string URL or object
+          let imageUrl = null;
+          
+          if (typeof selectedImage === 'string') {
+            imageUrl = selectedImage;
+          } else if (typeof selectedImage === 'object') {
+            // Try different possible field names
+            imageUrl = selectedImage.image || selectedImage.image_url || selectedImage.url || '';
+            
+            // If image is an object with url property (FileField serialization)
+            if (imageUrl && typeof imageUrl === 'object' && imageUrl.url) {
+              imageUrl = imageUrl.url;
+            }
+          }
+          
+          if (imageUrl) {
+            const normalized = normalizeImageUrl(imageUrl);
+            if (normalized) return normalized;
+          }
+        }
+      }
+      
+      // Fallback to direct image fields
+      let imageUrl = product.image_url || product.image || product.thumbnail_url || product.thumbnail || '';
+      
+      if (imageUrl) {
+        return normalizeImageUrl(imageUrl);
+      }
+      
+      return null;
+    }
+
     function renderProducts(products) {
       const productGrid = document.getElementById('productGrid');
       
@@ -687,34 +785,64 @@
       }
 
       productGrid.innerHTML = products.map(product => {
-        const imageUrl = product.image_url || product.image || product.thumbnail_url || '';
+        const imageUrl = getProductImageUrl(product);
         const name = product.name || 'Unnamed Product';
         const price = product.price ? `₦${parseFloat(product.price).toLocaleString()}` : 'Price N/A';
         const isSelected = selectedProduct && selectedProduct.id === product.id;
+        const hasImage = imageUrl && imageUrl.trim() !== '';
 
         return `
-          <div class="product-item ${isSelected ? 'selected' : ''}" onclick="selectProduct('${product.id}', '${name.replace(/'/g, "\\'")}')">
+          <div class="product-item ${isSelected ? 'selected' : ''}" data-product-id="${product.id}" data-product-name="${name.replace(/"/g, '&quot;')}">
             <div class="product-item-image">
-              ${imageUrl ? `<img src="${imageUrl}" alt="${name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">` : '<i class="fas fa-shopping-bag"></i>'}
+              ${hasImage ? `<img src="${imageUrl}" alt="${name}" onerror="console.error('Image failed to load:', '${imageUrl}'); this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">` : '<i class="fas fa-shopping-bag"></i>'}
             </div>
             <div class="product-item-name" title="${name}">${name}</div>
             <div class="product-item-price">${price}</div>
           </div>
         `;
       }).join('');
+      
+      // Add click event listeners to product items
+      productGrid.querySelectorAll('.product-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+          // Don't trigger if clicking on the image (which has its own error handler)
+          if (e.target.tagName === 'IMG' && e.target.onerror) {
+            return;
+          }
+          const productId = this.dataset.productId;
+          const productName = this.dataset.productName;
+          selectProduct(productId, productName, this);
+        });
+      });
     }
 
-    function selectProduct(productId, productName) {
+    function selectProduct(productId, productName, element) {
       selectedProduct = { id: productId, name: productName };
       
-      // Update UI
+      // Update UI - remove selected class from all items
       document.querySelectorAll('.product-item').forEach(item => {
         item.classList.remove('selected');
       });
-      event.currentTarget.classList.add('selected');
+      
+      // Add selected class to clicked item
+      if (element) {
+        element.classList.add('selected');
+      } else {
+        // Fallback: find by data attribute
+        const item = document.querySelector(`[data-product-id="${productId}"]`);
+        if (item) {
+          item.classList.add('selected');
+        }
+      }
       
       // Enable confirm button
-      document.getElementById('confirmProductBtn').disabled = false;
+      const confirmBtn = document.getElementById('confirmProductBtn');
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        console.log('Confirm button enabled for product:', productId, productName);
+      } else {
+        console.error('Confirm button not found!');
+      }
     }
 
     function confirmProductSelection() {
@@ -813,22 +941,97 @@
       return (v === null || v === undefined) ? '' : String(v);
     }
 
+    // Helper function to normalize image URL (reuse from getProductImageUrl)
+    function normalizeImageUrlForTag(url) {
+      if (!url || typeof url !== 'string' || url.trim() === '') {
+        return null;
+      }
+      
+      url = url.trim();
+      
+      // If it's already an absolute URL, use it directly
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      
+      // Get API base URL
+      function getApiBaseUrl() {
+        const metaTag = document.querySelector('meta[name="api-base-url"]');
+        if (metaTag && metaTag.content) {
+          return metaTag.content.endsWith('/api') ? metaTag.content : metaTag.content + '/api';
+        }
+        if (typeof process !== 'undefined' && process.env && process.env.API_BASE_URL) {
+          return process.env.API_BASE_URL.endsWith('/api') ? process.env.API_BASE_URL : process.env.API_BASE_URL + '/api';
+        }
+        const hostname = window.location.hostname;
+        if (hostname.includes('tanda.media') || hostname.includes('railway.app') || hostname.includes('render.com')) {
+          return 'https://api.tanda.media/api';
+        }
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://127.0.0.1:8000/api';
+        }
+        return '/api';
+      }
+      
+      const apiBaseUrl = getApiBaseUrl();
+      
+      // If it's a relative path starting with /, construct full URL
+      if (url.startsWith('/')) {
+        // For media files, we need the base URL without /api
+        let baseUrl = apiBaseUrl;
+        if (baseUrl.includes('/api')) {
+          baseUrl = baseUrl.replace('/api', '');
+        }
+        // If baseUrl doesn't start with http, try to construct from current location
+        if (!baseUrl.startsWith('http')) {
+          const protocol = window.location.protocol;
+          const hostname = window.location.hostname;
+          if (hostname.includes('tanda.media')) {
+            baseUrl = 'https://api.tanda.media';
+          } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            baseUrl = 'http://127.0.0.1:8000';
+          } else {
+            baseUrl = `${protocol}//${hostname}`;
+          }
+        }
+        return baseUrl + url;
+      }
+      
+      // Otherwise, prepend API base URL with a slash
+      return apiBaseUrl + '/' + url;
+    }
+
     function renderTags(tags) {
       const container = document.getElementById('tags');
-      if (!tags || !tags.length) {
+      if (!tags || !Array.isArray(tags) || tags.length === 0) {
         container.innerHTML = `<div class="empty">No tags yet for this video.</div>`;
         return;
       }
 
+      console.log('Rendering tags:', tags); // Debug log
+
       container.innerHTML = tags.map(t => {
-        const img = t.product_image_url;
-        const name = t.product_name || `Tag ${t.id}`;
-        const ts = (t.timestamp ?? 0).toFixed ? t.timestamp.toFixed(1) : t.timestamp;
-        const sub = `${t.product_type} • ${safeText(ts)}s • views ${t.views ?? 0} • clicks ${t.clicks ?? 0}`;
+        // Normalize image URL
+        let imgUrl = null;
+        if (t.product_image_url) {
+          imgUrl = normalizeImageUrlForTag(t.product_image_url);
+        }
+        
+        const name = t.product_name || t.name || `Tag ${t.id || 'Unknown'}`;
+        const timestamp = t.timestamp ?? 0;
+        const ts = typeof timestamp === 'number' ? timestamp.toFixed(1) : String(timestamp);
+        const productType = t.product_type || 'unknown';
+        const views = t.views ?? 0;
+        const clicks = t.clicks ?? 0;
+        const sub = `${productType} • ${safeText(ts)}s • views ${views} • clicks ${clicks}`;
+        
+        // Escape HTML for image URL
+        const escapedImgUrl = imgUrl ? imgUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+        
         return `
           <div class="tag-card">
             <div class="tag-img">
-              ${img ? `<img src="${img}" alt="Product">` : `<span><i class="fas fa-shopping-bag"></i></span>`}
+              ${imgUrl ? `<img src="${escapedImgUrl}" alt="${safeText(name)}" onerror="this.parentElement.innerHTML='<span><i class=\\'fas fa-shopping-bag\\'></i></span>'">` : `<span><i class="fas fa-shopping-bag"></i></span>`}
             </div>
             <div class="tag-meta">
               <div class="tag-name">${safeText(name)}</div>
@@ -851,10 +1054,29 @@
         return;
       }
 
+      const container = document.getElementById('tags');
+      container.innerHTML = '<div class="empty"><i class="fas fa-spinner fa-spin"></i> Loading tags...</div>';
+
       try {
         const tags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+        console.log('Loaded tags from API:', tags); // Debug log
+        
+        if (!tags || !Array.isArray(tags)) {
+          console.warn('Tags response is not an array:', tags);
+          container.innerHTML = `<div class="empty">No tags found for this video.</div>`;
+          return;
+        }
+        
         renderTags(tags);
+        
+        if (tags.length === 0) {
+          // Don't show toast for empty tags, just render empty state
+        } else {
+          console.log(`Successfully loaded ${tags.length} tag${tags.length !== 1 ? 's' : ''}`);
+        }
       } catch (e) {
+        console.error('Error loading tags:', e);
+        container.innerHTML = `<div class="empty"><i class="fas fa-exclamation-circle"></i> ${safeText(e.message || 'Failed to load tags')}</div>`;
         showToast(e.message || 'Failed to load tags', 'error');
       }
     }

@@ -519,13 +519,13 @@
         <!-- Documents -->
         <div class="form-section">
           <h2 class="section-title">
-            <i class="fas fa-file-alt"></i> Documents (Optional)
+            <i class="fas fa-file-alt"></i> Documents
           </h2>
 
           <div class="form-group">
-            <label for="id_document">ID Document</label>
+            <label for="id_document">ID Document <span class="required">*</span></label>
             <div class="file-upload">
-              <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png">
+              <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png" required>
               <label for="id_document" class="file-upload-label">
                 <i class="fas fa-file-upload"></i>
                 <span>Upload ID document (PDF, JPG, PNG)</span>
@@ -535,7 +535,7 @@
           </div>
 
           <div class="form-group">
-            <label for="business_license">Business License</label>
+            <label for="business_license">Business License <span class="required" id="license-required-indicator" style="display: none;">*</span></label>
             <div class="file-upload">
               <input type="file" id="business_license" name="business_license" accept=".pdf,.jpg,.jpeg,.png">
               <label for="business_license" class="file-upload-label">
@@ -544,6 +544,7 @@
               </label>
             </div>
             <div class="file-name" id="license-file-name"></div>
+            <div class="form-help" id="license-help-text">Required for all business types except Individual</div>
           </div>
         </div>
 
@@ -848,9 +849,41 @@
     }
 
 
+    // Update Business License requirement based on Business Type
+    function updateBusinessLicenseRequirement() {
+      const businessType = document.getElementById('business_type').value;
+      const licenseInput = document.getElementById('business_license');
+      const licenseRequiredIndicator = document.getElementById('license-required-indicator');
+      const licenseHelpText = document.getElementById('license-help-text');
+      
+      if (businessType === 'Individual') {
+        // Individual: ID required, License optional
+        licenseInput.removeAttribute('required');
+        licenseRequiredIndicator.style.display = 'none';
+        licenseHelpText.textContent = 'Optional for Individual business type';
+        licenseHelpText.style.color = 'var(--text-secondary)';
+      } else if (businessType && businessType !== '') {
+        // Other business types: Both ID and License required
+        licenseInput.setAttribute('required', 'required');
+        licenseRequiredIndicator.style.display = 'inline';
+        licenseHelpText.textContent = 'Required for all business types except Individual';
+        licenseHelpText.style.color = '#ff0050';
+      } else {
+        // No business type selected yet
+        licenseInput.removeAttribute('required');
+        licenseRequiredIndicator.style.display = 'none';
+        licenseHelpText.textContent = 'Required for all business types except Individual';
+        licenseHelpText.style.color = 'var(--text-secondary)';
+      }
+    }
+
+    // Listen for business type changes
+    document.getElementById('business_type').addEventListener('change', updateBusinessLicenseRequirement);
+
     // Initialize
     loadUserEmail();
     loadBanks();
+    updateBusinessLicenseRequirement(); // Set initial state
 
     // File upload handlers
     document.getElementById('shop_logo').addEventListener('change', function(e) {
@@ -876,6 +909,27 @@
       if (!accountName) {
         showAlert('Please verify your bank account number before submitting', 'error');
         return;
+      }
+
+      // Validate ID Document (always required)
+      const idDocument = document.getElementById('id_document').files[0];
+      if (!idDocument) {
+        showAlert('ID Document is required. Please upload your ID document.', 'error');
+        document.getElementById('id_document').focus();
+        return;
+      }
+
+      // Validate Business License based on Business Type
+      const businessType = document.getElementById('business_type').value;
+      const businessLicense = document.getElementById('business_license').files[0];
+      
+      if (businessType && businessType !== 'Individual') {
+        // Business License is required for non-Individual business types
+        if (!businessLicense) {
+          showAlert('Business License is required for ' + businessType + ' business type. Please upload your business license.', 'error');
+          document.getElementById('business_license').focus();
+          return;
+        }
       }
 
       const btn = document.getElementById('submit-btn');

@@ -122,12 +122,89 @@
       justify-content: center;
       color: rgba(255,255,255,0.6);
       font-weight: 700;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
     }
 
-    .thumb img {
+    .thumb img,
+    .thumb video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+
+    .thumb video {
+      display: none;
+    }
+
+    .thumb.playing video {
+      display: block;
+    }
+
+    .thumb.playing img {
+      display: none;
+    }
+
+    .thumb:hover .play-overlay,
+    .thumb.playing .play-overlay {
+      opacity: 0;
+    }
+
+    .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      transition: opacity 0.3s ease;
+      z-index: 1;
+    }
+
+    .play-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .product-tags-overlay {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .product-tag {
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(0,242,234,0.3);
+    }
+
+    .product-tag i {
+      font-size: 0.7rem;
     }
 
     .body {
@@ -273,24 +350,110 @@
           return;
         }
 
-        grid.innerHTML = videos.map(v => {
-          const thumbUrl = v.thumbnail_url || v.thumbnail || '';
+        // Helper function to normalize URLs (handles relative and absolute)
+        function normalizeVideoUrl(url) {
+          if (!url || typeof url !== 'string' || url.trim() === '') {
+            return null;
+          }
+          url = url.trim();
+          
+          // If already absolute, return as is
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+          }
+          
+          // If relative, construct absolute URL
+          if (url.startsWith('/')) {
+            // Get API base URL
+            function getApiBaseUrl() {
+              const metaTag = document.querySelector('meta[name="api-base-url"]');
+              if (metaTag && metaTag.content) {
+                let base = metaTag.content.endsWith('/api') ? metaTag.content.replace('/api', '') : metaTag.content;
+                if (!base.includes('://')) {
+                  base = base.startsWith('//') ? window.location.protocol + base : base;
+                }
+                return base;
+              }
+              const hostname = window.location.hostname;
+              if (hostname.includes('tanda.media')) {
+                return 'https://api.tanda.media';
+              }
+              if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://127.0.0.1:8000';
+              }
+              return window.location.origin;
+            }
+            return getApiBaseUrl() + url;
+          }
+          
+          return url;
+        }
+
+        grid.innerHTML = videos.map((v, index) => {
+          // Get video URL - check multiple fields and normalize
+          let videoUrl = v.video_url || v.video_file || '';
+          if (videoUrl) {
+            videoUrl = normalizeVideoUrl(videoUrl);
+          }
+          
+          // Get thumbnail URL - check multiple fields and normalize
+          let thumbUrl = v.thumbnail_url || v.thumbnail || '';
+          if (thumbUrl) {
+            thumbUrl = normalizeVideoUrl(thumbUrl);
+          }
+          
           const title = v.title || 'Untitled';
           const createdAt = v.created_at ? new Date(v.created_at).toLocaleString() : '';
           const views = v.views ?? v.tanda_views ?? 0;
           const idStr = String(v.id ?? '');
           const isNumericId = /^\d+$/.test(idStr);
+          const productTags = v.product_tags || [];
+          const videoId = `video-${index}-${idStr}`;
+          const thumbId = `thumb-${index}-${idStr}`;
+          const isImported = v.is_imported || false;
+
+          // Escape HTML for video URL
+          const escapedVideoUrl = videoUrl ? videoUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+          const escapedThumbUrl = thumbUrl ? thumbUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
+          
+          console.log(`Video ${index}:`, {
+            id: idStr,
+            isImported,
+            videoUrl: videoUrl ? 'present' : 'missing',
+            thumbUrl: thumbUrl ? 'present' : 'missing',
+            title
+          });
 
           return `
             <div class="card">
-              <div class="thumb">
-                ${thumbUrl ? `<img src="${thumbUrl}" alt="Thumbnail">` : `<div>No Thumbnail</div>`}
+              <div class="thumb" id="${thumbId}" data-video-id="${videoId}" data-video-url="${escapedVideoUrl}">
+                ${thumbUrl ? `<img src="${escapedThumbUrl}" alt="Thumbnail" id="img-${thumbId}">` : `<div>No Thumbnail</div>`}
+                ${videoUrl ? `<video id="${videoId}" muted loop playsinline preload="metadata">
+                  <source src="${escapedVideoUrl}" type="video/mp4">
+                </video>` : ''}
+                <div class="play-overlay">
+                  <div class="play-icon">
+                    <i class="fas fa-play"></i>
+                  </div>
+                </div>
+                ${productTags.length > 0 ? `
+                  <div class="product-tags-overlay">
+                    ${productTags.slice(0, 3).map(tag => `
+                      <div class="product-tag">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>${safeText(tag.name || tag.product_name || 'Product')}</span>
+                      </div>
+                    `).join('')}
+                    ${productTags.length > 3 ? `<div class="product-tag"><span>+${productTags.length - 3}</span></div>` : ''}
+                  </div>
+                ` : ''}
               </div>
               <div class="body">
                 <div style="font-weight:800;">${safeText(title)}</div>
                 <div class="meta">
                   <span><i class="fas fa-eye"></i> ${safeText(views)}</span>
                   ${createdAt ? `<span><i class="fas fa-clock"></i> ${safeText(createdAt)}</span>` : ``}
+                  ${productTags.length > 0 ? `<span><i class="fas fa-tag"></i> ${productTags.length} product${productTags.length !== 1 ? 's' : ''}</span>` : ''}
                 </div>
                 <div class="actions">
                   ${
@@ -310,6 +473,133 @@
             </div>
           `;
         }).join('');
+
+        // Add video playback functionality
+        grid.querySelectorAll('.thumb').forEach(thumbEl => {
+          const videoId = thumbEl.dataset.videoId;
+          const videoUrl = thumbEl.dataset.videoUrl;
+          if (!videoId || !videoUrl || videoUrl.trim() === '') {
+            console.warn('Skipping video playback setup - missing video ID or URL:', { videoId, videoUrl });
+            return;
+          }
+
+          const videoEl = document.getElementById(videoId);
+          if (!videoEl) {
+            console.warn('Video element not found:', videoId);
+            return;
+          }
+
+          // Ensure video has proper attributes for playback
+          videoEl.setAttribute('crossorigin', 'anonymous');
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.preload = 'metadata';
+
+          let isPlaying = false;
+          let hoverTimeout = null;
+
+          // Click to play/pause
+          thumbEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (isPlaying) {
+              videoEl.pause();
+              thumbEl.classList.remove('playing');
+              isPlaying = false;
+            } else {
+              // Ensure video source is set correctly
+              if (!videoEl.src || videoEl.src !== videoUrl) {
+                videoEl.src = videoUrl;
+              }
+              
+              const playPromise = videoEl.play();
+              if (playPromise !== undefined) {
+                playPromise
+                  .then(() => {
+                    thumbEl.classList.add('playing');
+                    isPlaying = true;
+                  })
+                  .catch(err => {
+                    console.error('Error playing video:', err, 'URL:', videoUrl);
+                    // Show error to user
+                    const imgEl = thumbEl.querySelector('img');
+                    if (imgEl) {
+                      imgEl.style.opacity = '0.5';
+                      imgEl.title = 'Video playback failed. Click to retry.';
+                    }
+                  });
+              }
+            }
+          });
+
+          // Hover to play (desktop only)
+          if (window.matchMedia('(min-width: 769px)').matches) {
+            thumbEl.addEventListener('mouseenter', function() {
+              hoverTimeout = setTimeout(() => {
+                if (!isPlaying) {
+                  videoEl.play().catch(err => {
+                    console.error('Error playing video on hover:', err);
+                  });
+                  thumbEl.classList.add('playing');
+                  isPlaying = true;
+                }
+              }, 300); // Small delay to prevent accidental plays
+            });
+
+            thumbEl.addEventListener('mouseleave', function() {
+              if (hoverTimeout) {
+                clearTimeout(hoverTimeout);
+                hoverTimeout = null;
+              }
+              if (isPlaying) {
+                videoEl.pause();
+                videoEl.currentTime = 0; // Reset to start
+                thumbEl.classList.remove('playing');
+                isPlaying = false;
+              }
+            });
+          }
+
+          // Handle video end
+          videoEl.addEventListener('ended', function() {
+            videoEl.currentTime = 0;
+            if (!thumbEl.matches(':hover')) {
+              thumbEl.classList.remove('playing');
+              isPlaying = false;
+            }
+          });
+
+          // Handle video errors
+          videoEl.addEventListener('error', function(e) {
+            console.error('Video playback error:', {
+              videoUrl,
+              error: videoEl.error,
+              code: videoEl.error ? videoEl.error.code : 'unknown',
+              message: videoEl.error ? videoEl.error.message : 'Unknown error'
+            });
+            thumbEl.classList.remove('playing');
+            isPlaying = false;
+            
+            // Show visual feedback
+            const imgEl = thumbEl.querySelector('img');
+            if (imgEl) {
+              imgEl.style.opacity = '0.5';
+              imgEl.title = 'Video failed to load. URL: ' + videoUrl;
+            }
+          });
+          
+          // Handle video load success
+          videoEl.addEventListener('loadedmetadata', function() {
+            console.log('Video metadata loaded successfully:', videoUrl);
+          });
+          
+          // Handle video load start
+          videoEl.addEventListener('loadstart', function() {
+            console.log('Video load started:', videoUrl);
+          });
+        });
       } catch (e) {
         loading.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${safeText(e.message) || 'Failed to load videos'}`;
         showToast(e.message || 'Failed to load videos', 'error');

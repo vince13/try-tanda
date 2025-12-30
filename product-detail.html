@@ -297,10 +297,26 @@
       margin-bottom: 1rem;
     }
 
+    .product-description-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .product-description-card .section-title {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+
     .product-description {
       color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: 2rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 1rem;
     }
 
     .quantity-selector {
@@ -711,7 +727,6 @@
           <h1 class="product-name" id="product-name"></h1>
           <div class="product-rating" id="product-rating"></div>
           <div class="product-price" id="product-price"></div>
-          <div class="product-description" id="product-description"></div>
           <div class="product-meta" id="product-meta"></div>
 
           <div class="quantity-selector">
@@ -732,6 +747,15 @@
           <!-- Additional Product Information Section -->
           <div class="product-additional-info" id="product-additional-info" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);"></div>
         </div>
+      </div>
+
+      <!-- Product Description Card -->
+      <div class="product-description-card" id="product-description-card" style="display: none;">
+        <h2 class="section-title">
+          <i class="fas fa-align-left"></i>
+          Product Description
+        </h2>
+        <div class="product-description" id="product-description"></div>
       </div>
 
       <!-- Reviews Section -->
@@ -800,7 +824,15 @@
 
       document.getElementById('product-name').textContent = data.name || 'Product';
       document.getElementById('product-price').textContent = formatCurrency(data.price);
-      document.getElementById('product-description').textContent = data.description || 'No description available.';
+      
+      // Display description in separate card
+      const description = data.description || 'No description available.';
+      if (description && description !== 'No description available.') {
+        document.getElementById('product-description').textContent = description;
+        document.getElementById('product-description-card').style.display = 'block';
+      } else {
+        document.getElementById('product-description-card').style.display = 'none';
+      }
       
       // Display rating
       const rating = data.average_rating || 0;
