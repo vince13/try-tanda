@@ -874,9 +874,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
                      currentFile === '';
   // Check if we're on upload page - don't add "Home" link as it's already there statically
   const isUploadPage = currentPath.endsWith('upload.html') || currentFile === 'upload.html';
+  // Check if we're on my-videos page - don't add "Home" link as it's already there statically
+  const isMyVideosPage = currentPath.endsWith('my-videos.html') || currentFile === 'my-videos.html';
 
   if (!isAuthed) {
-    const homeLink = (isHomePage || isUploadPage) ? '' : `
+    const homeLink = (isHomePage || isUploadPage || isMyVideosPage) ? '' : `
         <a href="index.html" class="nav-link-btn" aria-label="Home">
           <i class="fas fa-home"></i> Home
         </a>`;
@@ -898,8 +900,8 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
   }
 
   // Create elegant user menu dropdown
-  // Don't add "Home" link on home page or upload page (upload page has static Home link)
-  const homeLink = (isHomePage || isUploadPage) ? '' : `
+  // Don't add "Home" link on home page, upload page, or my-videos page (these pages have static Home link)
+  const homeLink = (isHomePage || isUploadPage || isMyVideosPage) ? '' : `
       <a href="index.html" class="nav-link-btn" aria-label="Home">
         <i class="fas fa-home"></i> Home
       </a>`;

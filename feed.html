@@ -1169,7 +1169,7 @@
   <div class="topbar">
     <div class="brand">
       <picture>
-        <source srcset="Tanda logo.webp" type="image/webp">
+        <source src="Tanda logo.webp" type="image/webp">
         <img src="Tanda logo.png" alt="Tanda" width="32" height="32" loading="eager">
       </picture>
       <span>Feed</span>
@@ -1184,7 +1184,7 @@
   <div id="pwaInstallPrompt" class="pwa-install-prompt" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 1rem 1.5rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); z-index: 10000; align-items: center; gap: 1rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);">
     <div style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
       <picture>
-        <source srcset="Tanda logo.webp" type="image/webp">
+        <source src="Tanda logo.webp" type="image/webp">
         <img src="Tanda logo.png" alt="Tanda" width="32" height="32" style="border-radius: 8px;" loading="eager">
       </picture>
     </div>
@@ -1223,6 +1223,9 @@
     let hasNext = true;
     let observer = null;
     let activeVideoEl = null;
+    let userFeedMode = false;  // Track if we're showing a specific user's videos
+    let userFeedUsername = null;  // Username for user feed mode
+    let firstVideoIdInUserFeed = null;  // Track the first video ID to avoid duplicates
 
     function showStatus(text) {
       statusEl.textContent = text || '';
@@ -1927,13 +1930,44 @@
       showStatus('Loading…');
 
       try {
-        const data = await SuperAffiliateAPI.getFeed({ page, perPage: 10 });
+        let data;
+        
+        // If in user feed mode, load that user's videos instead of regular feed
+        if (userFeedMode && userFeedUsername) {
+          const qp = new URLSearchParams({
+            page: String(page),
+            per_page: '10',
+          }).toString();
+          data = await SuperAffiliateAPI.apiRequest(`/videos/user/${encodeURIComponent(userFeedUsername)}/?${qp}`, { method: 'GET' });
+          // user_videos endpoint returns { videos: [...] } format
+          // Normalize to match feed format
+          if (data.videos) {
+            data = {
+              results: data.videos,
+              has_next: data.has_next || false,
+              page: data.current_page || page,
+              total_pages: data.total_pages || 1
+            };
+          }
+        } else {
+          // Regular feed
+          data = await SuperAffiliateAPI.getFeed({ page, perPage: 10 });
+        }
+        
         const rawItems = extractItemsFromFeedResponse(data);
         hasNext = computeHasNext(data) && rawItems.length > 0;
 
         const cards = [];
+        
         for (const raw of rawItems) {
           const n = normalizeFeedItem(raw);
+          
+          // In user feed mode, skip the first video if it's the one we already loaded
+          // (to avoid showing the same video twice)
+          if (userFeedMode && firstVideoIdInUserFeed && String(n.id) === String(firstVideoIdInUserFeed)) {
+            continue;  // Skip this video, we already have it
+          }
+          
           if (n.kind === 'ad') cards.push(createAdCard(n));
           else cards.push(createVideoCard(n));
         }
@@ -1946,7 +1980,7 @@
         if (last && hasNext) setupLoadMoreObserver(last);
 
         page += 1;
-        showStatus(hasNext ? '' : 'You’re all caught up.');
+        showStatus(hasNext ? '' : (userFeedMode ? 'No more videos from this creator.' : 'You are all caught up.'));
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Failed to load feed.';
         showStatus(msg);
@@ -2021,15 +2055,87 @@
             hasNext = true;
             feedEl.innerHTML = '';
             activeVideoEl = null;
+            // Reset user feed mode on refresh (go back to regular feed)
+            userFeedMode = false;
+            userFeedUsername = null;
+            firstVideoIdInUserFeed = null;
             await loadNextPage();
             done();
           }
         });
       }
 
+      // Check if a specific video ID is provided in URL (e.g., from user profile)
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedVideoId = urlParams.get('video');
+      
       // If authed, load immediately.
       if (SuperAffiliateAPI.isAuthenticated()) {
-        await loadNextPage();
+        // If a specific video is requested, load it first, then load that user's videos
+        if (requestedVideoId) {
+          try {
+            showStatus('Loading video...');
+            // Fetch the specific video
+            const videoData = await SuperAffiliateAPI.apiRequest(`/videos/${requestedVideoId}/`);
+            
+            // Extract username from video data to enable user feed mode
+            const username = videoData?.user?.username || 
+                           videoData?.creator_username || 
+                           videoData?.creator_name ||
+                           videoData?.uploaded_by?.username;
+            
+            if (username) {
+              // Enable user feed mode - all subsequent loads will show this user's videos
+              userFeedMode = true;
+              userFeedUsername = username;
+              page = 1;  // Reset to first page for user videos
+              hasNext = true;  // Reset hasNext
+              
+              console.log(`User feed mode enabled for: ${username}`);
+            }
+            
+            // Normalize the video data to match feed format
+            const normalized = normalizeFeedItem({ video: videoData, type: videoData.type || 'native' });
+            
+            // Store the video ID to avoid duplicates when loading user's other videos
+            firstVideoIdInUserFeed = normalized.id;
+            
+            // Create and insert the video card as the first item
+            const videoCard = normalized.kind === 'ad' ? createAdCard(normalized) : createVideoCard(normalized);
+            feedEl.insertBefore(videoCard, feedEl.firstChild);
+            
+            // Setup visibility observer for the new video
+            setupVisibilityObserver();
+            
+            // Auto-scroll to the top to show the requested video
+            feedEl.scrollTop = 0;
+            
+            // Play the video after a short delay to ensure it's in view
+            setTimeout(() => {
+              const firstVideoEl = feedEl.querySelector('.item:first-child video');
+              if (firstVideoEl) {
+                const firstCard = firstVideoEl.closest('.item');
+                if (firstCard) {
+                  playVideoInCard(firstCard);
+                }
+              }
+            }, 300);
+            
+            showStatus('');
+            
+            // Load that user's other videos (skip the first one since we already loaded it)
+            // We'll start from page 1 and filter out the current video if needed
+            await loadNextPage();
+          } catch (error) {
+            console.error('Error loading specific video:', error);
+            showStatus('Video not found. Loading feed...');
+            // Fall through to load regular feed
+            await loadNextPage();
+          }
+        } else {
+          // No specific video requested, load regular feed
+          await loadNextPage();
+        }
       } else {
         showStatus('Login to start watching.');
       }
@@ -3011,12 +3117,9 @@
       // Monitor video playback time
       let timeUpdateHandler = null;
       const updateOverlays = () => {
-        if (!videoEl || videoEl.paused) {
-          // Hide all overlays when paused
-          enrichedTags.forEach((tag, index) => {
-            const overlay = overlayContainer.children[index];
-            if (overlay) overlay.classList.add('hidden');
-          });
+        // Don't hide overlays when paused - keep them visible
+        // Only check visibility based on video time, not playback state
+        if (!videoEl) {
           return;
         }
 
@@ -3216,7 +3319,13 @@
       overlay.style.cursor = 'pointer';
 
       // Build overlay content
-      const imageUrl = tag.product_image_url || '';
+      // Handle both absolute and relative URLs - ensure absolute for proper display
+      let imageUrl = tag.product_image_url || tag.image_url || tag.image || '';
+      // If URL is relative, try to make it absolute (fallback - backend should provide absolute URLs)
+      if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('//') && imageUrl.startsWith('/')) {
+        // Relative URL starting with / - prepend current origin
+        imageUrl = window.location.origin + imageUrl;
+      }
       const productName = tag.product_name || 'Product';
       const price = tag.product_price || '0';
       const currency = tag.product_currency || '₦';

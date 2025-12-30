@@ -216,6 +216,40 @@
       color: #ff6b6b;
     }
 
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.3rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .status-badge.status-pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.4);
+    }
+
+    .status-badge.status-completed {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, 0.4);
+    }
+
+    .status-badge.status-failed {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+      border: 1px solid rgba(255, 107, 107, 0.4);
+    }
+
+    .status-badge.status-cancelled {
+      background: rgba(158, 158, 158, 0.2);
+      color: #9e9e9e;
+      border: 1px solid rgba(158, 158, 158, 0.4);
+    }
+
     .btn {
       padding: 0.9rem 2rem;
       background: var(--primary-gradient);
@@ -978,7 +1012,28 @@
         loadTransactions();
       } catch (error) {
         console.error('Error loading wallet:', error);
-        showError('Failed to load wallet. Please try again.');
+        
+        // Hide loading section even on error
+        const loadingSection = document.getElementById('loading-section');
+        const walletSection = document.getElementById('wallet-section');
+        if (loadingSection) {
+          loadingSection.style.display = 'none';
+        }
+        if (walletSection) {
+          walletSection.style.display = 'block';
+        }
+        
+        // Show user-friendly error message
+        let errorMessage = 'Failed to load wallet. Please try again.';
+        if (error.message) {
+          // Check if it's a validation error about decimal places
+          if (error.message.includes('decimal places')) {
+            errorMessage = 'Wallet data issue detected. Please refresh the page. If the problem persists, contact support.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        showError(errorMessage);
       }
     }
 
@@ -1046,15 +1101,50 @@
         return labels[type] || type;
       };
 
-      list.innerHTML = transactions.map(txn => {
+      const getStatusBadge = (status) => {
+        const statusLabels = {
+          'pending': '<span class="status-badge status-pending">Pending</span>',
+          'completed': '<span class="status-badge status-completed">Completed</span>',
+          'failed': '<span class="status-badge status-failed">Failed</span>',
+          'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>',
+        };
+        return statusLabels[status] || '';
+      };
+
+      // Filter out pending deposits (incomplete payments) - they shouldn't show in history
+      // Keep pending withdrawals since they're awaiting approval
+      const filteredTransactions = transactions.filter(txn => {
+        // Exclude pending deposits - these are incomplete payments
+        if (txn.transaction_type === 'deposit' && txn.status === 'pending') {
+          return false;
+        }
+        // Also exclude failed deposits that were never completed
+        if (txn.transaction_type === 'deposit' && txn.status === 'failed') {
+          return false;
+        }
+        return true;
+      });
+
+      if (filteredTransactions.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No completed transactions yet</p>';
+        return;
+      }
+
+      list.innerHTML = filteredTransactions.map(txn => {
         const isPositive = ['deposit', 'tip', 'affiliate_commission', 'ad_earnings', 'refund'].includes(txn.transaction_type);
         const amountClass = isPositive ? 'positive' : 'negative';
         const amountPrefix = isPositive ? '+' : '-';
+        
+        // Only show status badge for non-completed transactions
+        const statusBadge = txn.status !== 'completed' ? getStatusBadge(txn.status) : '';
 
         return `
           <div class="transaction-item">
             <div class="transaction-info">
-              <div class="transaction-type">${getTransactionTypeLabel(txn.transaction_type)}</div>
+              <div class="transaction-type">
+                ${getTransactionTypeLabel(txn.transaction_type)}
+                ${statusBadge}
+              </div>
               <div class="transaction-date">${formatDate(txn.created_at)}</div>
             </div>
             <div class="transaction-amount ${amountClass}">
@@ -1302,13 +1392,35 @@
       }
     }
 
+    // Track if a deposit request is in progress to prevent multiple simultaneous requests
+    let depositInProgress = false;
+
     async function handleDeposit(event) {
       event.preventDefault();
+      
+      // Prevent multiple simultaneous requests
+      if (depositInProgress) {
+        console.warn('Deposit request already in progress, ignoring duplicate click');
+        return;
+      }
+      
       const amount = parseFloat(document.getElementById('deposit-amount').value);
 
       if (!amount || amount < 100) {
         showError('Minimum deposit is ₦100');
         return;
+      }
+
+      // Get the submit button and disable it
+      const submitBtn = event.target.querySelector('button[type="submit"]') || 
+                       document.querySelector('#deposit-form button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+      
+      // Set loading state
+      depositInProgress = true;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
       }
 
       try {
@@ -1324,14 +1436,23 @@
         const paymentUrl = response.payment_url || response.authorization_url;
         
         if (paymentUrl) {
-          // Redirect to payment page
+          // Redirect to payment page immediately to prevent further clicks
           window.location.href = paymentUrl;
+          // Note: We don't reset depositInProgress here because we're redirecting
+          return;
         } else {
           showError(response.error || 'Failed to initiate payment. Please try again.');
         }
       } catch (error) {
         console.error('Deposit error:', error);
         showError(error.message || 'Failed to initiate deposit');
+      } finally {
+        // Reset state only if we didn't redirect
+        depositInProgress = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
+        }
       }
     }
 

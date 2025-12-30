@@ -515,19 +515,20 @@
         <!-- Documents -->
         <div class="form-section">
           <h2 class="section-title">
-            <i class="fas fa-file-alt"></i> Documents (Optional)
+            <i class="fas fa-file-alt"></i> Documents <span class="required">*</span>
           </h2>
 
           <div class="form-group">
-            <label for="id_document">ID Document</label>
+            <label for="id_document">ID Document <span class="required">*</span></label>
             <div class="file-upload">
-              <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png">
+              <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png" required>
               <label for="id_document" class="file-upload-label">
                 <i class="fas fa-file-upload"></i>
                 <span>Upload ID document (PDF, JPG, PNG)</span>
               </label>
             </div>
             <div class="file-name" id="id-file-name"></div>
+            <div class="form-help">A valid government-issued ID is required for affiliate registration</div>
           </div>
         </div>
 
@@ -846,8 +847,35 @@
 
     // File upload handler
     document.getElementById('id_document').addEventListener('change', function(e) {
-      const fileName = e.target.files[0]?.name || '';
-      document.getElementById('id-file-name').textContent = fileName || 'No file selected';
+      const file = e.target.files[0];
+      const fileNameDisplay = document.getElementById('id-file-name');
+      
+      if (file) {
+        const fileName = file.name;
+        const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Size in MB
+        const fileType = file.type;
+        
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(fileType)) {
+          fileNameDisplay.innerHTML = `<span style="color: #f44336;"><i class="fas fa-exclamation-circle"></i> Invalid file type. Please upload PDF, JPG, or PNG</span>`;
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          fileNameDisplay.innerHTML = `<span style="color: #f44336;"><i class="fas fa-exclamation-circle"></i> File too large (${fileSize}MB). Maximum size is 10MB</span>`;
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        // Show success message
+        fileNameDisplay.innerHTML = `<span style="color: #4caf50;"><i class="fas fa-check-circle"></i> ${fileName} (${fileSize}MB)</span>`;
+      } else {
+        fileNameDisplay.textContent = 'No file selected';
+      }
     });
 
     async function handleSubmit(event) {
@@ -857,6 +885,30 @@
       const accountName = document.getElementById('account_name').value.trim();
       if (!accountName) {
         showAlert('Please verify your bank account number before submitting', 'error');
+        return;
+      }
+
+      // Validate ID document is uploaded
+      const idFile = document.getElementById('id_document').files[0];
+      if (!idFile) {
+        showAlert('Please upload a valid ID document (PDF, JPG, or PNG)', 'error');
+        document.getElementById('id_document').focus();
+        return;
+      }
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(idFile.type)) {
+        showAlert('Invalid file type. Please upload a PDF, JPG, or PNG file', 'error');
+        document.getElementById('id_document').focus();
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (idFile.size > maxSize) {
+        showAlert('File size too large. Please upload a file smaller than 10MB', 'error');
+        document.getElementById('id_document').focus();
         return;
       }
 
@@ -892,11 +944,8 @@
           formData.append('bank_code', bankCode);
         }
 
-        // Add file
-        const idFile = document.getElementById('id_document').files[0];
-        if (idFile) {
-          formData.append('id_document', idFile);
-        }
+        // Add ID document file (required)
+        formData.append('id_document', idFile);
 
         // Submit to API
         const response = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/create/', {
