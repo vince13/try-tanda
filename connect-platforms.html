@@ -302,7 +302,19 @@
         document.getElementById('platforms-section').style.display = 'none';
         
         const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
-        connections = response.results || response || [];
+        
+        // Ensure connections is always an array
+        if (Array.isArray(response)) {
+          connections = response;
+        } else if (response && Array.isArray(response.results)) {
+          connections = response.results;
+        } else if (response && Array.isArray(response.data)) {
+          connections = response.data;
+        } else {
+          connections = [];
+        }
+        
+        console.log('Loaded connections:', connections);
         
         // Always render platforms, even if no connections exist
         renderPlatforms();
@@ -311,6 +323,7 @@
         document.getElementById('platforms-section').style.display = 'block';
       } catch (error) {
         console.error('Error loading connections:', error);
+        connections = []; // Ensure connections is an array on error
         // Still render platforms even if connections fail to load
         renderPlatforms();
         document.getElementById('loading-section').style.display = 'none';
@@ -320,6 +333,12 @@
     }
 
     function getConnectionStatus(platformId) {
+      // Safety check: ensure connections is an array
+      if (!Array.isArray(connections)) {
+        console.error('connections is not an array:', connections);
+        connections = [];
+      }
+      
       const connection = connections.find(c => c.platform === platformId);
       return connection ? {
         connected: true,
