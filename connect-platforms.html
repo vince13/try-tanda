@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Connect Platforms - Tanda Web</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      margin-bottom: 1.5rem;
+      color: var(--accent-color);
+      font-size: 1.5rem;
+    }
+
+    .platform-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .platform-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .platform-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-color);
+    }
+
+    .platform-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .platform-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: var(--primary-gradient);
+    }
+
+    .platform-details h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .platform-details p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .platform-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-connected {
+      background: rgba(0, 255, 0, 0.1);
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 0, 0.3);
+    }
+
+    .status-disconnected {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .error-message {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #ff6b6b;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #00ff88;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .platform-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .platform-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-link"></i> Connect Platforms</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+
+    <div id="loading-section" class="loading" style="display: none;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Loading platform connections...</p>
+    </div>
+
+    <div id="platforms-section">
+      <div class="card">
+        <h2>Social Media Platforms</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+          Connect your social media accounts to publish videos directly from Tanda.
+        </p>
+        <div class="platform-list" id="platform-list">
+          <!-- Platform items will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    const API_BASE = SuperAffiliateAPI.getApiBase();
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html';
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+
+    const platforms = [
+      {
+        id: 'tiktok',
+        name: 'TikTok',
+        icon: 'fab fa-tiktok',
+        description: 'Publish videos to TikTok',
+        color: '#000000'
+      },
+      {
+        id: 'youtube',
+        name: 'YouTube',
+        icon: 'fab fa-youtube',
+        description: 'Publish videos to YouTube',
+        color: '#FF0000'
+      },
+      {
+        id: 'instagram',
+        name: 'Instagram',
+        icon: 'fab fa-instagram',
+        description: 'Publish videos to Instagram',
+        color: '#E4405F'
+      },
+      {
+        id: 'facebook',
+        name: 'Facebook',
+        icon: 'fab fa-facebook',
+        description: 'Publish videos to Facebook',
+        color: '#1877F2'
+      }
+    ];
+
+    let connections = [];
+
+    async function loadConnections() {
+      try {
+        document.getElementById('loading-section').style.display = 'block';
+        const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
+        connections = response.results || response || [];
+        renderPlatforms();
+        document.getElementById('loading-section').style.display = 'none';
+      } catch (error) {
+        console.error('Error loading connections:', error);
+        showError('Failed to load platform connections. Please try again.');
+        document.getElementById('loading-section').style.display = 'none';
+      }
+    }
+
+    function getConnectionStatus(platformId) {
+      const connection = connections.find(c => c.platform === platformId);
+      return connection ? {
+        connected: true,
+        username: connection.platform_username || 'Connected',
+        status: connection.status || 'connected'
+      } : {
+        connected: false,
+        username: null,
+        status: null
+      };
+    }
+
+    function renderPlatforms() {
+      const list = document.getElementById('platform-list');
+      list.innerHTML = platforms.map(platform => {
+        const status = getConnectionStatus(platform.id);
+        return `
+          <div class="platform-item">
+            <div class="platform-info">
+              <div class="platform-icon" style="background: ${platform.color};">
+                <i class="${platform.icon}"></i>
+              </div>
+              <div class="platform-details">
+                <h3>${platform.name}</h3>
+                <p>${platform.description}</p>
+                ${status.connected ? `<p style="font-size: 0.85rem; color: var(--accent-color); margin-top: 0.25rem;">@${status.username}</p>` : ''}
+              </div>
+            </div>
+            <div class="platform-status">
+              <span class="status-badge ${status.connected ? 'status-connected' : 'status-disconnected'}">
+                ${status.connected ? '<i class="fas fa-check-circle"></i> Connected' : '<i class="fas fa-times-circle"></i> Not Connected'}
+              </span>
+              ${status.connected 
+                ? `<button class="btn btn-secondary" onclick="disconnectPlatform('${platform.id}')">
+                     <i class="fas fa-unlink"></i> Disconnect
+                   </button>`
+                : `<button class="btn" onclick="connectPlatform('${platform.id}')">
+                     <i class="fas fa-link"></i> Connect
+                   </button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function connectPlatform(platformId) {
+      try {
+        showSuccess(`Connecting to ${platforms.find(p => p.id === platformId).name}...`);
+        
+        // Get OAuth URL
+        const response = await SuperAffiliateAPI.apiRequest(`/videos/platforms/${platformId}/oauth-url/`);
+        const oauthUrl = response.oauth_url;
+        
+        if (!oauthUrl) {
+          throw new Error('Failed to get OAuth URL');
+        }
+
+        // Open OAuth URL in a new window/tab
+        // For mobile, we'll use the same window since popups might be blocked
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // On mobile, redirect in the same window
+          window.location.href = oauthUrl;
+        } else {
+          // On desktop, try popup first, fallback to same window
+          const popup = window.open(oauthUrl, 'oauth', 'width=600,height=700,scrollbars=yes');
+          
+          if (!popup) {
+            // Popup blocked, use same window
+            window.location.href = oauthUrl;
+          } else {
+            // Monitor popup for callback
+            const checkPopup = setInterval(() => {
+              try {
+                if (popup.closed) {
+                  clearInterval(checkPopup);
+                  // Reload connections after popup closes
+                  setTimeout(() => {
+                    loadConnections();
+                  }, 1000);
+                }
+              } catch (e) {
+                // Cross-origin error, popup might have redirected
+                clearInterval(checkPopup);
+              }
+            }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('Error connecting platform:', error);
+        showError(error.message || `Failed to connect to ${platforms.find(p => p.id === platformId).name}`);
+      }
+    }
+
+    async function disconnectPlatform(platformId) {
+      if (!confirm(`Are you sure you want to disconnect ${platforms.find(p => p.id === platformId).name}?`)) {
+        return;
+      }
+
+      try {
+        const connection = connections.find(c => c.platform === platformId);
+        if (!connection) {
+          throw new Error('Connection not found');
+        }
+
+        await SuperAffiliateAPI.apiRequest(`/videos/platforms/connections/${connection.id}/`, {
+          method: 'DELETE'
+        });
+
+        showSuccess(`Successfully disconnected from ${platforms.find(p => p.id === platformId).name}`);
+        loadConnections();
+      } catch (error) {
+        console.error('Error disconnecting platform:', error);
+        showError(error.message || `Failed to disconnect from ${platforms.find(p => p.id === platformId).name}`);
+      }
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+      setTimeout(() => errorDiv.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.getElementById('success-message');
+      successDiv.textContent = message;
+      successDiv.classList.add('show');
+      setTimeout(() => successDiv.classList.remove('show'), 5000);
+    }
+
+    // Handle OAuth callback if we're returning from OAuth
+    const urlParams = new URLSearchParams(window.location.search);
+    const platform = urlParams.get('platform');
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+
+    if (platform) {
+      if (success === 'true') {
+        showSuccess(`Successfully connected to ${platforms.find(p => p.id === platform).name}!`);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        loadConnections();
+      } else if (error) {
+        showError(`Failed to connect to ${platform}: ${error}`);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } else {
+      // Normal page load
+      loadConnections();
+    }
+  </script>
+</body>
+</html>
+
