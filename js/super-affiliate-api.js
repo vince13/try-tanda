@@ -80,6 +80,13 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Get API base URL
+   */
+  static getApiBase() {
+    return API_BASE_URL;
+  }
+
+  /**
    * Set refresh token in localStorage
    */
   static setRefreshToken(token) {

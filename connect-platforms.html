@@ -253,10 +253,8 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=2"></script>
   <script>
-    const API_BASE = SuperAffiliateAPI.getApiBase();
-
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
       window.location.href = 'super-affiliate-login.html';
@@ -300,8 +298,8 @@
 
     async function loadConnections() {
       try {
-        // Show loading indicator but keep platforms visible
         document.getElementById('loading-section').style.display = 'block';
+        document.getElementById('platforms-section').style.display = 'none';
         
         const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
         connections = response.results || response || [];
@@ -310,11 +308,13 @@
         renderPlatforms();
         
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('platforms-section').style.display = 'block';
       } catch (error) {
         console.error('Error loading connections:', error);
         // Still render platforms even if connections fail to load
         renderPlatforms();
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('platforms-section').style.display = 'block';
         showError('Failed to load connection status. You can still connect platforms.');
       }
     }
@@ -334,15 +334,6 @@
 
     function renderPlatforms() {
       const list = document.getElementById('platform-list');
-      if (!list) {
-        console.error('platform-list element not found');
-        return;
-      }
-      if (!platforms || platforms.length === 0) {
-        console.error('platforms array is empty or undefined');
-        list.innerHTML = '<p style="color: var(--text-secondary);">No platforms available.</p>';
-        return;
-      }
       list.innerHTML = platforms.map(platform => {
         const status = getConnectionStatus(platform.id);
         return `
@@ -462,14 +453,6 @@
       setTimeout(() => successDiv.classList.remove('show'), 5000);
     }
 
-    // Initialize platforms immediately when script loads
-    // This ensures platforms are visible even if API calls fail
-    try {
-      renderPlatforms();
-    } catch (error) {
-      console.error('Error rendering platforms:', error);
-    }
-
     // Handle OAuth callback if we're returning from OAuth
     const urlParams = new URLSearchParams(window.location.search);
     const platform = urlParams.get('platform');
@@ -486,13 +469,11 @@
         showError(`Failed to connect to ${platform}: ${error}`);
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        loadConnections();
-      } else {
-        loadConnections();
       }
     } else {
-      // Normal page load - load connections to update status
-      loadConnections();
+      // Normal page load - render platforms immediately, then load connections
+      renderPlatforms(); // Show platforms immediately
+      loadConnections(); // Then load connection status
     }
   </script>
 </body>
