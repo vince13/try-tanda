@@ -304,7 +304,10 @@
         const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
         
         // Ensure connections is always an array
-        if (Array.isArray(response)) {
+        // API returns: {connections: [...]}
+        if (response && Array.isArray(response.connections)) {
+          connections = response.connections;
+        } else if (Array.isArray(response)) {
           connections = response;
         } else if (response && Array.isArray(response.results)) {
           connections = response.results;
