@@ -301,14 +301,23 @@
     async function loadConnections() {
       try {
         document.getElementById('loading-section').style.display = 'block';
+        document.getElementById('platforms-section').style.display = 'none';
+        
         const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
         connections = response.results || response || [];
+        
+        // Always render platforms, even if no connections exist
         renderPlatforms();
+        
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('platforms-section').style.display = 'block';
       } catch (error) {
         console.error('Error loading connections:', error);
-        showError('Failed to load platform connections. Please try again.');
+        // Still render platforms even if connections fail to load
+        renderPlatforms();
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('platforms-section').style.display = 'block';
+        showError('Failed to load connection status. You can still connect platforms.');
       }
     }
 
@@ -464,8 +473,9 @@
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } else {
-      // Normal page load
-      loadConnections();
+      // Normal page load - render platforms immediately, then load connections
+      renderPlatforms(); // Show platforms immediately
+      loadConnections(); // Then load connection status
     }
   </script>
 </body>
