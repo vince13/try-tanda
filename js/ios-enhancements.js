@@ -378,5 +378,5 @@ window.PullToRefresh = PullToRefresh;
 window.GestureHandler = GestureHandler;
 window.IOSTransitions = IOSTransitions;
 
-console.log('✅ iOS Enhancements loaded');
+// iOS Enhancements loaded - no logging needed in production
 

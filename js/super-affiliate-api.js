@@ -41,8 +41,21 @@ function getApiBaseUrl() {
 
 const API_BASE_URL = getApiBaseUrl();
 
-// Log the API URL being used (helpful for debugging)
-console.log('🔗 API Base URL:', API_BASE_URL);
+// Safe logging - only logs in development
+const isDevelopment = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('127.0.0.1');
+
+function safeLog(...args) {
+  if (isDevelopment) {
+    console.log(...args);
+  }
+  // In production, optionally send to logging service
+  // if (window.Sentry) { window.Sentry.captureMessage(args.join(' ')); }
+}
+
+// Log the API URL being used (only in development)
+safeLog('🔗 API Base URL:', API_BASE_URL);
 
 class SuperAffiliateAPI {
   /**
@@ -139,27 +152,68 @@ class SuperAffiliateAPI {
 
       // Handle 401 Unauthorized - token might be expired
       if (response.status === 401) {
-        // Try to refresh token
-        const refreshed = await this.refreshToken();
-        if (refreshed) {
-          // Retry the request with new token
-          headers['Authorization'] = `Bearer ${this.getToken()}`;
-          const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
-            headers,
-          });
-          
-          if (!retryResponse.ok) {
-            throw new Error('Request failed after token refresh');
+        // Prevent infinite redirect loops - check if we're already on login page
+        const isLoginPage = window.location.pathname.includes('login') || 
+                           window.location.pathname.includes('super-affiliate-login');
+        
+        // Try to refresh token (only if not already on login page)
+        if (!isLoginPage) {
+          try {
+            const refreshed = await this.refreshToken();
+            if (refreshed) {
+              // Retry the request with new token
+              headers['Authorization'] = `Bearer ${this.getToken()}`;
+              
+              // Prevent infinite retry loops
+              const retryOptions = {
+                ...options,
+                headers,
+              };
+              
+              // Add retry flag to prevent multiple refresh attempts
+              if (!retryOptions._retryAttempt) {
+                retryOptions._retryAttempt = true;
+                
+                const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, retryOptions);
+                
+                if (!retryResponse.ok) {
+                  // If retry also fails with 401, token refresh didn't work
+                  if (retryResponse.status === 401) {
+                    this.clearTokens();
+                    if (!isLoginPage) {
+                      window.location.href = 'super-affiliate-login.html';
+                    }
+                    throw new Error('Session expired. Please login again.');
+                  }
+                  throw new Error('Request failed after token refresh');
+                }
+                
+                return await retryResponse.json();
+              }
+            }
+          } catch (refreshError) {
+            // Handle network errors during token refresh
+            if (isDevelopment) {
+              console.error('Token refresh failed:', refreshError);
+            }
+            // Report error to tracking service
+            if (window.handleApiError) {
+              window.handleApiError(refreshError, 'Session expired. Please login again.');
+            }
+            this.clearTokens();
+            if (!isLoginPage) {
+              window.location.href = 'super-affiliate-login.html';
+            }
+            throw new Error('Session expired. Please login again.');
           }
-          
-          return await retryResponse.json();
-        } else {
-          // Refresh failed, redirect to login
-          this.clearTokens();
-          window.location.href = 'super-affiliate-login.html';
-          throw new Error('Session expired. Please login again.');
         }
+        
+        // If we're on login page or refresh failed, clear tokens and throw error
+        this.clearTokens();
+        if (!isLoginPage) {
+          window.location.href = 'super-affiliate-login.html';
+        }
+        throw new Error('Session expired. Please login again.');
       }
 
       // Read body ONCE (prevents: "body stream already read")
@@ -237,10 +291,17 @@ class SuperAffiliateAPI {
           error.responseData = data;
           if (data.details) error.details = data.details;
         }
-        throw error;
-      }
+          throw error;
+        }
 
-      return data;
+        // Validate response data structure (basic validation)
+        if (data !== null && typeof data !== 'object' && typeof data !== 'string' && typeof data !== 'number' && typeof data !== 'boolean') {
+          if (isDevelopment) {
+            console.warn('Unexpected response data type:', typeof data, data);
+          }
+        }
+
+        return data;
     } catch (error) {
       // Only log unexpected errors (not expected 404s)
       const isExpected404 = 
@@ -251,7 +312,12 @@ class SuperAffiliateAPI {
          error.message?.includes('No Super Affiliate invitation found'));
       
       if (!isExpected404) {
-        console.error('API Error:', error);
+        // Log errors in development, report in production
+        if (isDevelopment) {
+          console.error('API Error:', error);
+        } else if (window.handleApiError) {
+          window.handleApiError(error);
+        }
       }
       
       // Handle network errors specifically
@@ -273,7 +339,12 @@ class SuperAffiliateAPI {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/users/token/refresh/`, {
+      // Add timeout using Promise.race for better browser compatibility
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Token refresh timeout')), 10000); // 10 second timeout
+      });
+
+      const fetchPromise = fetch(`${API_BASE_URL}/users/token/refresh/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -281,19 +352,42 @@ class SuperAffiliateAPI {
         body: JSON.stringify({ refresh: refreshToken }),
       });
 
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+
       if (!response.ok) {
+        // If refresh token is invalid, clear tokens
+        if (response.status === 401 || response.status === 403) {
+          this.clearTokens();
+        }
         return false;
       }
 
       const data = await response.json();
       if (data.access) {
         this.setToken(data.access);
+        // If new refresh token provided, update it
+        if (data.refresh) {
+          this.setRefreshToken(data.refresh);
+        }
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('Token refresh error:', error);
+      // Handle network errors, timeouts, and other failures
+      if (error.message === 'Token refresh timeout' || error.name === 'TypeError') {
+        // Network error or timeout - don't clear tokens, might be temporary
+        // Only log in development
+        if (typeof process === 'undefined' || process.env?.NODE_ENV === 'development') {
+          console.error('Token refresh network error:', error);
+        }
+      } else {
+        // Other errors - clear tokens as they might be invalid
+        this.clearTokens();
+        if (typeof process === 'undefined' || process.env?.NODE_ENV === 'development') {
+          console.error('Token refresh error:', error);
+        }
+      }
       return false;
     }
   }
@@ -796,7 +890,7 @@ class SuperAffiliateAPI {
       
       if (badges.length === 0) {
         // Badge might not exist yet, try to find it after a short delay
-        console.log('Cart badge not found, will retry...');
+        safeLog('Cart badge not found, will retry...');
         setTimeout(() => {
           const retryBadges = document.querySelectorAll('#cart-badge, [id="cart-badge"], .cart-badge');
           retryBadges.forEach(badge => {
@@ -825,7 +919,7 @@ class SuperAffiliateAPI {
         }
       });
       
-      console.log(`Cart badge updated: ${count} items`);
+      safeLog(`Cart badge updated: ${count} items`);
       return count;
     } catch (error) {
       console.warn('Error updating cart badge:', error);
@@ -842,12 +936,17 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
       .then((registration) => {
-        console.log('✅ Service Worker registered for PWA');
+        safeLog('✅ Service Worker registered for PWA');
         // Force update check
         registration.update();
       })
       .catch((error) => {
-        console.log('⚠️ Service Worker registration failed:', error);
+        // Log service worker errors (important for debugging)
+        if (isDevelopment) {
+          console.warn('⚠️ Service Worker registration failed:', error);
+        }
+        // In production, send to error tracking
+        // if (window.Sentry) { window.Sentry.captureException(error); }
       });
   });
 }
@@ -1232,7 +1331,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     
     // Debug: Log menu items
     const menuItems = userMenu.querySelectorAll('.user-menu-item');
-    console.log('User menu items found:', menuItems.length, menuItems);
+    safeLog('User menu items found:', menuItems.length, menuItems);
     
     let clickHandler = null;
     
@@ -1730,5 +1829,5 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-console.log('✅ Tanda Super Affiliate API Helper loaded');
+safeLog('✅ Tanda Super Affiliate API Helper loaded');
 

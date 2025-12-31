@@ -1212,6 +1212,7 @@
     </div>
   </div>
 
+  <script src="js/error-handler.js"></script>
   <script src="js/super-affiliate-api.js"></script>
   <script>
     const feedEl = document.getElementById('feed');
@@ -2068,7 +2069,7 @@
       // Check if a specific video ID is provided in URL (e.g., from user profile)
       const urlParams = new URLSearchParams(window.location.search);
       const requestedVideoId = urlParams.get('video');
-      
+
       // If authed, load immediately.
       if (SuperAffiliateAPI.isAuthenticated()) {
         // If a specific video is requested, load it first, then load that user's videos
@@ -2125,7 +2126,7 @@
             
             // Load that user's other videos (skip the first one since we already loaded it)
             // We'll start from page 1 and filter out the current video if needed
-            await loadNextPage();
+        await loadNextPage();
           } catch (error) {
             console.error('Error loading specific video:', error);
             showStatus('Video not found. Loading feed...');
