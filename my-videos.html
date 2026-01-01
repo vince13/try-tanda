@@ -468,6 +468,9 @@
                   <a class="btn" href="super-affiliate-dashboard.html">
                     <i class="fas fa-chart-line"></i> Dashboard
                   </a>
+                  <button class="btn" onclick="deleteVideo('${idStr}', '${safeText(title).replace(/'/g, "\\'")}')" style="background: rgba(255,0,0,0.2); border: 1px solid rgba(255,0,0,0.3);">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
                 </div>
               </div>
             </div>
@@ -606,8 +609,61 @@
       }
     }
 
+    async function deleteVideo(videoId, videoTitle) {
+      if (!confirm(`Are you sure you want to delete "${videoTitle}"?\n\nThis action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/delete/`, {
+          method: 'DELETE'
+        });
+        
+        showToast('Video deleted successfully', 'success');
+        // Reload videos list
+        load();
+      } catch (error) {
+        console.error('Error deleting video:', error);
+        showToast(error.message || 'Failed to delete video', 'error');
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0,255,0,0.2)' : type === 'error' ? 'rgba(255,0,0,0.2)' : 'rgba(255,255,255,0.1)'};
+        border: 1px solid ${type === 'success' ? 'rgba(0,255,0,0.5)' : type === 'error' ? 'rgba(255,0,0,0.5)' : 'rgba(255,255,255,0.3)'};
+        color: ${type === 'success' ? '#00ff88' : type === 'error' ? '#ff4444' : '#fff'};
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
     load();
   </script>
+  <style>
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  </style>
 </body>
 </html>
 

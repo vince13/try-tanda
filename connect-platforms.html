@@ -301,7 +301,10 @@
         document.getElementById('loading-section').style.display = 'block';
         document.getElementById('platforms-section').style.display = 'none';
         
-        const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
+        // CRITICAL: Clear any cached connections and force fresh fetch
+        // Add cache-busting to prevent showing wrong user's connections
+        const cacheBuster = new Date().getTime();
+        const response = await SuperAffiliateAPI.apiRequest(`/videos/platforms/connections/?_t=${cacheBuster}`);
         
         // Ensure connections is always an array
         // API returns: {connections: [...]}
