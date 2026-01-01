@@ -714,6 +714,33 @@
       width: 100%;
     }
 
+    .publish-status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .publish-status > div {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .publish-status a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .publish-status a:hover {
+      color: #00d4c4;
+      text-decoration: underline;
+    }
+
     .platform-loading-state,
     .platform-empty-state {
       grid-column: 1 / -1;
@@ -765,33 +792,6 @@
     }
 
     .platform-connect-message a:hover {
-      text-decoration: underline;
-    }
-
-    .publish-status {
-      margin-top: 1rem;
-      padding: 1rem;
-      border-radius: 0.75rem;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .publish-status > div {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      line-height: 1.6;
-    }
-
-    .publish-status a {
-      color: var(--accent-color);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s ease;
-    }
-
-    .publish-status a:hover {
-      color: #00d4c4;
       text-decoration: underline;
     }
 
@@ -917,14 +917,14 @@
             <p><strong>No platforms connected</strong></p>
             <p>Connect your social media platforms to publish videos with product tags.</p>
           </div>
-          <a href="connect-platforms.html" class="btn" style="margin-top: 1rem; width: auto; display: inline-block;">
+          <a href="profile.html" class="btn" style="margin-top: 1rem; width: auto; display: inline-block;">
             <i class="fas fa-link"></i> Connect Platforms
           </a>
         </div>
       </div>
       <div id="platform-connect-message" class="platform-connect-message" style="display: none;">
         <i class="fas fa-info-circle"></i>
-        <span>Want to connect more platforms? <a href="connect-platforms.html">Go to Profile Settings</a></span>
+        <span>Want to connect more platforms? <a href="profile.html">Go to Profile Settings</a></span>
       </div>
       <div class="platform-publish-actions">
         <button class="btn" onclick="publishToPlatforms()" id="publishBtn">
@@ -1597,17 +1597,6 @@
       }
     }
 
-    // Initialize platform checkbox listeners
-    document.querySelectorAll('.platform-checkbox').forEach(checkbox => {
-      // Set initial state
-      updatePlatformCardState(checkbox);
-      
-      // Listen for changes
-      checkbox.addEventListener('change', function() {
-        updatePlatformCardState(this);
-      });
-    });
-
     // Platform connections state
     let connectedPlatforms = [];
     
@@ -1816,19 +1805,6 @@
       });
     }
 
-    // Show YouTube format options when YouTube is selected (legacy support)
-    document.getElementById('platform-youtube')?.addEventListener('change', function() {
-      const options = document.getElementById('youtube-options');
-      if (options) {
-        options.style.display = this.checked ? 'block' : 'none';
-        // Add smooth animation
-        if (this.checked) {
-          options.style.animation = 'slideDown 0.3s ease';
-        }
-      }
-      updatePlatformCardState(this);
-    });
-
     async function publishToPlatforms() {
       const videoId = document.getElementById('videoId').value.trim();
       if (!videoId || !/^\d+$/.test(videoId)) {
@@ -1860,10 +1836,7 @@
       statusDiv.innerHTML = '<div style="color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Publishing to platforms...</div>';
 
       try {
-        // Get YouTube format if YouTube is selected
-        const youtubeFormat = document.querySelector('input[name="youtube-format"]:checked')?.value || 
-                            document.querySelector('input[name="youtube-format"]')?.value || 
-                            'short';
+        const youtubeFormat = document.querySelector('input[name="youtube-format"]:checked')?.value || 'short';
         
         const payload = {
           platforms: selectedPlatforms,
