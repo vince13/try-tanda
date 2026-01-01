@@ -1404,6 +1404,10 @@
 
       console.log('Rendering tags:', tags); // Debug log
 
+      // Get videoId from input field
+      const videoIdInput = document.getElementById('videoId');
+      const videoId = videoIdInput ? videoIdInput.value.trim() : '';
+
       container.innerHTML = tags.map(t => {
         // Normalize image URL
         let imgUrl = null;
@@ -1423,6 +1427,11 @@
         const escapedImgUrl = imgUrl ? imgUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
         
         const tagId = t.id || t.tag_id || '';
+        // Escape videoId and tagId for use in onclick
+        const escapedVideoId = safeText(videoId).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedTagId = safeText(tagId).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedName = safeText(name).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
         return `
           <div class="tag-card" data-tag-id="${tagId}">
             <div class="tag-img">
@@ -1432,7 +1441,7 @@
               <div class="tag-name">${safeText(name)}</div>
               <div class="tag-sub">${safeText(sub)}</div>
             </div>
-            <button class="tag-delete-btn" onclick="deleteTag('${videoId}', '${tagId}', '${safeText(name).replace(/'/g, "\\'")}')" title="Delete tag">
+            <button class="tag-delete-btn" onclick="deleteTag('${escapedVideoId}', '${escapedTagId}', '${escapedName}')" title="Delete tag">
               <i class="fas fa-trash"></i>
             </button>
           </div>
