@@ -556,8 +556,21 @@
         verifyBtn.innerHTML = '<i class="fas fa-redo"></i> Resend';
         verifyBtn.disabled = false;
       } catch (error) {
+        console.error('Send verification code error:', error);
+        
+        let errorMsg = 'Failed to send verification code';
+        if (error.name === 'TypeError' && (error.message && (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('network')))) {
+          errorMsg = 'Network error: Cannot connect to server. Please check your internet connection.';
+        } else if (error.message && error.message.includes('Cannot connect to server')) {
+          errorMsg = error.message;
+        } else if (error.message && error.message.includes('timeout')) {
+          errorMsg = 'Request timed out. Please check your internet connection.';
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
         statusDiv.className = 'verification-error';
-        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message || 'Failed to send verification code'}`;
+        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMsg}`;
         verifyBtn.disabled = false;
         verifyBtn.innerHTML = '<i class="fas fa-envelope"></i> Verify';
       }
@@ -599,8 +612,21 @@
         document.getElementById('signup-btn').disabled = false;
         document.querySelector('#signup-btn + div').style.display = 'none';
       } catch (error) {
+        console.error('Verify code error:', error);
+        
+        let errorMsg = 'Invalid verification code';
+        if (error.name === 'TypeError' && (error.message && (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('network')))) {
+          errorMsg = 'Network error: Cannot connect to server. Please check your internet connection.';
+        } else if (error.message && error.message.includes('Cannot connect to server')) {
+          errorMsg = error.message;
+        } else if (error.message && error.message.includes('timeout')) {
+          errorMsg = 'Request timed out. Please check your internet connection.';
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
         statusDiv.className = 'verification-error';
-        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message || 'Invalid verification code'}`;
+        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMsg}`;
         verifyCodeBtn.disabled = false;
         verifyCodeBtn.innerHTML = '<i class="fas fa-check"></i> Verify Code';
       }
@@ -707,7 +733,30 @@
           window.location.href = 'super-affiliate-login.html';
         }, 900);
       } catch (e) {
-        showError(e.message || 'Signup failed. Please try again.');
+        console.error('Signup error:', e);
+        
+        // Handle different types of errors
+        let errorMsg = 'Signup failed. Please try again.';
+        
+        if (e.name === 'TypeError' && (e.message && (e.message.includes('fetch') || e.message.includes('Failed to fetch') || e.message.includes('network')))) {
+          errorMsg = 'Network error: Cannot connect to server. Please check your internet connection and try again.';
+        } else if (e.message && e.message.includes('Cannot connect to server')) {
+          errorMsg = e.message;
+        } else if (e.message && e.message.includes('timeout')) {
+          errorMsg = 'Request timed out. Please check your internet connection and try again.';
+        } else if (e.message && e.message.includes('email') && e.message.includes('already')) {
+          errorMsg = 'This email is already registered. Please use a different email or try logging in.';
+        } else if (e.message && e.message.includes('username') && e.message.includes('already')) {
+          errorMsg = 'This username is already taken. Please choose a different username.';
+        } else if (e.message && e.message.includes('password')) {
+          errorMsg = e.message;
+        } else if (e.message) {
+          errorMsg = e.message;
+        } else if (e.toString && e.toString() !== '[object Object]') {
+          errorMsg = e.toString();
+        }
+        
+        showError(errorMsg);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-rocket"></i> Create Account';
       }

@@ -328,8 +328,19 @@ class SuperAffiliateAPI {
       }
       
       // Handle network errors specifically
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Cannot connect to server. Please check if the backend is running.');
+      if (error.name === 'TypeError') {
+        if (error.message && (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('network'))) {
+          throw new Error('Cannot connect to server. Please check your internet connection and ensure the backend is running.');
+        }
+        // Other TypeErrors might be network-related too
+        if (!error.message || error.message === 'Failed to fetch' || error.message.includes('NetworkError')) {
+          throw new Error('Network error: Cannot connect to server. Please check your internet connection.');
+        }
+      }
+      
+      // Handle timeout errors
+      if (error.name === 'AbortError' || (error.message && error.message.includes('timeout'))) {
+        throw new Error('Request timed out. Please check your internet connection and try again.');
       }
       
       throw error;
