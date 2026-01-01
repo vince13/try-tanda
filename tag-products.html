@@ -460,6 +460,306 @@
         padding: 1rem;
       }
     }
+
+    /* Platform Publishing Section */
+    .platform-publish-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .platform-publish-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .platform-publish-hint {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .platform-card {
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 1rem;
+      padding: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .platform-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary-gradient);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .platform-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .platform-label {
+      display: block;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .platform-checkbox {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .platform-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .platform-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .youtube-icon {
+      background: linear-gradient(135deg, rgba(255,0,0,0.2), rgba(255,0,0,0.1));
+      color: #FF0000;
+      border: 1px solid rgba(255,0,0,0.3);
+    }
+
+    .tiktok-icon {
+      background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.2));
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .instagram-icon {
+      background: linear-gradient(135deg, rgba(228,64,95,0.2), rgba(228,64,95,0.1));
+      color: #E4405F;
+      border: 1px solid rgba(228,64,95,0.3);
+    }
+
+    .facebook-icon {
+      background: linear-gradient(135deg, rgba(24,119,242,0.2), rgba(24,119,242,0.1));
+      color: #1877F2;
+      border: 1px solid rgba(24,119,242,0.3);
+    }
+
+    .platform-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .platform-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .platform-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* Checkbox checked state */
+    .platform-checkbox:checked + .platform-content .platform-icon {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(0,242,234,0.4);
+    }
+
+    .platform-card.platform-selected::before {
+      opacity: 1;
+    }
+
+    .platform-card.platform-selected {
+      background: rgba(0,242,234,0.08);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(0,242,234,0.2);
+    }
+
+    /* Platform Options (YouTube format) */
+    .platform-options {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .platform-option-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .platform-radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .platform-radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .platform-radio-label:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .platform-radio-label input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-custom {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .platform-radio-label input[type="radio"]:checked + .radio-custom {
+      border-color: var(--accent-color);
+      background: var(--accent-color);
+    }
+
+    .platform-radio-label input[type="radio"]:checked + .radio-custom::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .radio-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .radio-text strong {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .radio-text small {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+
+    .platform-publish-actions {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .platform-publish-actions .btn {
+      width: 100%;
+    }
+
+    .publish-status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .publish-status > div {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .publish-status a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .publish-status a:hover {
+      color: #00d4c4;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .platform-publish-card {
+        padding: 1.25rem;
+      }
+
+      .platform-card {
+        padding: 0.875rem;
+      }
+
+      .platform-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -545,52 +845,97 @@
     <div id="tags" class="list"></div>
 
     <div class="section-title" style="margin-top: 2rem;">Publish to Platforms</div>
-    <div class="card">
-      <div style="margin-bottom: 1rem; color: var(--text-secondary);">
-        Select platforms to publish your video with product tags:
+    <div class="platform-publish-card">
+      <div class="platform-publish-header">
+        <p class="platform-publish-hint">
+          Select platforms to publish your video with product tags
+        </p>
       </div>
-      <div id="platformSelection" style="display: grid; gap: 1rem;">
-        <div>
-          <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <input type="checkbox" id="platform-youtube" value="youtube">
-            <span><i class="fab fa-youtube" style="color: #FF0000;"></i> YouTube</span>
+      <div id="platformSelection" class="platform-grid">
+        <div class="platform-card">
+          <label class="platform-label" for="platform-youtube">
+            <input type="checkbox" id="platform-youtube" value="youtube" class="platform-checkbox">
+            <div class="platform-content">
+              <div class="platform-icon youtube-icon">
+                <i class="fab fa-youtube"></i>
+              </div>
+              <div class="platform-info">
+                <div class="platform-name">YouTube</div>
+                <div class="platform-desc">Video sharing platform</div>
+              </div>
+            </div>
           </label>
-          <div id="youtube-options" style="margin-left: 1.5rem; margin-top: 0.5rem; display: none;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-              <input type="radio" name="youtube-format" value="short" checked>
-              <span>Short (Portrait - 9:16)</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-              <input type="radio" name="youtube-format" value="regular">
-              <span>Regular (Landscape - 16:9)</span>
-            </label>
+          <div id="youtube-options" class="platform-options" style="display: none;">
+            <div class="platform-option-title">Upload Format:</div>
+            <div class="platform-radio-group">
+              <label class="platform-radio-label">
+                <input type="radio" name="youtube-format" value="short" checked>
+                <span class="radio-custom"></span>
+                <span class="radio-text">
+                  <strong>Short</strong>
+                  <small>Portrait (9:16)</small>
+                </span>
+              </label>
+              <label class="platform-radio-label">
+                <input type="radio" name="youtube-format" value="regular">
+                <span class="radio-custom"></span>
+                <span class="radio-text">
+                  <strong>Regular</strong>
+                  <small>Landscape (16:9)</small>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
-        <div>
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="platform-tiktok" value="tiktok">
-            <span><i class="fab fa-tiktok"></i> TikTok</span>
+        <div class="platform-card">
+          <label class="platform-label" for="platform-tiktok">
+            <input type="checkbox" id="platform-tiktok" value="tiktok" class="platform-checkbox">
+            <div class="platform-content">
+              <div class="platform-icon tiktok-icon">
+                <i class="fab fa-tiktok"></i>
+              </div>
+              <div class="platform-info">
+                <div class="platform-name">TikTok</div>
+                <div class="platform-desc">Short-form videos</div>
+              </div>
+            </div>
           </label>
         </div>
-        <div>
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="platform-instagram" value="instagram">
-            <span><i class="fab fa-instagram" style="color: #E4405F;"></i> Instagram</span>
+        <div class="platform-card">
+          <label class="platform-label" for="platform-instagram">
+            <input type="checkbox" id="platform-instagram" value="instagram" class="platform-checkbox">
+            <div class="platform-content">
+              <div class="platform-icon instagram-icon">
+                <i class="fab fa-instagram"></i>
+              </div>
+              <div class="platform-info">
+                <div class="platform-name">Instagram</div>
+                <div class="platform-desc">Photo & video sharing</div>
+              </div>
+            </div>
           </label>
         </div>
-        <div>
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="platform-facebook" value="facebook">
-            <span><i class="fab fa-facebook" style="color: #1877F2;"></i> Facebook</span>
+        <div class="platform-card">
+          <label class="platform-label" for="platform-facebook">
+            <input type="checkbox" id="platform-facebook" value="facebook" class="platform-checkbox">
+            <div class="platform-content">
+              <div class="platform-icon facebook-icon">
+                <i class="fab fa-facebook"></i>
+              </div>
+              <div class="platform-info">
+                <div class="platform-name">Facebook</div>
+                <div class="platform-desc">Social network</div>
+              </div>
+            </div>
           </label>
         </div>
       </div>
-      <div style="margin-top: 1.5rem;">
-        <button class="btn primary" onclick="publishToPlatforms()" id="publishBtn" style="width: 100%;">
+      <div class="platform-publish-actions">
+        <button class="btn" onclick="publishToPlatforms()" id="publishBtn">
           <i class="fas fa-upload"></i> Publish to Selected Platforms
         </button>
       </div>
-      <div id="publishStatus" style="margin-top: 1rem; display: none;"></div>
+      <div id="publishStatus" class="publish-status" style="display: none;"></div>
     </div>
   </div>
 
@@ -1235,9 +1580,40 @@
       }
     }
 
+    // Update platform card selected state
+    function updatePlatformCardState(checkbox) {
+      const card = checkbox.closest('.platform-card');
+      if (card) {
+        if (checkbox.checked) {
+          card.classList.add('platform-selected');
+        } else {
+          card.classList.remove('platform-selected');
+        }
+      }
+    }
+
+    // Initialize platform checkbox listeners
+    document.querySelectorAll('.platform-checkbox').forEach(checkbox => {
+      // Set initial state
+      updatePlatformCardState(checkbox);
+      
+      // Listen for changes
+      checkbox.addEventListener('change', function() {
+        updatePlatformCardState(this);
+      });
+    });
+
     // Show YouTube format options when YouTube is selected
     document.getElementById('platform-youtube')?.addEventListener('change', function() {
-      document.getElementById('youtube-options').style.display = this.checked ? 'block' : 'none';
+      const options = document.getElementById('youtube-options');
+      if (options) {
+        options.style.display = this.checked ? 'block' : 'none';
+        // Add smooth animation
+        if (this.checked) {
+          options.style.animation = 'slideDown 0.3s ease';
+        }
+      }
+      updatePlatformCardState(this);
     });
 
     async function publishToPlatforms() {
