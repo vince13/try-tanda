@@ -714,6 +714,60 @@
       width: 100%;
     }
 
+    .platform-loading-state,
+    .platform-empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .platform-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+      color: var(--text-secondary);
+    }
+
+    .platform-empty-text {
+      margin-bottom: 1rem;
+    }
+
+    .platform-empty-text p {
+      margin: 0.5rem 0;
+    }
+
+    .platform-empty-text strong {
+      color: var(--text-primary);
+    }
+
+    .platform-connect-message {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(0,242,234,0.08);
+      border: 1px solid rgba(0,242,234,0.2);
+      border-radius: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .platform-connect-message i {
+      color: var(--accent-color);
+    }
+
+    .platform-connect-message a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .platform-connect-message a:hover {
+      text-decoration: underline;
+    }
+
     .publish-status {
       margin-top: 1rem;
       padding: 1rem;
@@ -852,83 +906,25 @@
         </p>
       </div>
       <div id="platformSelection" class="platform-grid">
-        <div class="platform-card">
-          <label class="platform-label" for="platform-youtube">
-            <input type="checkbox" id="platform-youtube" value="youtube" class="platform-checkbox">
-            <div class="platform-content">
-              <div class="platform-icon youtube-icon">
-                <i class="fab fa-youtube"></i>
-              </div>
-              <div class="platform-info">
-                <div class="platform-name">YouTube</div>
-                <div class="platform-desc">Video sharing platform</div>
-              </div>
-            </div>
-          </label>
-          <div id="youtube-options" class="platform-options" style="display: none;">
-            <div class="platform-option-title">Upload Format:</div>
-            <div class="platform-radio-group">
-              <label class="platform-radio-label">
-                <input type="radio" name="youtube-format" value="short" checked>
-                <span class="radio-custom"></span>
-                <span class="radio-text">
-                  <strong>Short</strong>
-                  <small>Portrait (9:16)</small>
-                </span>
-              </label>
-              <label class="platform-radio-label">
-                <input type="radio" name="youtube-format" value="regular">
-                <span class="radio-custom"></span>
-                <span class="radio-text">
-                  <strong>Regular</strong>
-                  <small>Landscape (16:9)</small>
-                </span>
-              </label>
-            </div>
+        <div id="platforms-loading" class="platform-loading-state">
+          <i class="fas fa-spinner fa-spin"></i> Loading connected platforms...
+        </div>
+        <div id="platforms-empty" class="platform-empty-state" style="display: none;">
+          <div class="platform-empty-icon">
+            <i class="fas fa-plug"></i>
           </div>
+          <div class="platform-empty-text">
+            <p><strong>No platforms connected</strong></p>
+            <p>Connect your social media platforms to publish videos with product tags.</p>
+          </div>
+          <a href="connect-platforms.html" class="btn" style="margin-top: 1rem; width: auto; display: inline-block;">
+            <i class="fas fa-link"></i> Connect Platforms
+          </a>
         </div>
-        <div class="platform-card">
-          <label class="platform-label" for="platform-tiktok">
-            <input type="checkbox" id="platform-tiktok" value="tiktok" class="platform-checkbox">
-            <div class="platform-content">
-              <div class="platform-icon tiktok-icon">
-                <i class="fab fa-tiktok"></i>
-              </div>
-              <div class="platform-info">
-                <div class="platform-name">TikTok</div>
-                <div class="platform-desc">Short-form videos</div>
-              </div>
-            </div>
-          </label>
-        </div>
-        <div class="platform-card">
-          <label class="platform-label" for="platform-instagram">
-            <input type="checkbox" id="platform-instagram" value="instagram" class="platform-checkbox">
-            <div class="platform-content">
-              <div class="platform-icon instagram-icon">
-                <i class="fab fa-instagram"></i>
-              </div>
-              <div class="platform-info">
-                <div class="platform-name">Instagram</div>
-                <div class="platform-desc">Photo & video sharing</div>
-              </div>
-            </div>
-          </label>
-        </div>
-        <div class="platform-card">
-          <label class="platform-label" for="platform-facebook">
-            <input type="checkbox" id="platform-facebook" value="facebook" class="platform-checkbox">
-            <div class="platform-content">
-              <div class="platform-icon facebook-icon">
-                <i class="fab fa-facebook"></i>
-              </div>
-              <div class="platform-info">
-                <div class="platform-name">Facebook</div>
-                <div class="platform-desc">Social network</div>
-              </div>
-            </div>
-          </label>
-        </div>
+      </div>
+      <div id="platform-connect-message" class="platform-connect-message" style="display: none;">
+        <i class="fas fa-info-circle"></i>
+        <span>Want to connect more platforms? <a href="connect-platforms.html">Go to Profile Settings</a></span>
       </div>
       <div class="platform-publish-actions">
         <button class="btn" onclick="publishToPlatforms()" id="publishBtn">
@@ -1612,7 +1608,215 @@
       });
     });
 
-    // Show YouTube format options when YouTube is selected
+    // Platform connections state
+    let connectedPlatforms = [];
+    
+    // Platform metadata
+    const platformMetadata = {
+      youtube: {
+        name: 'YouTube',
+        desc: 'Video sharing platform',
+        icon: 'fab fa-youtube',
+        iconClass: 'youtube-icon',
+        hasFormatOptions: true
+      },
+      tiktok: {
+        name: 'TikTok',
+        desc: 'Short-form videos',
+        icon: 'fab fa-tiktok',
+        iconClass: 'tiktok-icon',
+        hasFormatOptions: false
+      },
+      instagram: {
+        name: 'Instagram',
+        desc: 'Photo & video sharing',
+        icon: 'fab fa-instagram',
+        iconClass: 'instagram-icon',
+        hasFormatOptions: false
+      },
+      facebook: {
+        name: 'Facebook',
+        desc: 'Social network',
+        icon: 'fab fa-facebook',
+        iconClass: 'facebook-icon',
+        hasFormatOptions: false
+      }
+    };
+
+    // Load connected platforms
+    async function loadConnectedPlatforms() {
+      const platformSelection = document.getElementById('platformSelection');
+      const loadingState = document.getElementById('platforms-loading');
+      const emptyState = document.getElementById('platforms-empty');
+      const connectMessage = document.getElementById('platform-connect-message');
+      
+      try {
+        // Make sure we clear any existing platform cards first
+        const existingCards = platformSelection.querySelectorAll('.platform-card');
+        existingCards.forEach(card => card.remove());
+        
+        const response = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
+        
+        console.log('Platform connections API response:', response);
+        
+        // Handle case where API returns null (404 or other expected errors)
+        if (!response || !response.connections) {
+          console.log('No platform connections found or API returned null');
+          connectedPlatforms = [];
+        } else {
+          const connections = response.connections || [];
+          console.log('All connections:', connections);
+          
+          // Filter only connected platforms (status === 'connected' - case insensitive)
+          connectedPlatforms = connections.filter(conn => {
+            if (!conn || !conn.platform) return false;
+            const status = (conn.status || '').toLowerCase();
+            const isConnected = status === 'connected';
+            console.log(`Platform ${conn.platform}: status="${conn.status}" (normalized: "${status}"), isConnected=${isConnected}`);
+            return isConnected;
+          });
+          
+          console.log('Filtered connected platforms:', connectedPlatforms);
+        }
+        
+        // Hide loading state
+        if (loadingState) loadingState.style.display = 'none';
+        
+        if (connectedPlatforms.length === 0) {
+          // Show empty state
+          if (emptyState) emptyState.style.display = 'block';
+          if (connectMessage) connectMessage.style.display = 'none';
+          // Hide publish button if no platforms
+          const publishBtn = document.getElementById('publishBtn');
+          if (publishBtn) publishBtn.style.display = 'none';
+        } else {
+          // Hide empty state
+          if (emptyState) emptyState.style.display = 'none';
+          // Show connect message
+          if (connectMessage) connectMessage.style.display = 'flex';
+          // Show publish button
+          const publishBtn = document.getElementById('publishBtn');
+          if (publishBtn) publishBtn.style.display = 'block';
+          
+          // Render connected platforms
+          renderConnectedPlatforms();
+        }
+      } catch (error) {
+        console.error('Error loading platform connections:', error);
+        // Hide loading, show empty state with error message
+        if (loadingState) loadingState.style.display = 'none';
+        if (emptyState) {
+          emptyState.style.display = 'block';
+          const emptyText = emptyState.querySelector('.platform-empty-text');
+          if (emptyText) {
+            emptyText.innerHTML = `
+              <p><strong>Unable to load platforms</strong></p>
+              <p>${error.message || 'Please try again later.'}</p>
+            `;
+          }
+        }
+        // Make sure no platform cards are shown on error
+        connectedPlatforms = [];
+        const existingCards = platformSelection.querySelectorAll('.platform-card');
+        existingCards.forEach(card => card.remove());
+      }
+    }
+
+    // Render connected platforms
+    function renderConnectedPlatforms() {
+      const platformSelection = document.getElementById('platformSelection');
+      const loadingState = document.getElementById('platforms-loading');
+      const emptyState = document.getElementById('platforms-empty');
+      
+      // Clear ALL existing platform cards (but keep loading/empty states)
+      const existingCards = platformSelection.querySelectorAll('.platform-card');
+      existingCards.forEach(card => card.remove());
+      
+      // Hide loading and empty states
+      if (loadingState) loadingState.style.display = 'none';
+      if (emptyState) emptyState.style.display = 'none';
+      
+      console.log('Rendering connected platforms:', connectedPlatforms);
+      
+      // Safety check: only render if we have connected platforms
+      if (!connectedPlatforms || connectedPlatforms.length === 0) {
+        console.warn('No connected platforms to render');
+        return;
+      }
+      
+      // Render each connected platform
+      connectedPlatforms.forEach(connection => {
+        const platform = connection.platform;
+        const metadata = platformMetadata[platform];
+        
+        if (!metadata) {
+          console.warn(`Unknown platform: ${platform}`);
+          return;
+        }
+        
+        const platformCard = document.createElement('div');
+        platformCard.className = 'platform-card';
+        platformCard.innerHTML = `
+          <label class="platform-label" for="platform-${platform}">
+            <input type="checkbox" id="platform-${platform}" value="${platform}" class="platform-checkbox">
+            <div class="platform-content">
+              <div class="platform-icon ${metadata.iconClass}">
+                <i class="${metadata.icon}"></i>
+              </div>
+              <div class="platform-info">
+                <div class="platform-name">${metadata.name}</div>
+                <div class="platform-desc">${connection.platform_username ? `@${connection.platform_username}` : metadata.desc}</div>
+              </div>
+            </div>
+          </label>
+          ${metadata.hasFormatOptions ? `
+            <div id="${platform}-options" class="platform-options" style="display: none;">
+              <div class="platform-option-title">Upload Format:</div>
+              <div class="platform-radio-group">
+                <label class="platform-radio-label">
+                  <input type="radio" name="youtube-format" value="short" checked>
+                  <span class="radio-custom"></span>
+                  <span class="radio-text">
+                    <strong>Short</strong>
+                    <small>Portrait (9:16)</small>
+                  </span>
+                </label>
+                <label class="platform-radio-label">
+                  <input type="radio" name="youtube-format" value="regular">
+                  <span class="radio-custom"></span>
+                  <span class="radio-text">
+                    <strong>Regular</strong>
+                    <small>Landscape (16:9)</small>
+                  </span>
+                </label>
+              </div>
+            </div>
+          ` : ''}
+        `;
+        
+        platformSelection.appendChild(platformCard);
+        
+        // Add event listeners
+        const checkbox = platformCard.querySelector(`#platform-${platform}`);
+        if (checkbox) {
+          updatePlatformCardState(checkbox);
+          checkbox.addEventListener('change', function() {
+            updatePlatformCardState(this);
+            if (metadata.hasFormatOptions) {
+              const options = document.getElementById(`${platform}-options`);
+              if (options) {
+                options.style.display = this.checked ? 'block' : 'none';
+                if (this.checked) {
+                  options.style.animation = 'slideDown 0.3s ease';
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+
+    // Show YouTube format options when YouTube is selected (legacy support)
     document.getElementById('platform-youtube')?.addEventListener('change', function() {
       const options = document.getElementById('youtube-options');
       if (options) {
@@ -1632,19 +1836,15 @@
         return;
       }
 
+      // Get selected platforms dynamically from checkboxes
       const selectedPlatforms = [];
-      if (document.getElementById('platform-youtube').checked) {
-        selectedPlatforms.push('youtube');
-      }
-      if (document.getElementById('platform-tiktok').checked) {
-        selectedPlatforms.push('tiktok');
-      }
-      if (document.getElementById('platform-instagram').checked) {
-        selectedPlatforms.push('instagram');
-      }
-      if (document.getElementById('platform-facebook').checked) {
-        selectedPlatforms.push('facebook');
-      }
+      connectedPlatforms.forEach(connection => {
+        const platform = connection.platform;
+        const checkbox = document.getElementById(`platform-${platform}`);
+        if (checkbox && checkbox.checked) {
+          selectedPlatforms.push(platform);
+        }
+      });
 
       if (selectedPlatforms.length === 0) {
         showToast('Please select at least one platform', 'error');
@@ -1660,7 +1860,10 @@
       statusDiv.innerHTML = '<div style="color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Publishing to platforms...</div>';
 
       try {
-        const youtubeFormat = document.querySelector('input[name="youtube-format"]:checked')?.value || 'short';
+        // Get YouTube format if YouTube is selected
+        const youtubeFormat = document.querySelector('input[name="youtube-format"]:checked')?.value || 
+                            document.querySelector('input[name="youtube-format"]')?.value || 
+                            'short';
         
         const payload = {
           platforms: selectedPlatforms,
@@ -1709,6 +1912,17 @@
     
     // Pre-check user role on page load
     checkUserRole();
+    
+    // Load connected platforms on page load (wait for auth to be ready)
+    // Use DOMContentLoaded or immediate execution
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        loadConnectedPlatforms();
+      });
+    } else {
+      // DOM already loaded
+      loadConnectedPlatforms();
+    }
   </script>
   <style>
     .tag-card {
