@@ -832,14 +832,8 @@
 
         showAlert('✅ Product tagged successfully! The video will appear in Tanda feed with the product tag.', 'success');
 
-        // Optionally publish to connected platforms
-        const shouldPublish = confirm(
-          'Would you like to publish this video with the product tag to your connected platforms (YouTube, TikTok, etc.)?'
-        );
-
-        if (shouldPublish) {
-          await publishVideoToPlatforms(videoId);
-        }
+        // Show platform selection modal
+        await openPlatformSelectionModal(videoId);
 
         // Reload promotions
         await loadMyPromotions();
@@ -849,7 +843,7 @@
       }
     }
 
-    async function publishVideoToPlatforms(videoId) {
+    async function openPlatformSelectionModal(videoId) {
       try {
         // Get connected platforms
         const connections = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
@@ -858,13 +852,107 @@
         );
 
         if (connectedPlatforms.length === 0) {
-          showAlert('No platforms connected. Connect platforms in your profile settings.', 'info');
+          // No platforms connected, skip modal
           return;
         }
 
-        // Publish to all connected platforms
-        const selectedPlatforms = connectedPlatforms.map(conn => conn.platform);
-        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'product-modal active';
+        modal.id = 'platformSelectionModal';
+        modal.innerHTML = `
+          <div class="product-modal-content" style="max-width: 500px;">
+            <div class="product-modal-header">
+              <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-share-alt" style="color: var(--accent-color);"></i>
+                <span>Publish to Platforms</span>
+              </h2>
+              <button class="product-modal-close" onclick="closePlatformSelectionModal()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div style="padding: 1rem 0;">
+              <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+                Select the platforms where you want to publish this video with the product tag:
+              </p>
+              <div id="platformsList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                ${connectedPlatforms.map(platform => {
+                  const platformName = platform.platform || platform.name || 'Unknown';
+                  const platformIcon = getPlatformIcon(platformName);
+                  return `
+                    <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+                      <input type="checkbox" name="platform" value="${platformName}" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color);">
+                      <i class="${platformIcon}" style="font-size: 1.5rem; color: var(--accent-color);"></i>
+                      <span style="flex: 1; font-weight: 600;">${getPlatformDisplayName(platformName)}</span>
+                      ${platform.platform_username ? `<span style="color: var(--text-secondary); font-size: 0.85rem;">@${platform.platform_username}</span>` : ''}
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+            <div class="product-modal-footer">
+              <button class="btn secondary" onclick="closePlatformSelectionModal()">Skip</button>
+              <button class="btn" onclick="publishToSelectedPlatforms('${videoId}')">
+                <i class="fas fa-paper-plane"></i> Publish
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+          if (e.target.id === 'platformSelectionModal') {
+            closePlatformSelectionModal();
+          }
+        });
+      } catch (error) {
+        console.error('Error loading platform connections:', error);
+        // If we can't load platforms, just skip the modal
+      }
+    }
+
+    function closePlatformSelectionModal() {
+      const modal = document.getElementById('platformSelectionModal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function getPlatformIcon(platformName) {
+      const platform = platformName.toLowerCase();
+      if (platform.includes('youtube')) return 'fab fa-youtube';
+      if (platform.includes('tiktok')) return 'fab fa-tiktok';
+      if (platform.includes('instagram')) return 'fab fa-instagram';
+      if (platform.includes('facebook')) return 'fab fa-facebook';
+      if (platform.includes('twitter') || platform.includes('x')) return 'fab fa-x-twitter';
+      return 'fas fa-share-alt';
+    }
+
+    function getPlatformDisplayName(platformName) {
+      const platform = platformName.toLowerCase();
+      if (platform.includes('youtube')) return 'YouTube';
+      if (platform.includes('tiktok')) return 'TikTok';
+      if (platform.includes('instagram')) return 'Instagram';
+      if (platform.includes('facebook')) return 'Facebook';
+      if (platform.includes('twitter') || platform.includes('x')) return 'X (Twitter)';
+      // Capitalize first letter
+      return platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase();
+    }
+
+    async function publishToSelectedPlatforms(videoId) {
+      const checkboxes = document.querySelectorAll('#platformSelectionModal input[name="platform"]:checked');
+      const selectedPlatforms = Array.from(checkboxes).map(cb => cb.value);
+
+      if (selectedPlatforms.length === 0) {
+        showAlert('Please select at least one platform to publish to.', 'error');
+        return;
+      }
+
+      closePlatformSelectionModal();
+      showAlert('Publishing video to selected platforms...', 'info');
+
+      try {
         const response = await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/publish/`, {
           method: 'POST',
           body: JSON.stringify({
@@ -872,7 +960,7 @@
           })
         });
 
-        showAlert(`Video published to ${selectedPlatforms.length} platform(s) with product tag!`, 'success');
+        showAlert(`✅ Video published to ${selectedPlatforms.length} platform(s) with product tag!`, 'success');
       } catch (error) {
         console.error('Error publishing video:', error);
         showAlert('Video tagged but publishing to platforms failed. You can publish manually later.', 'error');
