@@ -589,11 +589,15 @@
           'created_at'
         );
 
+        console.log('Marketplace API Response:', response); // Debug log
+
         if (response && response.products && Array.isArray(response.products)) {
+          console.log(`Found ${response.products.length} products`); // Debug log
           pagination = response.pagination || null;
           renderProducts(response.products);
           updatePagination();
         } else {
+          console.warn('Invalid response format:', response); // Debug log
           showEmptyState();
         }
       } catch (error) {
