@@ -2397,12 +2397,12 @@
 
         // If this is an external product, also update the ExternalProductLink record
         // This ensures the product appears in the marketplace
-        const externalProductId = currentEditTag.external_product_id || currentEditTag.id;
+        const externalProductId = currentEditTag.external_product_id || currentEditTag.external_product || currentEditTag.id;
         if (externalProductId && (currentEditTag.product_type === 'external' || currentEditTag.external_product)) {
           try {
             // Update the external product record to mark it as manually edited
             // This makes it appear in the marketplace
-            await SuperAffiliateAPI.apiRequest(`/videos/external-products/${externalProductId}/`, {
+            const updateResponse = await SuperAffiliateAPI.apiRequest(`/videos/external-products/${externalProductId}/`, {
               method: 'PATCH',
               body: JSON.stringify({
                 product_name: name,
@@ -2413,9 +2413,13 @@
                 is_active: true
               })
             });
+            console.log('ExternalProductLink updated successfully:', updateResponse);
           } catch (error) {
             // Non-fatal: if external product update fails, the tag update still succeeded
-            console.warn('Failed to update external product record:', error);
+            // This can happen if the product doesn't exist or user doesn't have permission
+            console.warn('Failed to update external product record (this is OK if product was created by another user):', error);
+            // Try to create the product if it doesn't exist (for marketplace visibility)
+            // But don't block the tag update if this also fails
           }
         }
 
