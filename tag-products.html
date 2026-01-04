@@ -2049,15 +2049,17 @@
         
         // Try to create or get external product link
         try {
-          // Create external product link using the endpoint
-          const externalProduct = await SuperAffiliateAPI.apiRequest('/videos/external-products/create/', {
+          // Scrape external product using the endpoint (same as Flutter app)
+          const externalProduct = await SuperAffiliateAPI.apiRequest('/videos/external-products/scrape/', {
             method: 'POST',
             body: JSON.stringify({
-              url: externalUrl
+              url: externalUrl,
+              use_tanda_affiliate: true
             })
           });
           
-          if (externalProduct && externalProduct.product && externalProduct.product.id) {
+          // The scrape endpoint returns { success: true, product: {...} }
+          if (externalProduct && externalProduct.success && externalProduct.product && externalProduct.product.id) {
             payload.external_product = externalProduct.product.id;
             
             // Store the ID in hidden field for reference
