@@ -258,6 +258,18 @@
       color: var(--accent-color);
     }
 
+    .alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: #4caf50;
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #f44336;
+    }
+
     .loading {
       text-align: center;
       padding: 4rem 2rem;
@@ -270,6 +282,145 @@
       color: var(--text-secondary);
     }
 
+    /* Video Selection Modal Styles */
+    .product-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 2rem;
+    }
+
+    .product-modal.active {
+      display: flex;
+    }
+
+    .product-modal-content {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .product-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .product-modal-header h2 {
+      font-size: 1.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .product-modal-close {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: var(--text-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .product-modal-close:hover {
+      background: rgba(255,255,255,0.2);
+      transform: rotate(90deg);
+    }
+
+    .product-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.75rem;
+      padding: 0.9rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .product-item:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .product-item-image {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+      position: relative;
+    }
+
+    .product-item-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-item-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 0.5rem;
+    }
+
+    .product-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      grid-column: 1 / -1;
+    }
+
+    .product-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      grid-column: 1 / -1;
+    }
+
+    .product-modal-footer {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -278,6 +429,14 @@
       .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 1rem;
+      }
+
+      .product-modal {
+        padding: 1rem;
+      }
+
+      .product-modal-content {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -452,37 +611,271 @@
     }
 
     async function promoteProduct(productId) {
+      // Open video selection modal for tagging
+      await openVideoSelectionModal(productId);
+    }
+
+    async function openVideoSelectionModal(productId) {
+      // Get product details first
+      let product = null;
       try {
-        const response = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/promote/', {
+        const products = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/products/');
+        const productList = products.products || products.results || products;
+        product = Array.isArray(productList) ? productList.find(p => p.id === productId || p.id?.toString() === productId.toString()) : null;
+      } catch (error) {
+        console.error('Error loading product details:', error);
+      }
+
+      // Create modal
+      const modal = document.createElement('div');
+      modal.className = 'product-modal active';
+      modal.id = 'videoSelectionModal';
+      modal.dataset.productId = productId; // Store productId for filterVideos
+      modal.innerHTML = `
+        <div class="product-modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+          <div class="product-modal-header">
+            <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-video" style="color: var(--accent-color);"></i>
+              <span>Select Video to Tag Product</span>
+            </h2>
+            <button class="product-modal-close" onclick="closeVideoSelectionModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          ${product ? `
+            <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; margin: 1rem 0;">
+              <div style="font-weight: 600; margin-bottom: 0.5rem;">${product.name}</div>
+              <div style="color: var(--accent-color); font-size: 0.9rem;">₦${parseFloat(product.price || 0).toLocaleString('en-NG')}</div>
+            </div>
+          ` : ''}
+          <div style="margin-bottom: 1rem;">
+            <input type="text" id="videoSearch" placeholder="Search videos..." style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;" oninput="filterVideos()">
+          </div>
+          <div id="videosGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="product-loading">
+              <i class="fas fa-spinner fa-spin"></i> Loading videos...
+            </div>
+          </div>
+          <div class="product-modal-footer">
+            <button class="btn secondary" onclick="closeVideoSelectionModal()">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'videoSelectionModal') {
+          closeVideoSelectionModal();
+        }
+      });
+
+      // Load videos
+      await loadUserVideos(productId);
+    }
+
+    function closeVideoSelectionModal() {
+      const modal = document.getElementById('videoSelectionModal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    let allVideos = [];
+    let filteredVideos = [];
+
+    async function loadUserVideos(productId) {
+      const grid = document.getElementById('videosGrid');
+      grid.innerHTML = '<div class="product-loading"><i class="fas fa-spinner fa-spin"></i> Loading videos...</div>';
+
+      try {
+        const response = await SuperAffiliateAPI.getMyVideos(1);
+        const videos = response.videos || response.results || response;
+        allVideos = Array.isArray(videos) ? videos : [];
+        filteredVideos = allVideos;
+
+        if (allVideos.length === 0) {
+          grid.innerHTML = `
+            <div class="product-empty" style="grid-column: 1 / -1;">
+              <i class="fas fa-video-slash" style="font-size: 2rem; opacity: 0.5; margin-bottom: 1rem;"></i>
+              <p>No videos found. Upload a video first to tag products.</p>
+              <button class="btn" onclick="window.location.href='upload.html'" style="margin-top: 1rem;">
+                <i class="fas fa-upload"></i> Upload Video
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        renderVideos(allVideos, productId);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        grid.innerHTML = `
+          <div class="product-empty" style="grid-column: 1 / -1;">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Failed to load videos. ${error.message || ''}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderVideos(videos, productId) {
+      const grid = document.getElementById('videosGrid');
+      
+      if (!videos || videos.length === 0) {
+        grid.innerHTML = '<div class="product-empty" style="grid-column: 1 / -1;">No videos found.</div>';
+        return;
+      }
+
+      const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
+      
+      grid.innerHTML = videos.map(video => {
+        const videoId = video.id || video.video_id;
+        const thumbnail = video.thumbnail || video.thumbnail_url || '';
+        const title = video.title || video.caption || 'Untitled Video';
+        const hasTag = video.product_tags && video.product_tags.length > 0;
+        const thumbnailUrl = thumbnail.startsWith('http') ? thumbnail : (thumbnail ? API_BASE_URL + (thumbnail.startsWith('/') ? thumbnail : '/' + thumbnail) : '');
+
+        return `
+          <div class="product-item" style="cursor: pointer; position: relative;" onclick="selectVideoForTagging('${videoId}', '${productId}')">
+            <div class="product-item-image" style="position: relative;">
+              ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-video\\'></i>'">` : '<i class="fas fa-video"></i>'}
+              ${hasTag ? '<div style="position: absolute; top: 4px; left: 4px; background: rgba(0,242,234,0.9); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;"><i class="fas fa-tag"></i></div>' : ''}
+            </div>
+            <div class="product-item-name" style="font-size: 0.85rem; margin-top: 0.5rem;">${title.length > 30 ? title.substring(0, 30) + '...' : title}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterVideos() {
+      const searchTerm = document.getElementById('videoSearch').value.toLowerCase().trim();
+      
+      if (!searchTerm) {
+        filteredVideos = allVideos;
+      } else {
+        filteredVideos = allVideos.filter(video => {
+          const title = (video.title || video.caption || '').toLowerCase();
+          return title.includes(searchTerm);
+        });
+      }
+
+      const productId = document.getElementById('videoSelectionModal')?.dataset?.productId || '';
+      renderVideos(filteredVideos, productId);
+    }
+
+    async function selectVideoForTagging(videoId, productId) {
+      // Check if video already has a tag (single product per video)
+      try {
+        const existingTags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+        if (existingTags && existingTags.length > 0) {
+          const existingTag = existingTags[0];
+          const existingProductName = existingTag.product_name || existingTag.name || 'a product';
+          const shouldProceed = confirm(
+            `This video already has a product tag for "${existingProductName}".\n\n` +
+            `Only one product can be tagged per video. Would you like to delete the existing tag and tag this product instead?`
+          );
+          
+          if (!shouldProceed) {
+            return;
+          }
+
+          // Delete existing tag
+          try {
+            await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/product-tags/${existingTag.id}/`, {
+              method: 'DELETE'
+            });
+          } catch (error) {
+            showAlert('Failed to delete existing tag. Please delete it manually first.', 'error');
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not check for existing tags:', error);
+      }
+
+      // Close modal
+      closeVideoSelectionModal();
+
+      // Show loading
+      showAlert('Tagging product to video...', 'info');
+
+      try {
+        // First, ensure promotion exists (create if needed)
+        let promotion = null;
+        try {
+          const promoteResponse = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/promote/', {
+            method: 'POST',
+            body: JSON.stringify({
+              product: productId
+            })
+          });
+          promotion = promoteResponse;
+        } catch (error) {
+          // Promotion might already exist, try to get it
+          const promotions = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/promotions/');
+          const promoList = promotions.promotions || promotions.results || promotions;
+          promotion = Array.isArray(promoList) ? promoList.find(p => {
+            const prod = p.product || {};
+            return (prod.id || prod.id?.toString()) === productId.toString();
+          }) : null;
+        }
+
+        // Create product tag on video
+        const tagPayload = {
+          timestamp: 0.0,
+          position: { x: 0.8, y: 0.1 },
+          internal_product: productId
+        };
+
+        await SuperAffiliateAPI.createProductTag(Number(videoId), tagPayload);
+
+        showAlert('✅ Product tagged successfully! The video will appear in Tanda feed with the product tag.', 'success');
+
+        // Optionally publish to connected platforms
+        const shouldPublish = confirm(
+          'Would you like to publish this video with the product tag to your connected platforms (YouTube, TikTok, etc.)?'
+        );
+
+        if (shouldPublish) {
+          await publishVideoToPlatforms(videoId);
+        }
+
+        // Reload promotions
+        await loadMyPromotions();
+      } catch (error) {
+        console.error('Error tagging product to video:', error);
+        showAlert(error.message || 'Failed to tag product to video. Please try again.', 'error');
+      }
+    }
+
+    async function publishVideoToPlatforms(videoId) {
+      try {
+        // Get connected platforms
+        const connections = await SuperAffiliateAPI.apiRequest('/videos/platforms/connections/');
+        const connectedPlatforms = (connections.connections || []).filter(conn => 
+          (conn.status || '').toLowerCase() === 'connected'
+        );
+
+        if (connectedPlatforms.length === 0) {
+          showAlert('No platforms connected. Connect platforms in your profile settings.', 'info');
+          return;
+        }
+
+        // Publish to all connected platforms
+        const selectedPlatforms = connectedPlatforms.map(conn => conn.platform);
+        
+        const response = await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/publish/`, {
           method: 'POST',
           body: JSON.stringify({
-            product: productId
+            platforms: selectedPlatforms
           })
         });
 
-        // Check if product was already being promoted
-        if (response.message && response.message.includes('already being promoted')) {
-          showAlert('This product is already in your promotions!', 'info');
-        } else {
-          showAlert('Product added to your promotions! You can now share your unique affiliate link.', 'success');
-        }
-        
-        // Reload products and my promotions
-        await loadProducts();
-        await loadMyPromotions();
+        showAlert(`Video published to ${selectedPlatforms.length} platform(s) with product tag!`, 'success');
       } catch (error) {
-        console.error('Error promoting product:', error);
-        let errorMessage = error.message || 'Failed to promote product. Please try again.';
-        
-        // Handle duplicate promotion error
-        if (errorMessage.includes('duplicate') || errorMessage.includes('already') || errorMessage.includes('unique constraint')) {
-          errorMessage = 'This product is already being promoted by you.';
-          // Reload to update the list
-          await loadProducts();
-          await loadMyPromotions();
-        }
-        
-        showAlert(errorMessage, 'error');
+        console.error('Error publishing video:', error);
+        showAlert('Video tagged but publishing to platforms failed. You can publish manually later.', 'error');
       }
     }
 
