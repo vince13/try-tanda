@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tanda - Redirecting…</title>
+    <meta http-equiv="cache-control" content="no-cache" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background: #0b0b0b;
+        color: #fff;
+      }
+      .box {
+        max-width: 520px;
+        padding: 24px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .muted {
+        opacity: 0.8;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      code {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      a { color: #00f2ea; }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Redirecting…</div>
+      <div class="muted" id="msg">
+        If you are not redirected automatically, <a id="fallback" href="index.html">tap here</a>.
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // GitHub Pages serves this file for unknown paths.
+        // We use it to support deep links that were previously generated as:
+        //   /products/<uuid>
+        // The webapp's real route is file-based:
+        //   /product-detail.html?id=<uuid>
+
+        var path = window.location.pathname || "";
+        var origin = window.location.origin || "";
+
+        // Match:
+        //   /products/<uuid>
+        //   /products/<uuid>/
+        // Where <uuid> can be a standard UUID.
+        var m = path.match(/^\/products\/([0-9a-fA-F-]{20,})\/?$/);
+        if (m && m[1]) {
+          var id = m[1];
+          var target = origin + "/product-detail.html?id=" + encodeURIComponent(id);
+          window.location.replace(target);
+          return;
+        }
+
+        // Fallback: go home.
+        var home = origin + "/index.html";
+        var el = document.getElementById("fallback");
+        if (el) el.href = home;
+        window.location.replace(home);
+      })();
+    </script>
+  </body>
+</html>
+
+

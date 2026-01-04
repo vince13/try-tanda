@@ -839,6 +839,7 @@
         <select id="productType" onchange="toggleProductInputs()">
           <option value="internal">Internal product</option>
           <option value="external">External product link</option>
+          <option value="marketplace">Browse Marketplace</option>
         </select>
       </div>
     </div>
@@ -859,6 +860,17 @@
           Paste the product URL. The system will create an external product link automatically.
         </small>
         <input type="hidden" id="externalProductId" />
+      </div>
+      <div id="marketplaceWrap" style="display:none;">
+        <label for="marketplaceProductBtn">Marketplace Product</label>
+        <button type="button" id="marketplaceProductBtn" class="product-select-btn" onclick="openMarketplaceSelector()">
+          <i class="fas fa-compass"></i>
+          <span id="selectedMarketplaceProductText">Browse marketplace products...</span>
+        </button>
+        <input type="hidden" id="marketplaceProductId" />
+        <small style="color: var(--text-secondary); margin-top: 0.25rem; display: block;">
+          Select a product from the external marketplace (Jumia, Konga, Temu, etc.)
+        </small>
       </div>
       <div>
         <label for="timestamp">Timestamp (seconds)</label>
@@ -908,20 +920,20 @@
       <div id="platformSelection" class="platform-grid">
         <div id="platforms-loading" class="platform-loading-state">
           <i class="fas fa-spinner fa-spin"></i> Loading connected platforms...
-        </div>
+          </div>
         <div id="platforms-empty" class="platform-empty-state" style="display: none;">
           <div class="platform-empty-icon">
             <i class="fas fa-plug"></i>
-          </div>
+        </div>
           <div class="platform-empty-text">
             <p><strong>No platforms connected</strong></p>
             <p>Connect your social media platforms to publish videos with product tags.</p>
-          </div>
+        </div>
           <a href="profile.html" class="btn" style="margin-top: 1rem; width: auto; display: inline-block;">
             <i class="fas fa-link"></i> Connect Platforms
           </a>
         </div>
-      </div>
+        </div>
       <div id="platform-connect-message" class="platform-connect-message" style="display: none;">
         <i class="fas fa-info-circle"></i>
         <span>Want to connect more platforms? <a href="profile.html">Go to Profile Settings</a></span>
@@ -957,6 +969,61 @@
         <button class="btn" id="confirmProductBtn" onclick="confirmProductSelection()" disabled>
           Select Product
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marketplace Selector Modal -->
+  <div id="marketplaceModal" class="product-modal">
+    <div class="product-modal-content" style="max-height: 90vh; overflow-y: auto;">
+      <div class="product-modal-header">
+        <h2>Discover Products</h2>
+        <button class="product-modal-close" onclick="closeMarketplaceSelector()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Platform Filter -->
+      <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <button class="btn secondary" id="filterAll" onclick="filterMarketplaceByPlatform('all')" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+          All
+        </button>
+        <button class="btn secondary" id="filterJumia" onclick="filterMarketplaceByPlatform('jumia')" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+          Jumia
+        </button>
+        <button class="btn secondary" id="filterKonga" onclick="filterMarketplaceByPlatform('konga')" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+          Konga
+        </button>
+        <button class="btn secondary" id="filterTemu" onclick="filterMarketplaceByPlatform('temu')" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+          Temu
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="product-search">
+        <input type="text" id="marketplaceSearch" placeholder="Search marketplace products..." oninput="searchMarketplace()" />
+      </div>
+
+      <!-- Marketplace Products Grid -->
+      <div id="marketplaceGrid" class="product-grid">
+        <div class="product-loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading marketplace products...
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="marketplacePagination" style="margin-top: 1.5rem; display: none; justify-content: center; gap: 0.5rem; align-items: center;">
+        <button class="btn secondary" id="prevPageBtn" onclick="loadMarketplacePage(-1)" disabled style="font-size: 0.85rem;">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span id="pageInfo" style="color: var(--text-secondary); font-size: 0.9rem;"></span>
+        <button class="btn secondary" id="nextPageBtn" onclick="loadMarketplacePage(1)" style="font-size: 0.85rem;">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="product-modal-footer">
+        <button class="btn secondary" onclick="closeMarketplaceSelector()">Cancel</button>
       </div>
     </div>
   </div>
@@ -1304,8 +1371,211 @@
 
     // Close modal on Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.getElementById('productModal').classList.contains('active')) {
-        closeProductSelector();
+      if (e.key === 'Escape') {
+        if (document.getElementById('productModal').classList.contains('active')) {
+          closeProductSelector();
+        }
+        if (document.getElementById('marketplaceModal').classList.contains('active')) {
+          closeMarketplaceSelector();
+        }
+      }
+    });
+
+    // Marketplace state
+    let marketplaceProducts = [];
+    let filteredMarketplaceProducts = [];
+    let selectedMarketplaceProduct = null;
+    let currentMarketplacePage = 1;
+    let currentMarketplacePlatform = 'all';
+    let marketplacePagination = null;
+
+    async function openMarketplaceSelector() {
+      const productType = document.getElementById('productType').value;
+      if (productType !== 'marketplace') {
+        showToast('Please select "Browse Marketplace" type first.', 'error');
+        return;
+      }
+
+      // Reset selection
+      selectedMarketplaceProduct = null;
+      document.getElementById('marketplaceSearch').value = '';
+      currentMarketplacePage = 1;
+      currentMarketplacePlatform = 'all';
+
+      // Show modal
+      document.getElementById('marketplaceModal').classList.add('active');
+
+      // Load products
+      await loadMarketplaceProducts();
+    }
+
+    function closeMarketplaceSelector() {
+      document.getElementById('marketplaceModal').classList.remove('active');
+      selectedMarketplaceProduct = null;
+    }
+
+    function resetMarketplaceSelection() {
+      selectedMarketplaceProduct = null;
+      document.getElementById('marketplaceProductId').value = '';
+      const btn = document.getElementById('marketplaceProductBtn');
+      const span = document.getElementById('selectedMarketplaceProductText');
+      span.textContent = 'Browse marketplace products...';
+      btn.classList.remove('has-selection');
+    }
+
+    async function loadMarketplaceProducts(page = 1) {
+      const grid = document.getElementById('marketplaceGrid');
+      grid.innerHTML = '<div class="product-loading"><i class="fas fa-spinner fa-spin"></i> Loading marketplace products...</div>';
+
+      try {
+        const response = await SuperAffiliateAPI.browseMarketplaceProducts(
+          page,
+          20,
+          currentMarketplacePlatform,
+          document.getElementById('marketplaceSearch').value.trim(),
+          'created_at'
+        );
+
+        if (response && response.products && Array.isArray(response.products)) {
+          marketplaceProducts = response.products;
+          filteredMarketplaceProducts = marketplaceProducts;
+          marketplacePagination = response.pagination || null;
+
+          renderMarketplaceProducts(marketplaceProducts);
+          updateMarketplacePagination();
+        } else {
+          grid.innerHTML = '<div class="product-empty">No products found in marketplace.</div>';
+        }
+      } catch (error) {
+        console.error('Error loading marketplace products:', error);
+        grid.innerHTML = `<div class="product-empty"><i class="fas fa-exclamation-circle"></i> Failed to load marketplace products. ${error.message || ''}</div>`;
+      }
+    }
+
+    function renderMarketplaceProducts(products) {
+      const grid = document.getElementById('marketplaceGrid');
+      
+      if (!products || products.length === 0) {
+        grid.innerHTML = '<div class="product-empty">No products found.</div>';
+        return;
+      }
+
+      grid.innerHTML = products.map(product => {
+        const productId = product.id || '';
+        const productName = product.product_name || product.name || 'Unknown Product';
+        const price = product.price ? `₦${parseFloat(product.price).toLocaleString()}` : 'Price not available';
+        const platform = product.platform || 'unknown';
+        const imageUrl = product.product_image_url || product.image_url || '';
+        const isSelected = selectedMarketplaceProduct && selectedMarketplaceProduct.id === productId;
+
+        // Escape HTML
+        const escapedName = safeText(productName).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedId = safeText(productId).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        return `
+          <div class="product-item ${isSelected ? 'selected' : ''}" 
+               data-product-id="${escapedId}" 
+               onclick="selectMarketplaceProduct('${escapedId}', '${escapedName}', this)">
+            <div class="product-item-image">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${escapedName}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">` : '<i class="fas fa-shopping-bag"></i>'}
+            </div>
+            <div class="product-item-name">${safeText(productName)}</div>
+            <div class="product-item-price">${price}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; text-transform: capitalize;">
+              ${platform}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectMarketplaceProduct(productId, productName, element) {
+      selectedMarketplaceProduct = { id: productId, name: productName };
+      
+      // Update UI
+      document.querySelectorAll('#marketplaceGrid .product-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      if (element) {
+        element.classList.add('selected');
+      }
+
+      // Set the product ID
+      document.getElementById('marketplaceProductId').value = productId;
+      
+      // Update button text
+      const btn = document.getElementById('marketplaceProductBtn');
+      const span = document.getElementById('selectedMarketplaceProductText');
+      span.textContent = productName.length > 30 ? productName.substring(0, 30) + '...' : productName;
+      btn.classList.add('has-selection');
+
+      // Close modal and show success
+      closeMarketplaceSelector();
+      showToast(`✅ Selected: ${productName}`, 'success');
+    }
+
+    function filterMarketplaceByPlatform(platform) {
+      currentMarketplacePlatform = platform;
+      currentMarketplacePage = 1;
+
+      // Update filter button states
+      ['All', 'Jumia', 'Konga', 'Temu'].forEach(p => {
+        const btnId = p === 'All' ? 'filterAll' : `filter${p}`;
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          if ((p === 'All' && platform === 'all') || p.toLowerCase() === platform) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--primary-gradient)';
+            btn.style.color = 'white';
+          } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+            btn.style.color = '';
+          }
+        }
+      });
+
+      loadMarketplaceProducts(1);
+    }
+
+    function searchMarketplace() {
+      const searchTerm = document.getElementById('marketplaceSearch').value.trim();
+      currentMarketplacePage = 1;
+      loadMarketplaceProducts(1);
+    }
+
+    function loadMarketplacePage(direction) {
+      if (!marketplacePagination) return;
+      
+      const newPage = currentMarketplacePage + direction;
+      if (newPage < 1) return;
+      if (newPage > marketplacePagination.total_pages) return;
+
+      currentMarketplacePage = newPage;
+      loadMarketplaceProducts(newPage);
+    }
+
+    function updateMarketplacePagination() {
+      const paginationEl = document.getElementById('marketplacePagination');
+      const pageInfo = document.getElementById('pageInfo');
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+
+      if (!marketplacePagination) {
+        paginationEl.style.display = 'none';
+        return;
+      }
+
+      paginationEl.style.display = 'flex';
+      pageInfo.textContent = `Page ${marketplacePagination.page} of ${marketplacePagination.total_pages}`;
+      prevBtn.disabled = !marketplacePagination.has_previous;
+      nextBtn.disabled = !marketplacePagination.has_next;
+    }
+
+    // Close marketplace modal on backdrop click
+    document.getElementById('marketplaceModal').addEventListener('click', (e) => {
+      if (e.target.id === 'marketplaceModal') {
+        closeMarketplaceSelector();
       }
     });
 
@@ -1313,13 +1583,26 @@
       const productType = document.getElementById('productType').value;
       document.getElementById('internalWrap').style.display = productType === 'internal' ? 'block' : 'none';
       document.getElementById('externalWrap').style.display = productType === 'external' ? 'block' : 'none';
+      document.getElementById('marketplaceWrap').style.display = productType === 'marketplace' ? 'block' : 'none';
       
       // Reset selections when switching
       if (productType === 'internal') {
         document.getElementById('externalProductUrl').value = '';
         document.getElementById('externalProductId').value = '';
-      } else {
+        document.getElementById('marketplaceProductId').value = '';
+        resetMarketplaceSelection();
+      } else if (productType === 'external') {
         document.getElementById('internalProductId').value = '';
+        document.getElementById('marketplaceProductId').value = '';
+        const btn = document.getElementById('internalProductBtn');
+        const span = document.getElementById('selectedProductText');
+        span.textContent = 'Select a product...';
+        btn.classList.remove('has-selection');
+        resetMarketplaceSelection();
+      } else if (productType === 'marketplace') {
+        document.getElementById('internalProductId').value = '';
+        document.getElementById('externalProductUrl').value = '';
+        document.getElementById('externalProductId').value = '';
         const btn = document.getElementById('internalProductBtn');
         const span = document.getElementById('selectedProductText');
         span.textContent = 'Select a product...';
@@ -1507,6 +1790,11 @@
         const internalId = document.getElementById('internalProductId').value.trim();
         if (!internalId) return showToast('Please select an internal product.', 'error');
         payload.internal_product = internalId;
+      } else if (productType === 'marketplace') {
+        const marketplaceId = document.getElementById('marketplaceProductId').value.trim();
+        if (!marketplaceId) return showToast('Please select a marketplace product.', 'error');
+        // Marketplace products are external products, use external_product field
+        payload.external_product = marketplaceId;
       } else {
         const externalUrl = document.getElementById('externalProductUrl').value.trim();
         if (!externalUrl) return showToast('External product URL is required.', 'error');
@@ -1819,7 +2107,7 @@
         const checkbox = document.getElementById(`platform-${platform}`);
         if (checkbox && checkbox.checked) {
           selectedPlatforms.push(platform);
-        }
+      }
       });
 
       if (selectedPlatforms.length === 0) {

@@ -819,6 +819,44 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Marketplace Methods
+   */
+  static async getFeaturedProducts(limit = 15, platform = 'all') {
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      platform: platform
+    });
+    return await this.apiRequest(`/videos/external-products/marketplace/featured/?${params}`);
+  }
+
+  static async getPopularProducts(page = 1, perPage = 20, platform = 'all', sortBy = 'most_tagged') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      per_page: perPage.toString(),
+      platform: platform,
+      sort_by: sortBy
+    });
+    return await this.apiRequest(`/videos/external-products/marketplace/popular/?${params}`);
+  }
+
+  static async browseMarketplaceProducts(page = 1, perPage = 20, platform = 'all', search = '', sortBy = 'created_at') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      per_page: perPage.toString(),
+      platform: platform,
+      sort_by: sortBy
+    });
+    if (search) {
+      params.append('search', search);
+    }
+    return await this.apiRequest(`/videos/external-products/marketplace/browse/?${params}`);
+  }
+
+  static async getMarketplaceProductDetails(productId) {
+    return await this.apiRequest(`/videos/external-products/marketplace/${productId}/`);
+  }
+
+  /**
    * Cart Management Methods
    */
   static async getCart() {
