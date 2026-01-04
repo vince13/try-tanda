@@ -1345,6 +1345,12 @@
         await checkUserRole();
       }
 
+      // If user is an affiliate (not a seller), show helpful modal
+      if (userRole === 'affiliate') {
+        showAffiliateRestrictionModal();
+        return;
+      }
+
       // Reset selection
       selectedProduct = null;
       document.getElementById('confirmProductBtn').disabled = true;
@@ -1355,6 +1361,66 @@
 
       // Load products
       await loadProducts();
+    }
+
+    function showAffiliateRestrictionModal() {
+      const modal = document.createElement('div');
+      modal.className = 'product-modal active';
+      modal.id = 'affiliateRestrictionModal';
+      modal.innerHTML = `
+        <div class="product-modal-content" style="max-width: 500px;">
+          <div class="product-modal-header">
+            <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-info-circle" style="color: var(--accent-color);"></i>
+              <span>Tag Products via Affiliate Dashboard</span>
+            </h2>
+            <button class="product-modal-close" onclick="closeAffiliateRestrictionModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div style="padding: 1.5rem;">
+            <p style="margin-bottom: 1rem; font-weight: 600; color: var(--text-primary);">
+              To promote products as an affiliate:
+            </p>
+            <ol style="margin-left: 1.5rem; margin-bottom: 1.5rem; line-height: 2; color: var(--text-secondary);">
+              <li>Publish your video first</li>
+              <li>Go to your Affiliate Dashboard</li>
+              <li>Browse products in the Marketplace</li>
+              <li>Select "Promote with Existing Video"</li>
+              <li>Choose this video to attach the product</li>
+            </ol>
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+              <strong>Note:</strong> You can still tag external products (Jumia, Konga, etc.) directly by selecting "External product link" or "Browse Marketplace" options.
+            </p>
+          </div>
+          <div class="product-modal-footer">
+            <button class="btn secondary" onclick="closeAffiliateRestrictionModal()">Got it</button>
+            <button class="btn" onclick="goToAffiliateDashboard()">
+              <i class="fas fa-external-link-alt"></i> Go to Affiliate Dashboard
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'affiliateRestrictionModal') {
+          closeAffiliateRestrictionModal();
+        }
+      });
+    }
+
+    function closeAffiliateRestrictionModal() {
+      const modal = document.getElementById('affiliateRestrictionModal');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    function goToAffiliateDashboard() {
+      closeAffiliateRestrictionModal();
+      window.location.href = 'affiliate-dashboard.html';
     }
 
     function closeProductSelector() {
@@ -1780,6 +1846,37 @@
 
       const timestamp = timestampRaw ? Number(timestampRaw) : 0.0;
       if (Number.isNaN(timestamp) || timestamp < 0) return showToast('Timestamp must be a number >= 0.', 'error');
+
+      // Check if video already has a tag (single product per video enforcement)
+      try {
+        const existingTags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);
+        if (existingTags && existingTags.length > 0) {
+          const existingTag = existingTags[0];
+          const existingProductName = existingTag.product_name || existingTag.name || 'a product';
+          const shouldProceed = confirm(
+            `This video already has a product tag for "${existingProductName}".\n\n` +
+            `Only one product can be tagged per video. Would you like to delete the existing tag and create a new one?`
+          );
+          
+          if (!shouldProceed) {
+            return;
+          }
+
+          // Delete existing tag
+          try {
+            await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/product-tags/${existingTag.id}/`, {
+              method: 'DELETE'
+            });
+            showToast('Existing tag deleted. Creating new tag...', 'info');
+          } catch (error) {
+            showToast('Failed to delete existing tag. Please delete it manually first.', 'error');
+            return;
+          }
+        }
+      } catch (error) {
+        // If we can't check for existing tags, continue (might be first tag)
+        console.warn('Could not check for existing tags:', error);
+      }
 
       const payload = {
         timestamp,
