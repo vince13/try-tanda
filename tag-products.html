@@ -2395,6 +2395,30 @@
           })
         });
 
+        // If this is an external product, also update the ExternalProductLink record
+        // This ensures the product appears in the marketplace
+        const externalProductId = currentEditTag.external_product_id || currentEditTag.id;
+        if (externalProductId && (currentEditTag.product_type === 'external' || currentEditTag.external_product)) {
+          try {
+            // Update the external product record to mark it as manually edited
+            // This makes it appear in the marketplace
+            await SuperAffiliateAPI.apiRequest(`/videos/external-products/${externalProductId}/`, {
+              method: 'PATCH',
+              body: JSON.stringify({
+                product_name: name,
+                price: price,
+                product_image_url: imageUrl || currentEditTag.product_image_url || '',
+                original_url: productUrl,
+                scrape_status: 'manual', // Mark as manually edited so it appears in marketplace
+                is_active: true
+              })
+            });
+          } catch (error) {
+            // Non-fatal: if external product update fails, the tag update still succeeded
+            console.warn('Failed to update external product record:', error);
+          }
+        }
+
         showToast('Tag updated successfully', 'success');
         closeEditTagModal();
         loadTags(); // Reload tags to show updated data
