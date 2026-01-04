@@ -989,18 +989,35 @@
       const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
       
       const getImageUrl = (product) => {
+        if (!product) return '';
+        
+        // Try direct image field
         if (product.image) {
-          return product.image.startsWith('http') ? product.image : API_BASE_URL + (product.image.startsWith('/') ? product.image : '/' + product.image);
+          const img = product.image;
+          return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
         }
+        
+        // Try thumbnail field
         if (product.thumbnail) {
-          return product.thumbnail.startsWith('http') ? product.thumbnail : API_BASE_URL + (product.thumbnail.startsWith('/') ? product.thumbnail : '/' + product.thumbnail);
+          const thumb = product.thumbnail;
+          return thumb.startsWith('http') ? thumb : API_BASE_URL + (thumb.startsWith('/') ? thumb : '/' + thumb);
         }
-        if (product.images && product.images.length > 0) {
-          const img = product.images[0].image || product.images[0].image_url;
+        
+        // Try image_url field
+        if (product.image_url) {
+          const imgUrl = product.image_url;
+          return imgUrl.startsWith('http') ? imgUrl : API_BASE_URL + (imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl);
+        }
+        
+        // Try images array
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+          const firstImg = product.images[0];
+          const img = firstImg.image || firstImg.image_url || firstImg.url;
           if (img) {
             return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
           }
         }
+        
         return '';
       };
 
@@ -1030,12 +1047,15 @@
               <div style="margin-bottom: 1rem; font-size: 0.85rem; color: ${isActive ? '#4caf50' : '#ffc107'};">
                 <i class="fas fa-${isActive ? 'check-circle' : 'pause-circle'}"></i> ${isActive ? 'Active' : 'Paused'}
               </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-success" onclick="copyAffiliateLink('${trackingCode}')" style="flex: 1;">
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-success" onclick="copyAffiliateLink('${trackingCode}')" style="flex: 1; min-width: 100px;">
                   <i class="fas fa-copy"></i> Copy Link
                 </button>
-                <button class="btn" onclick="togglePromotion(${promo.id}, ${isActive})" style="flex: 1;">
+                <button class="btn" onclick="togglePromotion(${promo.id}, ${isActive})" style="flex: 1; min-width: 100px;">
                   <i class="fas fa-${isActive ? 'pause' : 'play'}"></i> ${isActive ? 'Pause' : 'Resume'}
+                </button>
+                <button class="btn" onclick="deletePromotion(${promo.id}, '${product.name || 'this product'}')" style="background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; flex: 1; min-width: 100px;">
+                  <i class="fas fa-trash"></i> Delete
                 </button>
               </div>
             </div>
@@ -1054,6 +1074,29 @@
         await loadMyPromotions();
       } catch (error) {
         showAlert(error.message || 'Failed to toggle promotion', 'error');
+      }
+    }
+
+    async function deletePromotion(promotionId, productName) {
+      const confirmed = confirm(
+        `Are you sure you want to delete the promotion for "${productName}"?\n\n` +
+        `This will remove the promotion and stop tracking new sales. Historical sales data will be preserved.`
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest(`/commerce/affiliate/promotion/${promotionId}/delete/`, {
+          method: 'DELETE'
+        });
+        
+        showAlert('Promotion deleted successfully!', 'success');
+        await loadMyPromotions();
+      } catch (error) {
+        console.error('Error deleting promotion:', error);
+        showAlert(error.message || 'Failed to delete promotion. Please try again.', 'error');
       }
     }
 
