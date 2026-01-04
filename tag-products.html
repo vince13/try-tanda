@@ -922,9 +922,9 @@
         <button class="btn" onclick="publishToTandaFeed()" id="publishTandaBtn">
           <i class="fas fa-video"></i> Publish to Tanda Feed
         </button>
-      </div>
+          </div>
       <div id="publishTandaStatus" class="publish-status" style="display: none;"></div>
-    </div>
+        </div>
 
     <!-- Publish to External Platforms (Optional) -->
     <div class="section-title" style="margin-top: 2rem;">Publish to External Platforms</div>
@@ -933,11 +933,11 @@
         <p class="platform-publish-hint">
           Select platforms to publish your video with product tags
         </p>
-      </div>
+        </div>
       <div id="platformSelection" class="platform-grid">
         <div id="platforms-loading" class="platform-loading-state">
           <i class="fas fa-spinner fa-spin"></i> Loading connected platforms...
-          </div>
+        </div>
         <div id="platforms-empty" class="platform-empty-state" style="display: none;">
           <div class="platform-empty-icon">
             <i class="fas fa-plug"></i>
@@ -945,7 +945,7 @@
           <div class="platform-empty-text">
             <p><strong>No platforms connected</strong></p>
             <p>Connect your social media platforms to publish videos with product tags.</p>
-        </div>
+      </div>
           <a href="profile.html" class="btn" style="margin-top: 1rem; width: auto; display: inline-block;">
             <i class="fas fa-link"></i> Connect Platforms
           </a>
@@ -1460,7 +1460,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (document.getElementById('productModal').classList.contains('active')) {
-          closeProductSelector();
+        closeProductSelector();
         }
         if (document.getElementById('marketplaceModal').classList.contains('active')) {
           closeMarketplaceSelector();
@@ -1896,8 +1896,8 @@
                 <i class="fas fa-edit"></i>
               </button>
               <button class="tag-delete-btn" onclick="deleteTag('${escapedVideoId}', '${escapedTagId}', '${escapedName}')" title="Delete tag">
-                <i class="fas fa-trash"></i>
-              </button>
+              <i class="fas fa-trash"></i>
+            </button>
             </div>
           </div>
         `;
@@ -2271,6 +2271,7 @@
       document.getElementById('editTagPrice').value = tagData.product_price || tagData.price || '0';
       const imageUrl = tagData.product_image_url || tagData.image_url || '';
       document.getElementById('editTagImageUrl').value = imageUrl;
+      document.getElementById('editTagProductUrl').value = tagData.product_url || tagData.url || tagData.link || '';
       
       // Update image preview
       updateEditTagImagePreview(imageUrl);
@@ -2344,6 +2345,12 @@
       }
 
       const imageUrl = document.getElementById('editTagImageUrl').value.trim();
+      
+      const productUrl = document.getElementById('editTagProductUrl').value.trim();
+      if (!productUrl) {
+        showToast('Product URL is required', 'error');
+        return;
+      }
 
       const saveBtn = document.getElementById('saveTagEditBtn');
       saveBtn.disabled = true;
@@ -2372,6 +2379,9 @@
         productTags[tagIndex].product_name = name;
         productTags[tagIndex].price = price.toString();
         productTags[tagIndex].product_price = price.toString();
+        productTags[tagIndex].product_url = productUrl;
+        productTags[tagIndex].url = productUrl; // Also set 'url' for backward compatibility
+        productTags[tagIndex].link = productUrl; // Also set 'link' for backward compatibility
         if (imageUrl) {
           productTags[tagIndex].image_url = imageUrl;
           productTags[tagIndex].product_image_url = imageUrl;
@@ -2830,6 +2840,13 @@
           <input type="url" id="editTagImageUrl" class="search-input" placeholder="https://example.com/image.jpg" oninput="updateEditTagImagePreview()" />
           <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
             Leave empty to keep current image
+          </small>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500;">Product URL *</label>
+          <input type="url" id="editTagProductUrl" class="search-input" placeholder="https://example.com/product" required />
+          <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+            The URL buyers will click to view/purchase the product
           </small>
         </div>
       </div>
