@@ -2334,9 +2334,9 @@
           productTags[tagIndex].product_image_url = imageUrl;
         }
 
-        // Update video via PATCH endpoint
+        // Update video via PUT endpoint
         await SuperAffiliateAPI.apiRequest(`/videos/${currentEditVideoId}/update/`, {
-          method: 'PATCH',
+          method: 'PUT',
           body: JSON.stringify({
             product_tags: productTags
           })
@@ -2377,7 +2377,7 @@
       try {
         // Update video to be public and ready
         await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/update/`, {
-          method: 'PATCH',
+          method: 'PUT',
           body: JSON.stringify({
             is_public: true,
             processing_status: 'ready'
