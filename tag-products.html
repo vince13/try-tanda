@@ -910,7 +910,24 @@
     <div class="section-title">Existing Tags</div>
     <div id="tags" class="list"></div>
 
-    <div class="section-title" style="margin-top: 2rem;">Publish to Platforms</div>
+    <!-- Publish to Tanda Feed (Always Available) -->
+    <div class="section-title" style="margin-top: 2rem;">Publish to Tanda Feed</div>
+    <div class="platform-publish-card">
+      <div class="platform-publish-header">
+        <p class="platform-publish-hint">
+          Make your video with product tags visible on Tanda feed
+        </p>
+      </div>
+      <div class="platform-publish-actions">
+        <button class="btn" onclick="publishToTandaFeed()" id="publishTandaBtn">
+          <i class="fas fa-video"></i> Publish to Tanda Feed
+        </button>
+      </div>
+      <div id="publishTandaStatus" class="publish-status" style="display: none;"></div>
+    </div>
+
+    <!-- Publish to External Platforms (Optional) -->
+    <div class="section-title" style="margin-top: 2rem;">Publish to External Platforms</div>
     <div class="platform-publish-card">
       <div class="platform-publish-header">
         <p class="platform-publish-hint">
@@ -1874,9 +1891,14 @@
               <div class="tag-name">${safeText(name)}</div>
               <div class="tag-sub">${safeText(sub)}</div>
             </div>
-            <button class="tag-delete-btn" onclick="deleteTag('${escapedVideoId}', '${escapedTagId}', '${escapedName}')" title="Delete tag">
-              <i class="fas fa-trash"></i>
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="tag-edit-btn" onclick="editTag('${escapedVideoId}', '${escapedTagId}', this, event)" title="Edit tag">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="tag-delete-btn" onclick="deleteTag('${escapedVideoId}', '${escapedTagId}', '${escapedName}')" title="Delete tag">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -1906,6 +1928,9 @@
           container.innerHTML = `<div class="empty">No tags found for this video.</div>`;
           return;
         }
+        
+        // Store tags globally for edit functionality
+        window.allTags = tags;
         
         renderTags(tags);
         
@@ -2210,6 +2235,176 @@
       feedback.style.cssText = 'color: #00f2ea; font-size: 0.85rem; margin-top: 0.25rem;';
       feedback.innerHTML = `<i class="fas fa-check-circle"></i> Detected: ${platformName}`;
       urlInput.parentElement.appendChild(feedback);
+    }
+
+    // Edit tag functionality
+    let currentEditTag = null;
+    let currentEditVideoId = null;
+
+    function editTag(videoId, tagId, buttonElement, event) {
+      // Stop event propagation to prevent tag card click
+      if (event) {
+        event.stopPropagation();
+      }
+
+      // Find the tag data
+      const tagCard = buttonElement.closest('.tag-card');
+      if (!tagCard) return;
+
+      const tagData = window.allTags ? window.allTags.find(t => (t.id || t.tag_id) === tagId) : null;
+      if (!tagData) {
+        showToast('Tag data not found', 'error');
+        return;
+      }
+
+      // Only allow editing external products
+      if (tagData.product_type !== 'external' && !tagData.external_product) {
+        showToast('Only external products can be edited manually', 'error');
+        return;
+      }
+
+      currentEditTag = tagData;
+      currentEditVideoId = videoId;
+
+      // Populate edit form
+      document.getElementById('editTagName').value = tagData.product_name || tagData.name || '';
+      document.getElementById('editTagPrice').value = tagData.product_price || tagData.price || '0';
+      document.getElementById('editTagImageUrl').value = tagData.product_image_url || tagData.image_url || '';
+
+      // Show modal
+      document.getElementById('editTagModal').style.display = 'flex';
+    }
+
+    function closeEditTagModal() {
+      document.getElementById('editTagModal').style.display = 'none';
+      currentEditTag = null;
+      currentEditVideoId = null;
+    }
+
+    async function saveTagEdit() {
+      if (!currentEditTag || !currentEditVideoId) {
+        showToast('No tag selected for editing', 'error');
+        return;
+      }
+
+      const name = document.getElementById('editTagName').value.trim();
+      if (!name) {
+        showToast('Product name is required', 'error');
+        return;
+      }
+
+      const priceInput = document.getElementById('editTagPrice').value.trim();
+      const price = priceInput ? parseFloat(priceInput.replace(/,/g, '')) : 0;
+      if (isNaN(price) || price < 0) {
+        showToast('Please enter a valid price', 'error');
+        return;
+      }
+
+      const imageUrl = document.getElementById('editTagImageUrl').value.trim();
+
+      const saveBtn = document.getElementById('saveTagEditBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+      try {
+        // Get current video to update product_tags
+        const videoResponse = await SuperAffiliateAPI.apiRequest(`/videos/${currentEditVideoId}/`, {
+          method: 'GET'
+        });
+
+        if (!videoResponse || !videoResponse.product_tags) {
+          throw new Error('Video not found or has no tags');
+        }
+
+        // Find and update the tag
+        const productTags = Array.isArray(videoResponse.product_tags) ? videoResponse.product_tags : [];
+        const tagIndex = productTags.findIndex(t => (t.id || t.tag_id) === currentEditTag.id);
+        
+        if (tagIndex === -1) {
+          throw new Error('Tag not found in video');
+        }
+
+        // Update tag data
+        productTags[tagIndex].name = name;
+        productTags[tagIndex].product_name = name;
+        productTags[tagIndex].price = price.toString();
+        productTags[tagIndex].product_price = price.toString();
+        if (imageUrl) {
+          productTags[tagIndex].image_url = imageUrl;
+          productTags[tagIndex].product_image_url = imageUrl;
+        }
+
+        // Update video via PATCH endpoint
+        await SuperAffiliateAPI.apiRequest(`/videos/${currentEditVideoId}/update/`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            product_tags: productTags
+          })
+        });
+
+        showToast('Tag updated successfully', 'success');
+        closeEditTagModal();
+        loadTags(); // Reload tags to show updated data
+      } catch (error) {
+        console.error('Error updating tag:', error);
+        let errorMsg = 'Failed to update tag';
+        if (error.message) {
+          errorMsg = error.message;
+        }
+        showToast(errorMsg, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      }
+    }
+
+    // Publish to Tanda Feed
+    async function publishToTandaFeed() {
+      const videoId = document.getElementById('videoId').value.trim();
+      if (!videoId || !/^\d+$/.test(videoId)) {
+        showToast('Please enter a valid numeric video ID', 'error');
+        return;
+      }
+
+      const publishBtn = document.getElementById('publishTandaBtn');
+      const statusDiv = document.getElementById('publishTandaStatus');
+      
+      publishBtn.disabled = true;
+      publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = '<div style="color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Publishing to Tanda feed...</div>';
+
+      try {
+        // Update video to be public and ready
+        await SuperAffiliateAPI.apiRequest(`/videos/${videoId}/update/`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            is_public: true,
+            processing_status: 'ready'
+          })
+        });
+
+        statusDiv.innerHTML = '<div style="color: #00ff88;"><i class="fas fa-check-circle"></i> Successfully published to Tanda feed!</div>';
+        showToast('Video published to Tanda feed', 'success');
+      } catch (error) {
+        console.error('Error publishing to Tanda feed:', error);
+        let errorMsg = 'Failed to publish to Tanda feed';
+        if (error.message) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes('not found') || msg.includes('404')) {
+            errorMsg = 'Video not found. Please verify the Video ID is correct.';
+          } else if (msg.includes('permission') || msg.includes('forbidden')) {
+            errorMsg = 'You do not have permission to publish this video.';
+          } else {
+            errorMsg = error.message;
+          }
+        }
+        statusDiv.innerHTML = `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${errorMsg}</div>`;
+        showToast(errorMsg, 'error');
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = '<i class="fas fa-video"></i> Publish to Tanda Feed';
+      }
     }
 
     async function deleteTag(videoId, tagId, tagName) {
@@ -2554,21 +2749,72 @@
       loadConnectedPlatforms();
     }
   </script>
+
+  <!-- Edit Tag Modal -->
+  <div id="editTagModal" class="product-modal" style="display: none;" onclick="if(event.target.id === 'editTagModal') closeEditTagModal()">
+    <div class="product-modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+      <div class="product-modal-header">
+        <h2>Edit Product Tag</h2>
+        <button class="product-modal-close" onclick="closeEditTagModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div style="padding: 1rem;">
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500;">Product Name *</label>
+          <input type="text" id="editTagName" class="search-input" placeholder="Enter product name" required />
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500;">Price (₦)</label>
+          <input type="text" id="editTagPrice" class="search-input" placeholder="0.00" pattern="[0-9.]*" />
+          <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+            Enter numbers only (no commas)
+          </small>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 500;">Product Image URL</label>
+          <input type="url" id="editTagImageUrl" class="search-input" placeholder="https://example.com/image.jpg" />
+          <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+            Leave empty to keep current image
+          </small>
+        </div>
+      </div>
+      <div class="product-modal-footer">
+        <button class="btn secondary" onclick="closeEditTagModal()">Cancel</button>
+        <button class="btn" onclick="saveTagEdit()" id="saveTagEditBtn">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
   <style>
     .tag-card {
       position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .tag-delete-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      background: rgba(255, 0, 0, 0.2);
-      border: 1px solid rgba(255, 0, 0, 0.3);
-      color: #ff4444;
+    .tag-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tag-edit-btn, .tag-delete-btn {
+      background: rgba(0, 242, 234, 0.2);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      color: var(--accent-color);
       border-radius: 0.5rem;
       padding: 0.4rem 0.6rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+    .tag-edit-btn:hover {
+      background: rgba(0, 242, 234, 0.3);
+      transform: scale(1.1);
+    }
+    .tag-delete-btn {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      color: #ff4444;
     }
     .tag-delete-btn:hover {
       background: rgba(255, 0, 0, 0.3);
