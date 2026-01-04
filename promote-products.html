@@ -991,31 +991,51 @@
       const getImageUrl = (product) => {
         if (!product) return '';
         
-        // Try direct image field
+        // Backend returns: images: [{'image': 'path/to/image.jpg'}]
+        // Try images array first (this is how backend serializes promotions)
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+          const firstImg = product.images[0];
+          // Backend serializer returns: {'image': str(primary_image)}
+          const img = firstImg.image || firstImg.image_url || firstImg.url;
+          if (img) {
+            // Handle both absolute URLs and relative paths
+            if (img.startsWith('http://') || img.startsWith('https://')) {
+              return img;
+            }
+            // Handle relative paths - add API base URL
+            const path = img.startsWith('/') ? img : '/' + img;
+            return API_BASE_URL + path;
+          }
+        }
+        
+        // Fallback: Try direct image field
         if (product.image) {
           const img = product.image;
-          return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
+          if (img.startsWith('http://') || img.startsWith('https://')) {
+            return img;
+          }
+          const path = img.startsWith('/') ? img : '/' + img;
+          return API_BASE_URL + path;
         }
         
         // Try thumbnail field
         if (product.thumbnail) {
           const thumb = product.thumbnail;
-          return thumb.startsWith('http') ? thumb : API_BASE_URL + (thumb.startsWith('/') ? thumb : '/' + thumb);
+          if (thumb.startsWith('http://') || thumb.startsWith('https://')) {
+            return thumb;
+          }
+          const path = thumb.startsWith('/') ? thumb : '/' + thumb;
+          return API_BASE_URL + path;
         }
         
         // Try image_url field
         if (product.image_url) {
           const imgUrl = product.image_url;
-          return imgUrl.startsWith('http') ? imgUrl : API_BASE_URL + (imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl);
-        }
-        
-        // Try images array
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-          const firstImg = product.images[0];
-          const img = firstImg.image || firstImg.image_url || firstImg.url;
-          if (img) {
-            return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
+          if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+            return imgUrl;
           }
+          const path = imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl;
+          return API_BASE_URL + path;
         }
         
         return '';
@@ -1030,6 +1050,17 @@
         const imageUrl = getImageUrl(product);
         const trackingCode = promo.unique_code || promo.tracking_code;
         const isActive = promo.is_active !== false;
+        
+        // Debug logging (can be removed later)
+        if (!imageUrl) {
+          console.warn('No image URL found for product:', {
+            name: product.name,
+            id: product.id,
+            images: product.images,
+            image: product.image,
+            thumbnail: product.thumbnail
+          });
+        }
         
         return `
           <div class="product-card">
