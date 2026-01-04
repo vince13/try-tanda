@@ -794,7 +794,13 @@
 <body>
   <div class="header">
     <h1 class="title">Products</h1>
-    <div class="nav" id="authNav"></div>
+    <div class="nav" id="authNav">
+      <!-- Marketplace button (similar to Flutter app) -->
+      <a href="marketplace.html" class="nav-link-btn" title="External Marketplace" style="margin-right: 0.5rem;">
+        <i class="fas fa-compass"></i>
+        <span>Marketplace</span>
+      </a>
+    </div>
   </div>
 
   <div class="container">
@@ -1032,6 +1038,17 @@
         try {
           SuperAffiliateAPI.renderAuthNav('authNav');
           console.log('Navbar rendered via SuperAffiliateAPI');
+          
+          // Add marketplace link after auth nav is rendered
+          const navContainer = document.getElementById('authNav');
+          if (navContainer && !navContainer.querySelector('a[href="marketplace.html"]')) {
+            const marketplaceLink = document.createElement('a');
+            marketplaceLink.href = 'marketplace.html';
+            marketplaceLink.className = 'nav-link-btn';
+            marketplaceLink.title = 'External Marketplace';
+            marketplaceLink.innerHTML = '<i class="fas fa-compass"></i><span>Marketplace</span>';
+            navContainer.insertBefore(marketplaceLink, navContainer.firstChild);
+          }
         } catch (error) {
           console.error('Error rendering navbar:', error);
           renderFallbackNavbar();
@@ -1047,6 +1064,10 @@
       if (!authNav) return;
       
       authNav.innerHTML = `
+        <a href="marketplace.html" class="nav-link-btn" title="External Marketplace">
+          <i class="fas fa-compass"></i>
+          <span>Marketplace</span>
+        </a>
         <a href="feed.html" style="padding: 0.6rem 1.2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; color: #cccccc; background: transparent; transition: all 0.3s ease;">
           <i class="fas fa-play"></i> Feed
         </a>

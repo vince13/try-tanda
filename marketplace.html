@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>External Marketplace - Tanda Web</title>
+  <meta name="description" content="Discover products from Jumia, Konga, Temu, and more on Tanda Marketplace.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/ios-enhancements.js"></script>
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem;
+      }
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    @media (max-width: 640px) {
+      .title {
+        font-size: 1.5rem;
+      }
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      max-width: 100%;
+    }
+
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav > * {
+      flex-shrink: 0;
+    }
+
+    .nav-link-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .nav-link-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Platform Filters */
+    .platform-filters {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .platform-filter-btn {
+      padding: 0.65rem 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .platform-filter-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .platform-filter-btn.active {
+      background: var(--primary-gradient);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
+    }
+
+    /* Search */
+    .search-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(0, 242, 234, 0.1);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* Product Grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+      }
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-color: var(--accent-color);
+    }
+
+    .product-image-container {
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .product-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-image-container i {
+      font-size: 3rem;
+      opacity: 0.3;
+      color: var(--text-secondary);
+    }
+
+    .product-info {
+      padding: 1rem;
+    }
+
+    .product-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.4;
+      min-height: 2.8em;
+    }
+
+    .product-price {
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-platform {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: capitalize;
+      padding: 0.25rem 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 0.25rem;
+      display: inline-block;
+    }
+
+    /* Loading & Empty States */
+    .loading-state,
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .loading-state i,
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state i {
+      color: var(--text-secondary);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: 0.5rem;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .page-info {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Product Detail Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      overflow-y: auto;
+      padding: 2rem 1rem;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      margin: auto;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      transition: color 0.3s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-product-image {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1;
+      border-radius: var(--border-radius);
+      margin: 0 auto 1.5rem;
+      display: block;
+      object-fit: cover;
+    }
+
+    .modal-product-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .modal-product-price {
+      font-size: 1.8rem;
+      color: var(--accent-color);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .modal-product-platform {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      text-transform: capitalize;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">External Marketplace</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <!-- Platform Filters -->
+    <div class="platform-filters">
+      <button class="platform-filter-btn active" data-platform="all" onclick="filterByPlatform('all')">
+        All
+      </button>
+      <button class="platform-filter-btn" data-platform="jumia" onclick="filterByPlatform('jumia')">
+        Jumia
+      </button>
+      <button class="platform-filter-btn" data-platform="konga" onclick="filterByPlatform('konga')">
+        Konga
+      </button>
+      <button class="platform-filter-btn" data-platform="temu" onclick="filterByPlatform('temu')">
+        Temu
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput" 
+        placeholder="Search marketplace products..." 
+        onkeyup="handleSearch(event)"
+      />
+    </div>
+
+    <!-- Products Grid -->
+    <div id="productsGrid" class="products-grid">
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading marketplace products...</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination" style="display: none;">
+      <button class="btn btn-secondary" id="prevBtn" onclick="loadPage(-1)" disabled>
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <span class="page-info" id="pageInfo">Page 1</span>
+      <button class="btn btn-secondary" id="nextBtn" onclick="loadPage(1)">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div id="productModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Product Details</h2>
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentPage = 1;
+    let currentPlatform = 'all';
+    let currentSearch = '';
+    let pagination = null;
+    let searchTimeout = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNavbar();
+      loadProducts();
+    });
+
+    // Render navbar
+    function renderNavbar() {
+      const authNav = document.getElementById('authNav');
+      if (!authNav) return;
+
+      if (typeof SuperAffiliateAPI !== 'undefined' && SuperAffiliateAPI.renderAuthNav) {
+        try {
+          SuperAffiliateAPI.renderAuthNav('authNav');
+          
+          // Add marketplace link (current page indicator)
+          const navContainer = document.getElementById('authNav');
+          if (navContainer && !navContainer.querySelector('a[href="marketplace.html"]')) {
+            const marketplaceLink = document.createElement('a');
+            marketplaceLink.href = 'marketplace.html';
+            marketplaceLink.className = 'nav-link-btn';
+            marketplaceLink.style.background = 'var(--primary-gradient)';
+            marketplaceLink.style.color = 'white';
+            marketplaceLink.innerHTML = '<i class="fas fa-compass"></i><span>Marketplace</span>';
+            navContainer.insertBefore(marketplaceLink, navContainer.firstChild);
+          }
+        } catch (error) {
+          console.error('Error rendering navbar:', error);
+          renderFallbackNavbar();
+        }
+      } else {
+        renderFallbackNavbar();
+      }
+    }
+
+    function renderFallbackNavbar() {
+      const authNav = document.getElementById('authNav');
+      if (!authNav) return;
+
+      authNav.innerHTML = `
+        <a href="products.html" class="nav-link-btn">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Products</span>
+        </a>
+        <a href="feed.html" class="nav-link-btn">
+          <i class="fas fa-play"></i>
+          <span>Feed</span>
+        </a>
+      `;
+    }
+
+    // Load products
+    async function loadProducts(page = 1, refresh = false) {
+      const grid = document.getElementById('productsGrid');
+      
+      if (refresh) {
+        grid.innerHTML = `
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading marketplace products...</p>
+          </div>
+        `;
+      }
+
+      // Disable filter buttons during loading
+      document.querySelectorAll('.platform-filter-btn').forEach(btn => {
+        btn.disabled = true;
+      });
+      document.getElementById('searchInput').disabled = true;
+
+      try {
+        const response = await SuperAffiliateAPI.browseMarketplaceProducts(
+          page,
+          20,
+          currentPlatform,
+          currentSearch,
+          'created_at'
+        );
+
+        if (response && response.products && Array.isArray(response.products)) {
+          pagination = response.pagination || null;
+          renderProducts(response.products);
+          updatePagination();
+        } else {
+          showEmptyState();
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        showErrorState(error);
+      } finally {
+        // Re-enable controls
+        document.querySelectorAll('.platform-filter-btn').forEach(btn => {
+          btn.disabled = false;
+        });
+        document.getElementById('searchInput').disabled = false;
+      }
+    }
+
+    // Render products
+    function renderProducts(products) {
+      const grid = document.getElementById('productsGrid');
+
+      if (!products || products.length === 0) {
+        showEmptyState();
+        return;
+      }
+
+      grid.innerHTML = products.map(product => {
+        const productId = product.id || '';
+        const productName = product.product_name || product.name || 'Unknown Product';
+        const price = product.price ? `₦${parseFloat(product.price).toLocaleString()}` : 'Price not available';
+        const platform = product.platform || 'unknown';
+        const imageUrl = product.product_image_url || product.image_url || '';
+
+        // Escape HTML
+        const escapedName = safeText(productName);
+        const escapedId = safeText(productId);
+
+        return `
+          <div class="product-card" onclick="showProductDetail('${escapedId}')" data-product-id="${escapedId}">
+            <div class="product-image-container">
+              ${imageUrl 
+                ? `<img src="${imageUrl}" alt="${escapedName}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">`
+                : '<i class="fas fa-shopping-bag"></i>'
+              }
+            </div>
+            <div class="product-info">
+              <div class="product-name">${escapedName}</div>
+              <div class="product-price">${price}</div>
+              <div class="product-platform">${platform}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Show empty state
+    function showEmptyState() {
+      const grid = document.getElementById('productsGrid');
+      const platformFilter = currentPlatform !== 'all' ? currentPlatform.charAt(0).toUpperCase() + currentPlatform.slice(1) : '';
+      const searchTerm = currentSearch;
+
+      let message = 'No products found';
+      if (platformFilter && searchTerm) {
+        message = `No products found matching "${searchTerm}" on ${platformFilter}.`;
+      } else if (platformFilter) {
+        message = `No products available on ${platformFilter} at the moment.`;
+      } else if (searchTerm) {
+        message = `No products found matching "${searchTerm}".`;
+      } else {
+        message = 'No products available in the marketplace at the moment.';
+      }
+
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <i class="fas fa-search"></i>
+          <p>${message}</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">
+            Try adjusting your search or filter settings.
+          </p>
+        </div>
+      `;
+    }
+
+    // Show error state
+    function showErrorState(error) {
+      const grid = document.getElementById('productsGrid');
+      let errorMsg = 'Unable to load marketplace products';
+      
+      if (error.message) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('timeout') || msg.includes('connection')) {
+          errorMsg = 'Connection timeout. Please check your internet connection and try again.';
+        } else if (msg.includes('network') || msg.includes('fetch')) {
+          errorMsg = 'Network error. Please check your internet connection and try again.';
+        } else {
+          errorMsg = error.message;
+        }
+      }
+
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <i class="fas fa-exclamation-circle" style="color: #ff0050;"></i>
+          <p><strong>Failed to load marketplace products</strong></p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">${errorMsg}</p>
+          <button class="btn" onclick="loadProducts(currentPage, true)" style="margin-top: 1rem;">
+            <i class="fas fa-redo"></i> Retry
+          </button>
+        </div>
+      `;
+    }
+
+    // Filter by platform
+    function filterByPlatform(platform) {
+      currentPlatform = platform;
+      currentPage = 1;
+
+      // Update button states
+      document.querySelectorAll('.platform-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.platform === platform) {
+          btn.classList.add('active');
+        }
+      });
+
+      loadProducts(1, true);
+    }
+
+    // Handle search
+    function handleSearch(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        performSearch();
+      } else {
+        // Debounce search
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          performSearch();
+        }, 500);
+      }
+    }
+
+    function performSearch() {
+      const searchInput = document.getElementById('searchInput');
+      currentSearch = searchInput.value.trim();
+      currentPage = 1;
+      loadProducts(1, true);
+    }
+
+    // Pagination
+    function loadPage(direction) {
+      if (!pagination) return;
+
+      const newPage = currentPage + direction;
+      const hasNext = pagination.has_next || false;
+      const hasPrev = pagination.has_prev || false;
+
+      if (direction > 0 && !hasNext) return;
+      if (direction < 0 && !hasPrev) return;
+
+      currentPage = newPage;
+      loadProducts(currentPage, true);
+    }
+
+    function updatePagination() {
+      const paginationDiv = document.getElementById('pagination');
+      const pageInfo = document.getElementById('pageInfo');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      if (!pagination) {
+        paginationDiv.style.display = 'none';
+        return;
+      }
+
+      const hasNext = pagination.has_next || false;
+      const hasPrev = pagination.has_prev || false;
+      const current = pagination.current_page || currentPage;
+      const total = pagination.total_pages || 1;
+
+      if (total <= 1) {
+        paginationDiv.style.display = 'none';
+        return;
+      }
+
+      paginationDiv.style.display = 'flex';
+      pageInfo.textContent = `Page ${current} of ${total}`;
+      prevBtn.disabled = !hasPrev;
+      nextBtn.disabled = !hasNext;
+    }
+
+    // Product detail modal
+    async function showProductDetail(productId) {
+      const modal = document.getElementById('productModal');
+      const modalBody = document.getElementById('modalBody');
+
+      modalBody.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading product details...</p>
+        </div>
+      `;
+      modal.classList.add('active');
+
+      try {
+        const product = await SuperAffiliateAPI.getMarketplaceProductDetails(productId);
+        
+        const productName = product.product_name || product.name || 'Unknown Product';
+        const price = product.price ? `₦${parseFloat(product.price).toLocaleString()}` : 'Price not available';
+        const platform = product.platform || 'unknown';
+        const imageUrl = product.product_image_url || product.image_url || '';
+        const originalUrl = product.original_url || '';
+        const tandaUrl = product.tanda_affiliate_url || originalUrl;
+
+        modalBody.innerHTML = `
+          ${imageUrl ? `<img src="${imageUrl}" alt="${safeText(productName)}" class="modal-product-image" onerror="this.style.display='none'">` : ''}
+          <h2 class="modal-product-name">${safeText(productName)}</h2>
+          <div class="modal-product-price">${price}</div>
+          <div class="modal-product-platform">${platform}</div>
+          ${product.description ? `<p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">${safeText(product.description)}</p>` : ''}
+          <div class="modal-actions">
+            <button class="btn" onclick="openProductUrl('${tandaUrl}')">
+              <i class="fas fa-external-link-alt"></i> Buy on ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+            </button>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error loading product details:', error);
+        modalBody.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-circle" style="color: #ff0050;"></i>
+            <p>Failed to load product details</p>
+            <button class="btn" onclick="closeModal()" style="margin-top: 1rem;">
+              Close
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function closeModal(event) {
+      if (event && event.target.id !== 'productModal' && !event.target.closest('.modal-close')) {
+        return;
+      }
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function openProductUrl(url) {
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
+
+    // Helper function to safely escape text
+    function safeText(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
+
