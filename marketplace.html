@@ -597,6 +597,46 @@
       flex: 1;
       justify-content: center;
     }
+
+    /* Admin Add Product Button (FAB) */
+    .admin-add-fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255, 0, 80, 0.4);
+      transition: all 0.3s ease;
+      display: none; /* Hidden by default, shown only for admins */
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .admin-add-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 0, 80, 0.6);
+    }
+
+    .admin-add-fab:active {
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 640px) {
+      .admin-add-fab {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 52px;
+        height: 52px;
+        font-size: 1.3rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -653,6 +693,11 @@
     </div>
   </div>
 
+  <!-- Admin Add Product FAB (Floating Action Button) -->
+  <button id="adminAddFab" class="admin-add-fab" onclick="openAddProductModal()" title="Add New Product">
+    <i class="fas fa-plus"></i>
+  </button>
+
   <!-- Product Detail Modal -->
   <div id="productModal" class="modal" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -663,6 +708,72 @@
         </button>
       </div>
       <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Admin Add Product Modal -->
+  <div id="adminAddModal" class="admin-edit-modal" onclick="closeAddProductModal(event)">
+    <div class="admin-edit-content" onclick="event.stopPropagation()">
+      <div class="admin-edit-header">
+        <h2>Add New Marketplace Product</h2>
+        <button class="modal-close" onclick="closeAddProductModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="adminAddForm" onsubmit="createProduct(event)">
+        <div class="admin-form-group">
+          <label for="addProductName">Product Name *</label>
+          <input type="text" id="addProductName" required placeholder="Enter product name">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductPrice">Price (₦) *</label>
+          <input type="number" id="addProductPrice" step="0.01" min="0" required placeholder="0.00">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductImageUrl">Product Image URL</label>
+          <input type="url" id="addProductImageUrl" placeholder="https://example.com/image.jpg">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductUrl">Product URL *</label>
+          <input type="url" id="addProductUrl" required placeholder="https://www.jumia.com.ng/...">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductDescription">Description</label>
+          <textarea id="addProductDescription" placeholder="Enter product description (optional)"></textarea>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductPlatform">Platform *</label>
+          <select id="addProductPlatform" required>
+            <option value="jumia">Jumia</option>
+            <option value="konga">Konga</option>
+            <option value="temu">Temu</option>
+            <option value="amazon">Amazon</option>
+            <option value="aliexpress">AliExpress</option>
+            <option value="shopify">Shopify</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="addProductStatus">Status *</label>
+          <select id="addProductStatus" required>
+            <option value="true" selected>Active (Visible in Marketplace)</option>
+            <option value="false">Inactive (Hidden)</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-actions">
+          <button type="button" class="btn-cancel" onclick="closeAddProductModal()">Cancel</button>
+          <button type="submit" class="btn-save" id="addProductBtn">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -767,6 +878,14 @@
       } catch (error) {
         console.error('Error checking admin status:', error);
         return false;
+      }
+    }
+
+    // Update UI based on admin status
+    function updateAdminUI() {
+      const addFab = document.getElementById('adminAddFab');
+      if (addFab) {
+        addFab.style.display = isAdmin ? 'flex' : 'none';
       }
     }
 
@@ -1225,6 +1344,74 @@
       } catch (error) {
         console.error('Error deleting product:', error);
         alert('Failed to delete product: ' + (error.message || 'Unknown error'));
+      }
+    }
+
+    // ========== ADD PRODUCT FUNCTIONS ==========
+
+    // Open add product modal
+    function openAddProductModal() {
+      if (!isAdmin) {
+        alert('Access denied. Admin privileges required.');
+        return;
+      }
+
+      // Reset form
+      document.getElementById('adminAddForm').reset();
+      document.getElementById('addProductStatus').value = 'true'; // Default to active
+      
+      // Show modal
+      document.getElementById('adminAddModal').classList.add('active');
+    }
+
+    // Close add product modal
+    function closeAddProductModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      
+      document.getElementById('adminAddModal').classList.remove('active');
+      document.getElementById('adminAddForm').reset();
+    }
+
+    // Create new product
+    async function createProduct(event) {
+      event.preventDefault();
+      
+      if (!isAdmin) {
+        alert('Access denied. Admin privileges required.');
+        return;
+      }
+
+      const addBtn = document.getElementById('addProductBtn');
+      addBtn.disabled = true;
+      addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+      try {
+        const payload = {
+          product_name: document.getElementById('addProductName').value.trim(),
+          price: parseFloat(document.getElementById('addProductPrice').value),
+          product_image_url: document.getElementById('addProductImageUrl').value.trim(),
+          original_url: document.getElementById('addProductUrl').value.trim(),
+          product_description: document.getElementById('addProductDescription').value.trim(),
+          platform: document.getElementById('addProductPlatform').value,
+          is_active: document.getElementById('addProductStatus').value === 'true',
+          scrape_status: 'manual', // Mark as manually created
+          currency: 'NGN'
+        };
+
+        await SuperAffiliateAPI.apiRequest('/videos/external-products/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        alert('✅ Product created successfully!');
+        closeAddProductModal();
+        loadProducts(); // Reload products
+      } catch (error) {
+        console.error('Error creating product:', error);
+        alert('Failed to create product: ' + (error.message || 'Unknown error'));
+      } finally {
+        addBtn.disabled = false;
+        addBtn.innerHTML = '<i class="fas fa-plus"></i> Add Product';
       }
     }
   </script>
