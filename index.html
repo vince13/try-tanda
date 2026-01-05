@@ -2732,52 +2732,65 @@
 
       // Register Service Worker for PWA with update handling
       if ('serviceWorker' in navigator) {
-        // Prevent infinite reload loop
-        let isReloading = false;
+        // Prevent infinite reload loop - check if we just reloaded
         const reloadFlag = sessionStorage.getItem('sw-reload-flag');
+        const reloadTimestamp = sessionStorage.getItem('sw-reload-timestamp');
+        const now = Date.now();
         
-        // Clear the reload flag if it exists (prevents loop)
-        if (reloadFlag) {
-          sessionStorage.removeItem('sw-reload-flag');
+        // Clear reload flag if it's older than 5 seconds (prevents stale flags)
+        if (reloadFlag && reloadTimestamp) {
+          const timeSinceReload = now - parseInt(reloadTimestamp);
+          if (timeSinceReload > 5000) {
+            sessionStorage.removeItem('sw-reload-flag');
+            sessionStorage.removeItem('sw-reload-timestamp');
+          }
         }
         
-        // First, unregister all old service workers
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          return Promise.all(
-            registrations.map((registration) => {
-              console.log('Unregistering old service worker:', registration.scope);
-              return registration.unregister();
-            })
-          );
-        }).then(() => {
-          // Then register the new one
-          return navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+        // Don't unregister service workers on every load - only register/update
+        navigator.serviceWorker.register('/sw.js', { 
+          updateViaCache: 'none',
+          scope: '/'
         }).then((registration) => {
-          console.log('✅ New Service Worker registered:', registration.scope);
+          console.log('✅ Service Worker registered:', registration.scope);
           
           // Only check for updates if we haven't just reloaded
           if (!reloadFlag) {
-            // Check for updates (but not immediately to avoid loop)
+            // Check for updates after a delay to avoid immediate loops
             setTimeout(() => {
-              registration.update();
-            }, 1000);
+              registration.update().catch(err => {
+                console.log('Service worker update check failed:', err);
+              });
+            }, 2000);
           }
           
-          // Listen for updates
+          // Listen for updates - but be more careful about reloading
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated' && !isReloading) {
-                  // Only reload if we haven't already set the flag
-                  if (!sessionStorage.getItem('sw-reload-flag')) {
+                // Only reload if:
+                // 1. New worker is activated
+                // 2. We haven't set a reload flag recently
+                // 3. We're not already in a reload cycle
+                if (newWorker.state === 'activated') {
+                  const currentReloadFlag = sessionStorage.getItem('sw-reload-flag');
+                  const currentReloadTime = sessionStorage.getItem('sw-reload-timestamp');
+                  
+                  // Check if we've reloaded recently (within last 10 seconds)
+                  const shouldReload = !currentReloadFlag || 
+                    (currentReloadTime && (now - parseInt(currentReloadTime)) > 10000);
+                  
+                  if (shouldReload && registration.active !== newWorker) {
                     console.log('🔄 New service worker activated, reloading...');
-                    isReloading = true;
                     sessionStorage.setItem('sw-reload-flag', 'true');
-                    // Small delay to prevent immediate loop
+                    sessionStorage.setItem('sw-reload-timestamp', now.toString());
+                    
+                    // Reload after a delay to prevent immediate loop
                     setTimeout(() => {
                       window.location.reload();
-                    }, 500);
+                    }, 1000);
+                  } else {
+                    console.log('⏭️ Skipping reload - already reloaded recently');
                   }
                 }
               });
