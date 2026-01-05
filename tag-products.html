@@ -1555,10 +1555,12 @@
           updateMarketplacePagination();
           
           // Re-enable filter buttons after successful load
+          const filterButtonIds = ['filterAll', 'filterJumia', 'filterKonga', 'filterTemu'];
           filterButtonIds.forEach(btnId => {
             const btn = document.getElementById(btnId);
             if (btn) btn.disabled = false;
           });
+          const searchInput = document.getElementById('marketplaceSearch');
           if (searchInput) searchInput.disabled = false;
           }
         } else {
