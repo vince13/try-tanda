@@ -353,6 +353,31 @@
       margin-left: 1rem;
     }
 
+    .nav-shop-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      white-space: nowrap;
+    }
+
+    .nav-shop-link:hover {
+      color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .nav-shop-link i {
+      font-size: 1rem;
+    }
+
     .auth-nav-buttons {
       display: flex;
       align-items: center;
@@ -1563,6 +1588,15 @@
         min-width: 0;
       }
 
+      .nav-shop-link span {
+        display: none;
+      }
+
+      .nav-shop-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+      }
+
       .nav-auth .user-menu-wrapper,
       .nav-auth .auth-nav-buttons {
         gap: 0.5rem;
@@ -2035,7 +2069,6 @@
         </a>
         <div class="nav-main">
           <ul class="nav-links">
-            <li><a href="products.html" class="shop-link">Shop</a></li>
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
             <li class="dropdown">
@@ -2049,7 +2082,13 @@
             </li>
             <li><a href="https://play.google.com/store/apps/details?id=com.tanda.app" target="_blank">Download App</a></li>
           </ul>
-          <div id="authNav" class="nav-auth tanda-nav-container"></div>
+          <div class="nav-auth">
+            <a href="products.html" class="nav-shop-link" id="navShopLink">
+              <i class="fas fa-shopping-bag"></i>
+              <span>Shop</span>
+            </a>
+            <div id="authNav" class="tanda-nav-container"></div>
+          </div>
         </div>
         <button class="mobile-menu-btn">
           <i class="fas fa-bars"></i>
