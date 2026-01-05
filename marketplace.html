@@ -858,25 +858,31 @@
     document.addEventListener('DOMContentLoaded', async () => {
       renderNavbar();
       await checkAdminStatus();
+      updateAdminUI(); // Show/hide admin controls based on status
       loadProducts();
     });
 
     // Check if user is admin
     async function checkAdminStatus() {
       if (!SuperAffiliateAPI.isAuthenticated()) {
+        isAdmin = false;
         return false;
       }
 
       try {
         currentUser = await SuperAffiliateAPI.getCurrentUser();
-        if (!currentUser) return false;
+        if (!currentUser) {
+          isAdmin = false;
+          return false;
+        }
         
         // Check if user is admin (superuser, staff, or role='admin')
         isAdmin = currentUser.is_superuser || currentUser.is_staff || currentUser.role === 'admin';
-        console.log('Admin status:', isAdmin, currentUser);
+        console.log('Admin status:', isAdmin, 'User:', currentUser);
         return isAdmin;
       } catch (error) {
         console.error('Error checking admin status:', error);
+        isAdmin = false;
         return false;
       }
     }
@@ -884,8 +890,18 @@
     // Update UI based on admin status
     function updateAdminUI() {
       const addFab = document.getElementById('adminAddFab');
+      console.log('updateAdminUI called - isAdmin:', isAdmin, 'addFab found:', !!addFab);
       if (addFab) {
-        addFab.style.display = isAdmin ? 'flex' : 'none';
+        if (isAdmin) {
+          addFab.style.display = 'flex';
+          addFab.classList.add('show');
+        } else {
+          addFab.style.display = 'none';
+          addFab.classList.remove('show');
+        }
+        console.log('FAB display set to:', addFab.style.display, 'has show class:', addFab.classList.contains('show'));
+      } else {
+        console.error('adminAddFab element not found!');
       }
     }
 
