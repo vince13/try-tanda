@@ -268,6 +268,170 @@
       display: inline-block;
     }
 
+    /* Admin Controls */
+    .admin-controls {
+      padding: 0 1rem 1rem;
+    }
+
+    .btn-admin-edit,
+    .btn-admin-delete {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+
+    .btn-admin-edit {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .btn-admin-edit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-admin-delete {
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+      color: white;
+    }
+
+    .btn-admin-delete:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+    }
+
+    /* Admin Edit Modal */
+    .admin-edit-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .admin-edit-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-edit-content {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .admin-edit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .admin-edit-header h2 {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .admin-form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .admin-form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .admin-form-group input,
+    .admin-form-group textarea,
+    .admin-form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .admin-form-group input:focus,
+    .admin-form-group textarea:focus,
+    .admin-form-group select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .admin-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .admin-form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .admin-form-actions button {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-save {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-save:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.4);
+    }
+
+    .btn-save:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
     /* Loading & Empty States */
     .loading-state,
     .empty-state {
@@ -502,6 +666,73 @@
     </div>
   </div>
 
+  <!-- Admin Edit Modal -->
+  <div id="adminEditModal" class="admin-edit-modal" onclick="closeEditModal(event)">
+    <div class="admin-edit-content" onclick="event.stopPropagation()">
+      <div class="admin-edit-header">
+        <h2>Edit Marketplace Product</h2>
+        <button class="modal-close" onclick="closeEditModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="adminEditForm" onsubmit="saveProduct(event)">
+        <div class="admin-form-group">
+          <label for="editProductName">Product Name *</label>
+          <input type="text" id="editProductName" required placeholder="Enter product name">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductPrice">Price (₦) *</label>
+          <input type="number" id="editProductPrice" step="0.01" min="0" required placeholder="0.00">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductImageUrl">Product Image URL</label>
+          <input type="url" id="editProductImageUrl" placeholder="https://example.com/image.jpg">
+          <small style="color: var(--text-secondary); font-size: 0.85rem;">Leave empty to keep current image</small>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductUrl">Product URL *</label>
+          <input type="url" id="editProductUrl" required placeholder="https://www.jumia.com.ng/...">
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductDescription">Description</label>
+          <textarea id="editProductDescription" placeholder="Enter product description (optional)"></textarea>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductPlatform">Platform *</label>
+          <select id="editProductPlatform" required>
+            <option value="jumia">Jumia</option>
+            <option value="konga">Konga</option>
+            <option value="temu">Temu</option>
+            <option value="amazon">Amazon</option>
+            <option value="aliexpress">AliExpress</option>
+            <option value="shopify">Shopify</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="editProductStatus">Status *</label>
+          <select id="editProductStatus" required>
+            <option value="true">Active (Visible in Marketplace)</option>
+            <option value="false">Inactive (Hidden)</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-actions">
+          <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn-save" id="saveBtn">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     // State
     let currentPage = 1;
@@ -509,12 +740,35 @@
     let currentSearch = '';
     let pagination = null;
     let searchTimeout = null;
+    let isAdmin = false;
+    let currentUser = null;
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       renderNavbar();
+      await checkAdminStatus();
       loadProducts();
     });
+
+    // Check if user is admin
+    async function checkAdminStatus() {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        return false;
+      }
+
+      try {
+        currentUser = await SuperAffiliateAPI.getCurrentUser();
+        if (!currentUser) return false;
+        
+        // Check if user is admin (superuser, staff, or role='admin')
+        isAdmin = currentUser.is_superuser || currentUser.is_staff || currentUser.role === 'admin';
+        console.log('Admin status:', isAdmin, currentUser);
+        return isAdmin;
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+    }
 
     // Render navbar
     function renderNavbar() {
@@ -633,7 +887,7 @@
         const escapedId = safeText(productId);
 
         return `
-          <div class="product-card" onclick="showProductDetail('${escapedId}')" data-product-id="${escapedId}">
+          <div class="product-card" ${!isAdmin ? `onclick="showProductDetail('${escapedId}')"` : ''} data-product-id="${escapedId}">
             <div class="product-image-container">
               ${imageUrl 
                 ? `<img src="${imageUrl}" alt="${escapedName}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-shopping-bag\\'></i>'">`
@@ -645,6 +899,16 @@
               <div class="product-price">${price}</div>
               <div class="product-platform">${platform}</div>
             </div>
+            ${isAdmin ? `
+              <div class="admin-controls" style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                <button class="btn-admin-edit" onclick="event.stopPropagation(); openEditModal('${escapedId}')" title="Edit Product">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn-admin-delete" onclick="event.stopPropagation(); deleteProduct('${escapedId}')" title="Delete Product">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+            ` : ''}
           </div>
         `;
       }).join('');
@@ -851,6 +1115,117 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    // ========== ADMIN FUNCTIONS ==========
+    
+    let currentEditProductId = null;
+    let currentEditProduct = null;
+
+    // Open edit modal for a product
+    async function openEditModal(productId) {
+      if (!isAdmin) {
+        alert('Access denied. Admin privileges required.');
+        return;
+      }
+
+      try {
+        // Fetch product details
+        const product = await SuperAffiliateAPI.apiRequest(`/videos/external-products/${productId}/`);
+        currentEditProductId = productId;
+        currentEditProduct = product;
+
+        // Populate form
+        document.getElementById('editProductName').value = product.product_name || '';
+        document.getElementById('editProductPrice').value = product.price || '';
+        document.getElementById('editProductImageUrl').value = product.product_image_url || '';
+        document.getElementById('editProductUrl').value = product.original_url || '';
+        document.getElementById('editProductDescription').value = product.product_description || '';
+        document.getElementById('editProductPlatform').value = product.platform || 'jumia';
+        document.getElementById('editProductStatus').value = product.is_active ? 'true' : 'false';
+
+        // Show modal
+        document.getElementById('adminEditModal').classList.add('active');
+      } catch (error) {
+        console.error('Error loading product:', error);
+        alert('Failed to load product details: ' + (error.message || 'Unknown error'));
+      }
+    }
+
+    // Close edit modal
+    function closeEditModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      
+      document.getElementById('adminEditModal').classList.remove('active');
+      currentEditProductId = null;
+      currentEditProduct = null;
+      document.getElementById('adminEditForm').reset();
+    }
+
+    // Save product changes
+    async function saveProduct(event) {
+      event.preventDefault();
+      
+      if (!isAdmin || !currentEditProductId) {
+        alert('Access denied or invalid product.');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+      try {
+        const payload = {
+          product_name: document.getElementById('editProductName').value.trim(),
+          price: parseFloat(document.getElementById('editProductPrice').value),
+          product_image_url: document.getElementById('editProductImageUrl').value.trim(),
+          original_url: document.getElementById('editProductUrl').value.trim(),
+          product_description: document.getElementById('editProductDescription').value.trim(),
+          platform: document.getElementById('editProductPlatform').value,
+          is_active: document.getElementById('editProductStatus').value === 'true',
+          scrape_status: 'manual' // Mark as manually edited
+        };
+
+        await SuperAffiliateAPI.apiRequest(`/videos/external-products/${currentEditProductId}/`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+
+        alert('✅ Product updated successfully!');
+        closeEditModal();
+        loadProducts(); // Reload products
+      } catch (error) {
+        console.error('Error saving product:', error);
+        alert('Failed to save product: ' + (error.message || 'Unknown error'));
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      }
+    }
+
+    // Delete product
+    async function deleteProduct(productId) {
+      if (!isAdmin) {
+        alert('Access denied. Admin privileges required.');
+        return;
+      }
+
+      if (!confirm('Are you sure you want to delete this product from the marketplace? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest(`/videos/external-products/${productId}/`, {
+          method: 'DELETE'
+        });
+
+        alert('✅ Product deleted successfully!');
+        loadProducts(); // Reload products
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Failed to delete product: ' + (error.message || 'Unknown error'));
+      }
     }
   </script>
 </body>
