@@ -1602,10 +1602,20 @@
         gap: 0.5rem;
         flex-wrap: nowrap;
         overflow-x: auto;
-        overflow-y: hidden;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         padding-right: 0.5rem;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav-auth .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav-auth .user-menu-wrapper {
+        overflow: visible !important;
       }
 
       .nav-auth .user-menu-wrapper::-webkit-scrollbar,

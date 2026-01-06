@@ -1251,6 +1251,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         overflow: visible !important;
       }
       
+      /* When dropdown is portaled to body, ensure it's on top */
+      body > .user-menu {
+        z-index: 99999 !important;
+      }
+      
       .user-menu-dropdown .user-menu {
         position: fixed !important;
         background: #000000 !important;
@@ -1420,6 +1425,17 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.style.right = '';
         userMenu.style.bottom = '';
         userMenu.style.maxWidth = '';
+        
+        // PORTAL RESTORATION: Move dropdown back to original parent if it was moved
+        if (userMenu.dataset.originalParentId && userMenu.parentElement === document.body) {
+          const originalParentId = userMenu.dataset.originalParentId;
+          const originalParent = document.getElementById(originalParentId);
+          if (originalParent && originalParent !== document.body) {
+            originalParent.appendChild(userMenu);
+          }
+          delete userMenu.dataset.originalParentId;
+        }
+        
         setTimeout(() => userMenu.classList.remove('closing'), 50);
         if (clickHandler) {
           document.removeEventListener('click', clickHandler);
@@ -1428,6 +1444,23 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       } else {
         // Ensure we don't carry over the close override
         userMenu.classList.remove('closing');
+        
+        // PORTAL APPROACH: Move dropdown to body FIRST to escape overflow containers
+        // This ensures the dropdown appears even when inside scrollable containers
+        // Store reference to original parent for restoration later
+        if (!userMenu.dataset.originalParentId) {
+          // Create a unique ID for the original parent if it doesn't have one
+          if (!userMenuDropdown.id) {
+            userMenuDropdown.id = 'user-menu-dropdown-' + Date.now();
+          }
+          userMenu.dataset.originalParentId = userMenuDropdown.id;
+        }
+        
+        // Move to body if not already there
+        if (userMenu.parentElement !== document.body) {
+          document.body.appendChild(userMenu);
+        }
+        
         // Calculate position for fixed dropdown (to avoid clipping by overflow containers)
         const toggleRect = menuToggle.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
@@ -1590,6 +1623,17 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
             userMenu.style.right = '';
             userMenu.style.bottom = '';
             userMenu.style.maxWidth = '';
+            
+            // PORTAL RESTORATION: Move dropdown back to original parent if it was moved
+            if (userMenu.dataset.originalParentId && userMenu.parentElement === document.body) {
+              const originalParentId = userMenu.dataset.originalParentId;
+              const originalParent = document.getElementById(originalParentId);
+              if (originalParent && originalParent !== document.body) {
+                originalParent.appendChild(userMenu);
+              }
+              delete userMenu.dataset.originalParentId;
+            }
+            
             setTimeout(() => userMenu.classList.remove('closing'), 50);
             document.removeEventListener('click', clickHandler);
             clickHandler = null;
