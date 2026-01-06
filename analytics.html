@@ -60,6 +60,37 @@
       align-items: center;
       gap: 0.5rem;
     }
+    
+    /* Mobile: Add horizontal scroll to nav items - same as orders.html */
+    @media (max-width: 768px) {
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
+    }
 
     .container {
       max-width: 1200px;
