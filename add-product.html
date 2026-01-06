@@ -598,10 +598,12 @@
       }
     }
 
-    // Load categories
+    // Load categories (include empty categories for product creation)
     async function loadCategories() {
       try {
-        const response = await SuperAffiliateAPI.apiRequest('/commerce/categories/');
+        // Use include_empty=true to show all categories, not just ones with products
+        // This allows sellers to add products to any category, which will auto-activate the category
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/categories/?include_empty=true');
         const categories = Array.isArray(response) ? response : (response.results || response.categories || []);
         const select = document.getElementById('category');
         select.innerHTML = '<option value="">Select category</option>';
@@ -611,6 +613,7 @@
           option.textContent = cat.name || cat.title;
           select.appendChild(option);
         });
+        console.log(`✅ Loaded ${categories.length} categories (including empty ones for product creation)`);
       } catch (error) {
         console.error('Error loading categories:', error);
         showAlert('Failed to load categories. Please refresh the page.', 'error');
