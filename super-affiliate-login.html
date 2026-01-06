@@ -528,7 +528,8 @@
         const successDiv = document.getElementById('forgot-password-success');
         const successText = document.getElementById('success-text');
         
-        const email = emailInput.value.trim();
+        // Normalize email: trim whitespace and convert to lowercase
+        const email = emailInput.value.trim().toLowerCase();
         
         // Hide previous messages
         errorDiv.style.display = 'none';
