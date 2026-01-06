@@ -1126,8 +1126,10 @@
       
       // Show "All" chip immediately (fallback)
       if (chipsContainer && chipsContainer.innerHTML.trim() === '') {
+        const activeCategory = selectedCategory || '';
+        const allChipActive = activeCategory === '' ? 'active' : '';
         chipsContainer.innerHTML = `
-          <div class="category-chip active" onclick="selectCategory('')" data-category="">
+          <div class="category-chip ${allChipActive}" onclick="selectCategory('')" data-category="">
             <i class="fas fa-th"></i> All
           </div>
         `;
@@ -1153,9 +1155,13 @@
 
         // Load category chips
         if (chipsContainer) {
+          // Determine which category should be active (preserve current selection)
+          const activeCategory = selectedCategory || '';
+          
           // Add "All" chip first
+          const allChipActive = activeCategory === '' ? 'active' : '';
           let chipsHTML = `
-            <div class="category-chip active" onclick="selectCategory('')" data-category="">
+            <div class="category-chip ${allChipActive}" onclick="selectCategory('')" data-category="">
               <i class="fas fa-th"></i> All
             </div>
           `;
@@ -1165,8 +1171,9 @@
             const slug = cat.slug || cat.id || cat.name;
             const name = cat.name || cat.title || 'Category';
             const iconClass = categoryIcons[slug] || categoryIcons['default'];
+            const chipActive = activeCategory === slug ? 'active' : '';
             chipsHTML += `
-              <div class="category-chip" onclick="selectCategory('${slug}')" data-category="${slug}">
+              <div class="category-chip ${chipActive}" onclick="selectCategory('${slug}')" data-category="${slug}">
                 <i class="${iconClass}"></i> ${name}
               </div>
             `;
@@ -1195,8 +1202,10 @@
         console.warn('⚠️ Error loading categories:', error);
         // Ensure "All" chip is shown on error
         if (chipsContainer) {
+          const activeCategory = selectedCategory || '';
+          const allChipActive = activeCategory === '' ? 'active' : '';
           chipsContainer.innerHTML = `
-            <div class="category-chip active" onclick="selectCategory('')" data-category="">
+            <div class="category-chip ${allChipActive}" onclick="selectCategory('')" data-category="">
               <i class="fas fa-th"></i> All
             </div>
           `;
