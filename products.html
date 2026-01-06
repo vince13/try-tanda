@@ -1112,11 +1112,20 @@
       'fashion': 'fas fa-shirt',
       'beauty': 'fas fa-spa',
       'health': 'fas fa-heartbeat',
-      'home': 'fas fa-home',
+      'home': 'fas fa-couch', // Changed from fa-home to differentiate from nav HOME
+      'home-goods': 'fas fa-couch',
+      'home-living': 'fas fa-couch',
       'sports': 'fas fa-football-ball',
       'books': 'fas fa-book',
       'toys': 'fas fa-gamepad',
       'default': 'fas fa-tag'
+    };
+
+    // Category display name mapping (to differentiate from nav items)
+    const categoryDisplayNames = {
+      'home': 'Home & Living',
+      'home-goods': 'Home & Living',
+      'home-living': 'Home & Living'
     };
 
     // Load categories and create chips + dropdown
@@ -1169,12 +1178,16 @@
           // Add category chips
           categories.forEach(cat => {
             const slug = cat.slug || cat.id || cat.name;
-            const name = cat.name || cat.title || 'Category';
+            // Use display name mapping if available, otherwise use original name
+            let displayName = cat.name || cat.title || 'Category';
+            if (categoryDisplayNames[slug]) {
+              displayName = categoryDisplayNames[slug];
+            }
             const iconClass = categoryIcons[slug] || categoryIcons['default'];
             const chipActive = activeCategory === slug ? 'active' : '';
             chipsHTML += `
               <div class="category-chip ${chipActive}" onclick="selectCategory('${slug}')" data-category="${slug}">
-                <i class="${iconClass}"></i> ${name}
+                <i class="${iconClass}"></i> ${displayName}
               </div>
             `;
           });
@@ -1192,8 +1205,14 @@
           select.innerHTML = '<option value="">All Categories</option>';
           categories.forEach(cat => {
             const option = document.createElement('option');
-            option.value = cat.slug || cat.id || cat.name;
-            option.textContent = cat.name || cat.title || 'Category';
+            const slug = cat.slug || cat.id || cat.name;
+            option.value = slug;
+            // Use display name mapping if available, otherwise use original name
+            let displayName = cat.name || cat.title || 'Category';
+            if (categoryDisplayNames[slug]) {
+              displayName = categoryDisplayNames[slug];
+            }
+            option.textContent = displayName;
             select.appendChild(option);
           });
           select.value = currentValue;
