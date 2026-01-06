@@ -2047,18 +2047,22 @@
     async function loadQuotaStatus() {
       try {
         quotaStatus = await SuperAffiliateAPI.apiRequest('/videos/overlay-quota/');
-        const plan = quotaStatus.plan;
-        const usage = quotaStatus.usage;
+        console.log('Quota status response:', quotaStatus);
+        
+        // Handle response structure
+        const plan = quotaStatus?.plan || null;
+        const usage = quotaStatus?.usage || {};
 
-        if (plan) {
-          const productsUsed = usage.products_used_this_month || 0;
-          const productsLimit = plan.max_products_per_month === 0 ? '∞' : plan.max_products_per_month;
-          const videosUsed = usage.videos_used_this_month || 0;
-          const videosLimit = plan.max_videos_per_month === 0 ? '∞' : plan.max_videos_per_month;
+        if (plan && plan.name) {
+          // Ensure we have valid numbers
+          const productsUsed = parseInt(usage.products_used_this_month) || 0;
+          const productsLimit = plan.max_products_per_month === 0 || plan.max_products_per_month === null ? '∞' : plan.max_products_per_month;
+          const videosUsed = parseInt(usage.videos_used_this_month) || 0;
+          const videosLimit = plan.max_videos_per_month === 0 || plan.max_videos_per_month === null ? '∞' : plan.max_videos_per_month;
 
           document.getElementById('quotaProducts').textContent = `${productsUsed} / ${productsLimit}`;
           document.getElementById('quotaVideos').textContent = `${videosUsed} / ${videosLimit}`;
-          document.getElementById('quotaPlan').textContent = plan.name;
+          document.getElementById('quotaPlan').textContent = plan.name || 'Unknown Plan';
 
           // Check if quota is exceeded
           const productsExceeded = plan.max_products_per_month > 0 && productsUsed >= plan.max_products_per_month;
@@ -2074,15 +2078,23 @@
             document.getElementById('quotaWarning').style.display = 'none';
           }
         } else {
-          document.getElementById('quotaProducts').textContent = 'N/A';
-          document.getElementById('quotaVideos').textContent = 'N/A';
+          // No plan assigned - show usage even without plan
+          const productsUsed = parseInt(usage?.products_used_this_month) || 0;
+          const videosUsed = parseInt(usage?.videos_used_this_month) || 0;
+          
+          document.getElementById('quotaProducts').textContent = `${productsUsed} / -`;
+          document.getElementById('quotaVideos').textContent = `${videosUsed} / -`;
           document.getElementById('quotaPlan').textContent = 'No Plan';
           document.getElementById('quotaWarningText').textContent = 'You need to subscribe to a plan to tag products.';
           document.getElementById('quotaWarning').style.display = 'block';
         }
       } catch (error) {
         console.error('Error loading quota status:', error);
+        document.getElementById('quotaProducts').textContent = 'Error';
+        document.getElementById('quotaVideos').textContent = 'Error';
         document.getElementById('quotaPlan').textContent = 'Error';
+        document.getElementById('quotaWarningText').textContent = 'Failed to load quota status. Please refresh the page.';
+        document.getElementById('quotaWarning').style.display = 'block';
       }
     }
 

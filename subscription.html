@@ -447,47 +447,95 @@
     // Load subscription plans
     async function loadPlans() {
       try {
-        const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/plans/');
-        plans = response.plans || [];
+        console.log('Loading subscription plans from /videos/subscription/plans/...');
+        let response = await SuperAffiliateAPI.apiRequest('/videos/subscription/plans/');
+        console.log('Plans API response:', response);
+        
+        // If subscription endpoint fails, try overlay-plans endpoint as fallback
+        if (!response || response.error || (!response.plans && !Array.isArray(response))) {
+          console.log('Trying fallback endpoint /videos/overlay-plans/...');
+          response = await SuperAffiliateAPI.apiRequest('/videos/overlay-plans/');
+          console.log('Fallback plans API response:', response);
+        }
+        
+        // Check for error in response
+        if (response?.error) {
+          throw new Error(response.error);
+        }
+        
+        // Handle different response structures
+        // Response should be: { plans: [...] } or just [...]
+        if (Array.isArray(response)) {
+          plans = response;
+        } else if (response?.plans && Array.isArray(response.plans)) {
+          plans = response.plans;
+        } else {
+          plans = [];
+        }
 
+        console.log('Parsed plans:', plans);
         const plansGrid = document.getElementById('plansGrid');
         
-        if (plans.length === 0) {
-          plansGrid.innerHTML = '<div class="error-message">No subscription plans available.</div>';
+        if (!Array.isArray(plans) || plans.length === 0) {
+          console.warn('No plans found. Response structure:', response);
+          plansGrid.innerHTML = `
+            <div class="error-message">
+              <p><strong>No subscription plans available.</strong></p>
+              <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                ${response?.error ? `Error: ${response.error}` : 'Please contact support or check back later.'}
+              </p>
+              <button onclick="loadPlans()" class="btn" style="margin-top: 1rem;">
+                <i class="fas fa-redo"></i> Retry
+              </button>
+            </div>
+          `;
           return;
         }
 
         plansGrid.innerHTML = plans.map(plan => {
-          const isCurrentPlan = currentPlanId === plan.id;
-          const isFree = parseFloat(plan.price_per_month) === 0;
-          const productsLimit = plan.max_products_per_month === 0 ? 'Unlimited' : `${plan.max_products_per_month}`;
-          const videosLimit = plan.max_videos_per_month === 0 ? 'Unlimited' : `${plan.max_videos_per_month}`;
+          // Ensure all fields have defaults
+          const planId = plan.id || '';
+          const planName = plan.name || 'Unnamed Plan';
+          const pricePerMonth = parseFloat(plan.price_per_month || 0);
+          const maxProducts = plan.max_products_per_month ?? 0;
+          const maxVideos = plan.max_videos_per_month ?? 0;
+          const isFeatured = plan.is_featured || false;
+          const description = plan.description || '';
+          const allowExternal = plan.allow_external_affiliate || false;
+          const allowTanda = plan.allow_tanda_affiliate !== false; // Default to true
+          const revenueSplit = plan.revenue_split_percentage || '70';
+          const features = Array.isArray(plan.features) ? plan.features : [];
+          
+          const isCurrentPlan = currentPlanId === planId;
+          const isFree = pricePerMonth === 0;
+          const productsLimit = maxProducts === 0 ? 'Unlimited' : `${maxProducts}`;
+          const videosLimit = maxVideos === 0 ? 'Unlimited' : `${maxVideos}`;
 
           return `
-            <div class="plan-card ${plan.is_featured ? 'featured' : ''} ${isCurrentPlan ? 'current' : ''}">
-              ${plan.is_featured ? '<div class="plan-badge">Popular</div>' : ''}
+            <div class="plan-card ${isFeatured ? 'featured' : ''} ${isCurrentPlan ? 'current' : ''}">
+              ${isFeatured ? '<div class="plan-badge">Popular</div>' : ''}
               ${isCurrentPlan ? '<div class="plan-badge current">Current Plan</div>' : ''}
               
-              <div class="plan-name">${plan.name}</div>
+              <div class="plan-name">${planName}</div>
               
               <div class="plan-price">
-                <span class="currency">₦</span>${formatPrice(plan.price_per_month)}
+                <span class="currency">₦</span>${formatPrice(pricePerMonth)}
                 <span class="period">/month</span>
               </div>
               
-              ${plan.description ? `<div class="plan-description">${plan.description}</div>` : ''}
+              ${description ? `<div class="plan-description">${description}</div>` : ''}
               
               <ul class="plan-features">
                 <li><i class="fas fa-check"></i> ${productsLimit} products per month</li>
                 <li><i class="fas fa-check"></i> ${videosLimit} videos per month</li>
-                ${plan.allow_external_affiliate ? '<li><i class="fas fa-check"></i> Custom affiliate links</li>' : ''}
-                ${plan.allow_tanda_affiliate ? '<li><i class="fas fa-check"></i> Tanda affiliate (${plan.revenue_split_percentage}% commission)</li>' : ''}
-                ${plan.features && plan.features.length > 0 ? plan.features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('') : ''}
+                ${allowExternal ? '<li><i class="fas fa-check"></i> Custom affiliate links</li>' : ''}
+                ${allowTanda ? `<li><i class="fas fa-check"></i> Tanda affiliate (${revenueSplit}% commission)</li>` : ''}
+                ${features.length > 0 ? features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('') : ''}
               </ul>
               
               <button 
                 class="plan-btn ${isCurrentPlan ? 'current' : ''}" 
-                onclick="selectPlan('${plan.id}', ${isCurrentPlan}, ${isFree})"
+                onclick="selectPlan('${planId}', ${isCurrentPlan}, ${isFree})"
                 ${isCurrentPlan ? 'disabled' : ''}
               >
                 ${isCurrentPlan ? '<i class="fas fa-check-circle"></i> Current Plan' : isFree ? '<i class="fas fa-gift"></i> Get Started' : '<i class="fas fa-arrow-up"></i> Upgrade'}
@@ -497,8 +545,15 @@
         }).join('');
       } catch (error) {
         console.error('Error loading plans:', error);
+        const errorMsg = error?.message || error?.toString() || 'Unknown error';
         document.getElementById('plansGrid').innerHTML = `
-          <div class="error-message">Failed to load subscription plans. Please refresh the page.</div>
+          <div class="error-message">
+            <p><strong>Failed to load subscription plans.</strong></p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">Error: ${errorMsg}</p>
+            <button onclick="loadPlans()" class="btn" style="margin-top: 1rem;">
+              <i class="fas fa-redo"></i> Retry
+            </button>
+          </div>
         `;
       }
     }
