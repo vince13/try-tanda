@@ -1094,26 +1094,48 @@
         let sellerStatus = null;
         let affiliateStatus = null;
         
+        // Check seller status
         try {
           const sellerResponse = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
           if (sellerResponse && sellerResponse.status === 'approved') {
             isSeller = true;
             sellerStatus = sellerResponse.status;
+            console.log('✅ User is an approved seller');
+          } else if (sellerResponse && sellerResponse.status) {
+            console.log('ℹ️ User is a seller but status is:', sellerResponse.status);
           }
         } catch (e) {
-          // User is not a seller or endpoint doesn't exist
-          console.log('User is not a seller:', e);
+          // User is not a seller or endpoint doesn't exist (404 is expected for non-sellers)
+          if (e.message && !e.message.includes('404')) {
+            console.log('Error checking seller status:', e);
+          }
         }
         
+        // Check affiliate status
         try {
           const affiliateResponse = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
-          if (affiliateResponse && affiliateResponse.status === 'approved') {
-            isAffiliate = true;
-            affiliateStatus = affiliateResponse.status;
+          console.log('📋 Affiliate profile response:', affiliateResponse);
+          
+          if (affiliateResponse) {
+            const status = affiliateResponse.status;
+            console.log('📊 Affiliate status:', status);
+            
+            if (status === 'approved') {
+              isAffiliate = true;
+              affiliateStatus = status;
+              console.log('✅ User is an approved affiliate');
+            } else if (status) {
+              console.log('ℹ️ User is an affiliate but status is:', status, '(not approved)');
+            }
           }
         } catch (e) {
-          // User is not an affiliate or endpoint doesn't exist
-          console.log('User is not an affiliate:', e);
+          // User is not an affiliate or endpoint doesn't exist (404 is expected for non-affiliates)
+          const errorMsg = e.message || e.toString();
+          if (!errorMsg.includes('404') && !errorMsg.includes('Not Found')) {
+            console.error('❌ Error checking affiliate status:', e);
+          } else {
+            console.log('ℹ️ User does not have an affiliate profile (404 expected)');
+          }
         }
         
         userRoleStatus = {
@@ -1125,11 +1147,18 @@
         };
         
         // Check if user is admin/staff (can bypass role check)
-        const userInfo = SuperAffiliateAPI.getUserInfo();
-        if (userInfo && (userInfo.is_staff || userInfo.is_superuser || userInfo.role === 'admin')) {
-          userRoleStatus.hasRole = true; // Admin/staff can subscribe
+        try {
+          const userProfile = await SuperAffiliateAPI.getUserProfile();
+          if (userProfile && (userProfile.is_staff || userProfile.is_superuser || userProfile.role === 'admin')) {
+            userRoleStatus.hasRole = true; // Admin/staff can subscribe
+            console.log('✅ User is admin/staff - can subscribe');
+          }
+        } catch (e) {
+          // If we can't get user profile, continue with role check
+          console.log('Could not fetch user profile for admin check:', e);
         }
         
+        console.log('📊 Role check result:', userRoleStatus);
         return userRoleStatus;
       } catch (error) {
         console.error('Error checking user role:', error);
@@ -1168,21 +1197,54 @@
     
     // Load data on page load - MUST check role first, then quota, then plans
     async function initializePage() {
-      // Step 1: Check user role
-      const roleStatus = await checkUserRole();
-      
-      if (!roleStatus.hasRole) {
-        // User doesn't have required role - show onboarding message
-        showRoleOnboardingMessage();
-        // Don't load plans - user can't subscribe anyway
-        return;
+      try {
+        // Clear any existing loading states
+        const plansGrid = document.getElementById('plansGrid');
+        if (plansGrid) {
+          plansGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading plans...</div>';
+        }
+        
+        // Step 1: Check user role
+        console.log('🔍 Step 1: Checking user role...');
+        const roleStatus = await checkUserRole();
+        console.log('📊 Role check completed:', roleStatus);
+        
+        if (!roleStatus.hasRole) {
+          // User doesn't have required role - show onboarding message
+          console.log('❌ User does not have required role. Showing onboarding message.');
+          showRoleOnboardingMessage();
+          
+          // Clear the plans grid loading state
+          if (plansGrid) {
+            plansGrid.innerHTML = '';
+          }
+          
+          // Don't load plans - user can't subscribe anyway
+          return;
+        }
+        
+        console.log('✅ User has required role. Proceeding to load quota and plans...');
+        
+        // Step 2: Load quota status (needed for current plan)
+        await loadQuotaStatus();
+        
+        // Step 3: Load plans (needs currentPlanId)
+        await loadPlans();
+      } catch (error) {
+        console.error('❌ Error in initializePage:', error);
+        const plansGrid = document.getElementById('plansGrid');
+        if (plansGrid) {
+          plansGrid.innerHTML = `
+            <div class="error-message">
+              <p><strong>Error loading subscription page.</strong></p>
+              <p style="margin-top: 0.5rem; font-size: 0.9rem;">${error.message || 'Unknown error occurred'}</p>
+              <button onclick="location.reload()" class="btn" style="margin-top: 1rem;">
+                <i class="fas fa-redo"></i> Reload Page
+              </button>
+            </div>
+          `;
+        }
       }
-      
-      // Step 2: Load quota status (needed for current plan)
-      await loadQuotaStatus();
-      
-      // Step 3: Load plans (needs currentPlanId)
-      await loadPlans();
     }
     
     initializePage();
