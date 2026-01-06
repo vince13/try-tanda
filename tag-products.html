@@ -1217,6 +1217,28 @@
       
       // Step 3: Load quota status only for approved affiliates/sellers
       await loadQuotaStatus();
+      
+      // Step 4: Enable publish buttons for approved users
+      enablePublishButtons();
+    }
+    
+    // Enable publish buttons for approved users
+    function enablePublishButtons() {
+      const publishTandaBtn = document.getElementById('publishTandaBtn');
+      if (publishTandaBtn) {
+        publishTandaBtn.disabled = false;
+        publishTandaBtn.style.opacity = '1';
+        publishTandaBtn.style.cursor = 'pointer';
+        publishTandaBtn.title = '';
+      }
+      
+      const publishBtn = document.getElementById('publishBtn');
+      if (publishBtn) {
+        publishBtn.disabled = false;
+        publishBtn.style.opacity = '1';
+        publishBtn.style.cursor = 'pointer';
+        publishBtn.title = '';
+      }
     }
 
     // Show role required message instead of quota status
@@ -1257,6 +1279,23 @@
       document.getElementById('externalProductUrl').disabled = true;
       document.getElementById('marketplaceProductBtn').disabled = true;
       document.getElementById('createBtn').disabled = true;
+      
+      // Disable publish buttons for non-approved users
+      const publishTandaBtn = document.getElementById('publishTandaBtn');
+      if (publishTandaBtn) {
+        publishTandaBtn.disabled = true;
+        publishTandaBtn.style.opacity = '0.6';
+        publishTandaBtn.style.cursor = 'not-allowed';
+        publishTandaBtn.title = 'You must be an approved seller or affiliate to publish videos';
+      }
+      
+      const publishBtn = document.getElementById('publishBtn');
+      if (publishBtn) {
+        publishBtn.disabled = true;
+        publishBtn.style.opacity = '0.6';
+        publishBtn.style.cursor = 'not-allowed';
+        publishBtn.title = 'You must be an approved seller or affiliate to publish videos';
+      }
     }
 
     // Initialize page on load
@@ -2737,6 +2776,22 @@
 
     // Publish to Tanda Feed
     async function publishToTandaFeed() {
+      // Check if user has required role
+      if (!isApprovedRole) {
+        showToast('You must be an approved seller or affiliate to publish videos. Please complete role onboarding first.', 'error');
+        setTimeout(() => {
+          if (confirm('Would you like to become a seller or affiliate now?')) {
+            const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+            if (choice) {
+              window.location.href = 'become-seller.html';
+            } else {
+              window.location.href = 'become-affiliate.html';
+            }
+          }
+        }, 2000);
+        return;
+      }
+      
       const videoId = document.getElementById('videoId').value.trim();
       if (!videoId || !/^\d+$/.test(videoId)) {
         showToast('Please enter a valid numeric video ID', 'error');
@@ -3035,6 +3090,22 @@
     }
 
     async function publishToPlatforms() {
+      // Check if user has required role
+      if (!isApprovedRole) {
+        showToast('You must be an approved seller or affiliate to publish videos. Please complete role onboarding first.', 'error');
+        setTimeout(() => {
+          if (confirm('Would you like to become a seller or affiliate now?')) {
+            const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+            if (choice) {
+              window.location.href = 'become-seller.html';
+            } else {
+              window.location.href = 'become-affiliate.html';
+            }
+          }
+        }, 2000);
+        return;
+      }
+      
       const videoId = document.getElementById('videoId').value.trim();
       if (!videoId || !/^\d+$/.test(videoId)) {
         showToast('Please enter a valid numeric video ID', 'error');
