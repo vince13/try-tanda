@@ -334,6 +334,104 @@
       box-shadow: 0 4px 15px rgba(255, 0, 80, 0.3);
     }
 
+    .plan-btn.downgrade {
+      background: linear-gradient(135deg, rgba(255, 165, 0, 0.2), rgba(255, 69, 0, 0.2));
+      border: 2px solid rgba(255, 165, 0, 0.5);
+      color: white;
+    }
+
+    .plan-btn.downgrade:hover {
+      background: linear-gradient(135deg, rgba(255, 165, 0, 0.3), rgba(255, 69, 0, 0.3));
+      border: 2px solid rgba(255, 165, 0, 0.7);
+    }
+
+    /* Confirmation Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--background-color);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .comparison-table {
+      margin: 1rem 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .comparison-table tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comparison-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .comparison-table td {
+      padding: 0.75rem 1rem;
+    }
+
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: var(--text-secondary);
+      width: 40%;
+    }
+
+    .comparison-table .old-value {
+      color: rgba(255, 0, 80, 0.8);
+      text-decoration: line-through;
+    }
+
+    .comparison-table .new-value {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+
     .loading {
       text-align: center;
       padding: 4rem 2rem;
@@ -382,6 +480,22 @@
 
   <div class="container">
     <div id="alert-container"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="modalTitle"></h3>
+        <div id="modalBody"></div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeConfirmationModal()" style="background: var(--surface-color);">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button id="modalConfirmBtn" class="btn" style="background: var(--primary-gradient);">
+            <i class="fas fa-check"></i> Confirm
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Current Quota Status -->
     <div class="quota-status" id="quotaStatus">
@@ -454,25 +568,77 @@
           const videosUsed = usage.videos_used_this_month || 0;
           const videosLimit = plan.max_videos_per_month === 0 ? '∞' : plan.max_videos_per_month;
 
+          // Check for quota warnings
+          const productsWarning = productsLimit !== '∞' && productsUsed >= productsLimit ? 
+            '<div style="color: #ff0050; font-size: 0.75rem; margin-top: 0.25rem;">⚠️ Limit reached</div>' : '';
+          const videosWarning = videosLimit !== '∞' && videosUsed >= videosLimit ? 
+            '<div style="color: #ff0050; font-size: 0.75rem; margin-top: 0.25rem;">⚠️ Limit reached</div>' : '';
+
+          // Show subscription end date if available
+          let subscriptionEndHTML = '';
+          if (response.subscription_ends_at) {
+            const endsAt = new Date(response.subscription_ends_at);
+            const daysLeft = Math.ceil((endsAt - new Date()) / (1000 * 60 * 60 * 24));
+            const isExpiringSoon = daysLeft <= 7;
+            subscriptionEndHTML = `
+              <div class="quota-item">
+                <div class="quota-item-label">Subscription Ends</div>
+                <div class="quota-item-value" style="color: ${isExpiringSoon ? '#ff0050' : 'inherit'}; font-size: 1.2rem;">
+                  ${endsAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+                <div class="quota-item-limit" style="color: ${isExpiringSoon ? '#ff0050' : 'var(--text-secondary)'};">
+                  ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left
+                </div>
+              </div>
+            `;
+          }
+
+          // Show scheduled downgrade notice if exists
+          let scheduledDowngradeHTML = '';
+          if (response.scheduled_downgrade_plan && response.scheduled_downgrade_at) {
+            const downgradeDate = new Date(response.scheduled_downgrade_at);
+            scheduledDowngradeHTML = `
+              <div style="padding: 1rem; background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); border-radius: 0.75rem; margin-top: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <i class="fas fa-clock" style="color: orange; font-size: 1.5rem;"></i>
+                  <div>
+                    <div style="font-weight: bold; margin-bottom: 0.25rem;">
+                      <i class="fas fa-arrow-down"></i> Scheduled Plan Change
+                    </div>
+                    <div style="font-size: 0.9rem;">
+                      Your plan will change to <strong>${response.scheduled_downgrade_plan.name}</strong> on 
+                      <strong>${downgradeDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>.
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                      You'll keep all your current ${plan.name} plan benefits until then, including your remaining quota.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
           quotaStatusEl.innerHTML = `
             <h2><i class="fas fa-chart-line"></i> Your Current Plan: ${plan.name}</h2>
             <div class="quota-info">
               <div class="quota-item">
                 <div class="quota-item-label">Products This Month</div>
                 <div class="quota-item-value">${productsUsed}</div>
-                <div class="quota-item-limit">of ${productsLimit}</div>
+                <div class="quota-item-limit">of ${productsLimit}${productsWarning}</div>
               </div>
               <div class="quota-item">
                 <div class="quota-item-label">Videos This Month</div>
                 <div class="quota-item-value">${videosUsed}</div>
-                <div class="quota-item-limit">of ${videosLimit}</div>
+                <div class="quota-item-limit">of ${videosLimit}${videosWarning}</div>
               </div>
               <div class="quota-item">
                 <div class="quota-item-label">Plan Price</div>
                 <div class="quota-item-value">₦${formatPrice(plan.price_per_month)}</div>
                 <div class="quota-item-limit">per month</div>
               </div>
+              ${subscriptionEndHTML}
             </div>
+            ${scheduledDowngradeHTML}
           `;
         } else {
           quotaStatusEl.innerHTML = `
@@ -577,8 +743,14 @@
           const isCurrentPlan = (currentPlanId && planId && currentPlanId === planId) || 
                                 (!currentPlanId && quota?.plan?.name === planName);
           
+          // Determine if this is an upgrade or downgrade
+          const currentPlanPrice = quota?.plan?.price_per_month ? parseFloat(quota.plan.price_per_month) : 0;
+          const isUpgrade = pricePerMonth > currentPlanPrice;
+          const isDowngrade = pricePerMonth < currentPlanPrice && !isCurrentPlan;
+          
           // Debug logging for plan comparison
-          console.log(`Plan: ${planName} (ID: ${planId}), Current Plan ID: ${currentPlanId}, isCurrentPlan: ${isCurrentPlan}`);
+          console.log(`Plan: ${planName} (₦${pricePerMonth}), Current: ${quota?.plan?.name} (₦${currentPlanPrice}), isUpgrade: ${isUpgrade}, isDowngrade: ${isDowngrade}, isCurrent: ${isCurrentPlan}`);
+          
           const isFree = pricePerMonth === 0;
           const productsLimit = maxProducts === 0 ? 'Unlimited' : `${maxProducts}`;
           const videosLimit = maxVideos === 0 ? 'Unlimited' : `${maxVideos}`;
@@ -606,12 +778,15 @@
               </ul>
               
               <button 
-                class="plan-btn ${isCurrentPlan ? 'current' : ''}" 
-                ${isCurrentPlan ? '' : `onclick="selectPlan('${planId}', ${isCurrentPlan}, ${isFree})"`}
+                class="plan-btn ${isCurrentPlan ? 'current' : isDowngrade ? 'downgrade' : ''}" 
+                ${isCurrentPlan ? '' : `onclick="${isDowngrade ? `confirmPlanChange('${planId}', '${planName}', ${pricePerMonth}, ${maxProducts}, ${maxVideos}, ${isDowngrade})` : `selectPlan('${planId}', ${isCurrentPlan}, ${isFree})`}"`}
                 ${isCurrentPlan ? 'disabled' : ''}
                 ${isCurrentPlan ? 'style="cursor: not-allowed;"' : ''}
               >
-                ${isCurrentPlan ? '<i class="fas fa-check-circle"></i> Current Plan' : isFree ? '<i class="fas fa-gift"></i> Get Started' : '<i class="fas fa-arrow-up"></i> Upgrade'}
+                ${isCurrentPlan ? '<i class="fas fa-check-circle"></i> Current Plan' : 
+                  isDowngrade ? '<i class="fas fa-arrow-down"></i> Downgrade' : 
+                  isFree && !quota?.plan ? '<i class="fas fa-gift"></i> Get Started' : 
+                  '<i class="fas fa-arrow-up"></i> Upgrade'}
               </button>
             </div>
           `;
@@ -630,6 +805,85 @@
         `;
       }
     }
+
+    // Show confirmation modal for plan changes
+    function confirmPlanChange(planId, planName, newPrice, newMaxProducts, newMaxVideos, isDowngrade) {
+      const currentPlan = quota?.plan;
+      if (!currentPlan) return selectPlan(planId, false, newPrice === 0);
+
+      const modal = document.getElementById('confirmationModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+
+      const endsAt = quota.subscription_ends_at ? new Date(quota.subscription_ends_at) : null;
+      const endsAtStr = endsAt ? endsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'the end of your billing cycle';
+
+      if (isDowngrade) {
+        modalTitle.innerHTML = '<i class="fas fa-arrow-down"></i> Confirm Plan Downgrade';
+        modalBody.innerHTML = `
+          <div style="margin-bottom: 1rem;">
+            <p><strong>You're about to downgrade from ${currentPlan.name} to ${planName}.</strong></p>
+            <p style="margin-top: 0.5rem; padding: 1rem; background: rgba(0, 200, 100, 0.1); border: 1px solid rgba(0, 200, 100, 0.3); border-radius: 0.5rem;">
+              <i class="fas fa-info-circle"></i> <strong>Don't worry!</strong> You'll keep all your current ${currentPlan.name} benefits until <strong>${endsAtStr}</strong>. 
+              After that, your plan will change to ${planName}.
+            </p>
+          </div>
+          
+          <table class="comparison-table">
+            <tr>
+              <td>Monthly Price</td>
+              <td>
+                <span class="old-value">₦${formatPrice(currentPlan.price_per_month)}</span> 
+                → <span class="new-value">₦${formatPrice(newPrice)}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Products/Month</td>
+              <td>
+                <span class="old-value">${currentPlan.max_products_per_month === 0 ? 'Unlimited' : currentPlan.max_products_per_month}</span> 
+                → <span class="new-value">${newMaxProducts === 0 ? 'Unlimited' : newMaxProducts}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Videos/Month</td>
+              <td>
+                <span class="old-value">${currentPlan.max_videos_per_month === 0 ? 'Unlimited' : currentPlan.max_videos_per_month}</span> 
+                → <span class="new-value">${newMaxVideos === 0 ? 'Unlimited' : newMaxVideos}</span>
+              </td>
+            </tr>
+          </table>
+          
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <i class="fas fa-shield-alt"></i> Your unused quota will not be lost - you can use it until ${endsAtStr}.
+          </div>
+        `;
+      }
+
+      confirmBtn.onclick = () => {
+        closeConfirmationModal();
+        selectPlan(planId, false, newPrice === 0);
+      };
+
+      modal.classList.add('show');
+    }
+
+    function closeConfirmationModal() {
+      document.getElementById('confirmationModal').classList.remove('show');
+    }
+
+    // Close modal on ESC key or clicking outside
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeConfirmationModal();
+      }
+    });
+
+    document.getElementById('confirmationModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'confirmationModal') {
+        closeConfirmationModal();
+      }
+    });
 
     // Select and subscribe to a plan
     async function selectPlan(planId, isCurrent, isFree) {
