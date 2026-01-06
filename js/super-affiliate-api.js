@@ -1192,6 +1192,10 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         outline: none !important;
         -webkit-appearance: none !important;
         appearance: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        touch-action: manipulation !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
       }
       .user-menu-toggle:hover {
         background: rgba(255, 255, 255, 0.1) !important;
@@ -1390,8 +1394,12 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     safeLog('User menu items found:', menuItems.length, menuItems);
     
     let clickHandler = null;
+    let touchStartTime = 0;
+    let touchStartPos = { x: 0, y: 0 };
     
-    menuToggle.addEventListener('click', (e) => {
+    // iOS Safari fix: Add touch event handlers in addition to click
+    // This ensures the menu works on real iOS devices
+    const handleMenuToggle = (e) => {
       e.stopPropagation();
       e.preventDefault();
       const isActive = userMenu.classList.contains('active');
@@ -1593,7 +1601,39 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
           document.addEventListener('click', clickHandler);
         }, 10);
       }
+    };
+    
+    // Add both click and touch handlers for cross-platform compatibility
+    // iOS Safari often requires touchstart/touchend instead of just click
+    menuToggle.addEventListener('touchstart', (e) => {
+      touchStartTime = Date.now();
+      touchStartPos.x = e.touches[0].clientX;
+      touchStartPos.y = e.touches[0].clientY;
+      // Don't prevent default here - let touchend handle it
+    }, { passive: true });
+    
+    menuToggle.addEventListener('touchend', (e) => {
+      const touchEndTime = Date.now();
+      const touchDuration = touchEndTime - touchStartTime;
+      const touchEndPos = { 
+        x: e.changedTouches[0].clientX, 
+        y: e.changedTouches[0].clientY 
+      };
+      
+      // Only trigger if it's a quick tap (not a swipe) and within 10px movement
+      const moveDistance = Math.sqrt(
+        Math.pow(touchEndPos.x - touchStartPos.x, 2) + 
+        Math.pow(touchEndPos.y - touchStartPos.y, 2)
+      );
+      
+      if (touchDuration < 300 && moveDistance < 10) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleMenuToggle(e);
+      }
     });
+    
+    menuToggle.addEventListener('click', handleMenuToggle);
   }, 50);
   
   // Setup logout button
