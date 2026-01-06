@@ -62,6 +62,45 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      overflow: visible;
+      position: relative;
+    }
+    
+    /* Mobile: Add horizontal scroll to nav items */
+    @media (max-width: 768px) {
+      .nav {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+      
+      .nav .tanda-nav-container {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav .tanda-nav-container::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .container {

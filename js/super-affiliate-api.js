@@ -1258,11 +1258,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       
       .user-menu-dropdown .user-menu {
         position: fixed !important;
-        background: #000000 !important;
+        background: rgba(0, 0, 0, 0.98) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 1rem !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-        backdrop-filter: blur(20px) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
+        backdrop-filter: none !important;
         min-width: 220px !important;
         max-width: 280px !important;
         opacity: 0 !important;
