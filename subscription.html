@@ -310,8 +310,14 @@
     }
 
     .plan-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .plan-btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
     }
 
     .plan-btn.current {
@@ -603,8 +609,9 @@
               
               <button 
                 class="plan-btn ${isCurrentPlan ? 'current' : ''}" 
-                onclick="selectPlan('${planId}', ${isCurrentPlan}, ${isFree})"
+                ${isCurrentPlan ? '' : `onclick="selectPlan('${planId}', ${isCurrentPlan}, ${isFree})"`}
                 ${isCurrentPlan ? 'disabled' : ''}
+                ${isCurrentPlan ? 'style="cursor: not-allowed;"' : ''}
               >
                 ${isCurrentPlan ? '<i class="fas fa-check-circle"></i> Current Plan' : isFree ? '<i class="fas fa-gift"></i> Get Started' : '<i class="fas fa-arrow-up"></i> Upgrade'}
               </button>
@@ -628,37 +635,67 @@
 
     // Select and subscribe to a plan
     async function selectPlan(planId, isCurrent, isFree) {
+      // Prevent action if this is already the current plan
       if (isCurrent) {
-        showAlert('This is already your current plan.', 'error');
+        showAlert('This is already your current plan. You cannot subscribe to the same plan twice.', 'error');
+        return;
+      }
+
+      // Extra safety check: if free plan and user is already on free, don't proceed
+      if (isFree && quota?.plan?.name?.toLowerCase() === 'free') {
+        showAlert('You are already on the Free plan.', 'error');
         return;
       }
 
       try {
-        // Initialize payment
+        // Initialize subscription (handles both free and paid plans)
         const response = await SuperAffiliateAPI.apiRequest(`/videos/subscription/initialize/${planId}/`, {
           method: 'POST',
         });
 
         if (response.success) {
-          // Free plan - assign immediately
+          // Check if plan was assigned immediately (free plan)
           if (response.plan_assigned) {
-            showAlert(`Successfully subscribed to ${response.plan_name}!`, 'success');
+            showAlert(`Successfully subscribed to ${response.plan_name || 'plan'}!`, 'success');
             setTimeout(() => {
               loadQuotaStatus();
               loadPlans();
             }, 1000);
+            return;
+          }
+          
+          // Check if this is a scheduled downgrade (free plan from paid)
+          if (response.scheduled_downgrade) {
+            showAlert(response.message || `Downgrade to ${response.plan_name} scheduled successfully.`, 'success');
+            setTimeout(() => {
+              loadQuotaStatus();
+              loadPlans();
+            }, 1000);
+            return;
+          }
+          
+          // Paid plan - must have payment URL
+          const paymentUrl = response.authorization_url || response.payment_url;
+          if (paymentUrl) {
+            // Redirect to payment page
+            window.location.href = paymentUrl;
           } else {
-            // Paid plan - redirect to Paystack payment page
-            const paymentUrl = response.authorization_url || response.payment_url;
-            if (paymentUrl) {
-              // Redirect to payment page
-              window.location.href = paymentUrl;
+            // This should not happen - if it's a paid plan, we should have a payment URL
+            // If it's free, plan_assigned should be true
+            console.error('Unexpected response: No payment URL and plan not assigned:', response);
+            if (isFree) {
+              // Free plan should have been assigned, but wasn't - might already be on it
+              showAlert('You may already be subscribed to this plan. Refreshing...', 'error');
+              setTimeout(() => {
+                loadQuotaStatus();
+                loadPlans();
+              }, 1000);
             } else {
-              showAlert('Payment URL not available. Please try again.', 'error');
+              showAlert('Payment URL not available. Please contact support.', 'error');
             }
           }
         } else {
-          showAlert(response.error || 'Failed to initialize payment.', 'error');
+          showAlert(response.error || 'Failed to initialize subscription.', 'error');
         }
       } catch (error) {
         console.error('Error selecting plan:', error);
