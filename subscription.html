@@ -577,10 +577,8 @@
           const isCurrentPlan = (currentPlanId && planId && currentPlanId === planId) || 
                                 (!currentPlanId && quota?.plan?.name === planName);
           
-          // Debug logging
-          if (isCurrentPlan) {
-            console.log(`✅ Current plan detected: ${planName} (ID: ${planId})`);
-          }
+          // Debug logging for plan comparison
+          console.log(`Plan: ${planName} (ID: ${planId}), Current Plan ID: ${currentPlanId}, isCurrentPlan: ${isCurrentPlan}`);
           const isFree = pricePerMonth === 0;
           const productsLimit = maxProducts === 0 ? 'Unlimited' : `${maxProducts}`;
           const videosLimit = maxVideos === 0 ? 'Unlimited' : `${maxVideos}`;
@@ -654,45 +652,54 @@
         });
 
         if (response.success) {
-          // Check if plan was assigned immediately (free plan)
-          if (response.plan_assigned) {
+          // Check if plan was assigned immediately (free plan upgrade)
+          if (response.plan_assigned === true) {
             showAlert(`Successfully subscribed to ${response.plan_name || 'plan'}!`, 'success');
-            setTimeout(() => {
-              loadQuotaStatus();
-              loadPlans();
+            setTimeout(async () => {
+              await loadQuotaStatus();
+              await loadPlans();
             }, 1000);
             return;
           }
           
           // Check if this is a scheduled downgrade (free plan from paid)
-          if (response.scheduled_downgrade) {
+          if (response.scheduled_downgrade === true) {
             showAlert(response.message || `Downgrade to ${response.plan_name} scheduled successfully.`, 'success');
-            setTimeout(() => {
-              loadQuotaStatus();
-              loadPlans();
+            setTimeout(async () => {
+              await loadQuotaStatus();
+              await loadPlans();
             }, 1000);
             return;
           }
           
-          // Paid plan - must have payment URL
+          // Check for payment URL (paid plan)
           const paymentUrl = response.authorization_url || response.payment_url;
           if (paymentUrl) {
             // Redirect to payment page
             window.location.href = paymentUrl;
+            return;
+          }
+          
+          // No payment URL and no plan_assigned/scheduled_downgrade flags
+          // This might mean the backend is returning success: true but with no action
+          // (e.g., user already on this plan or some other edge case)
+          console.error('Unexpected backend response:', response);
+          console.log('Plan ID:', planId, 'isFree:', isFree, 'isCurrent:', isCurrent);
+          
+          // Check if backend returned the plan was already assigned
+          if (response.message && response.message.includes('already')) {
+            showAlert(response.message, 'error');
+            setTimeout(async () => {
+              await loadQuotaStatus();
+              await loadPlans();
+            }, 1000);
           } else {
-            // This should not happen - if it's a paid plan, we should have a payment URL
-            // If it's free, plan_assigned should be true
-            console.error('Unexpected response: No payment URL and plan not assigned:', response);
-            if (isFree) {
-              // Free plan should have been assigned, but wasn't - might already be on it
-              showAlert('You may already be subscribed to this plan. Refreshing...', 'error');
-              setTimeout(() => {
-                loadQuotaStatus();
-                loadPlans();
-              }, 1000);
-            } else {
-              showAlert('Payment URL not available. Please contact support.', 'error');
-            }
+            // Generic error for unexpected response
+            showAlert('Subscription update completed but response was unclear. Refreshing...', 'warning');
+            setTimeout(async () => {
+              await loadQuotaStatus();
+              await loadPlans();
+            }, 1500);
           }
         } else {
           showAlert(response.error || 'Failed to initialize subscription.', 'error');
@@ -713,9 +720,9 @@
 
         if (response.success) {
           showAlert(`Successfully subscribed to ${response.plan_name}!`, 'success');
-          setTimeout(() => {
-            loadQuotaStatus();
-            loadPlans();
+          setTimeout(async () => {
+            await loadQuotaStatus();
+            await loadPlans();
           }, 1000);
         } else {
           showAlert(response.error || 'Payment verification failed.', 'error');
@@ -733,9 +740,13 @@
       verifyPayment(reference, null);
     }
 
-    // Load data on page load
-    loadQuotaStatus();
-    loadPlans();
+    // Load data on page load - MUST load quota first to get current plan
+    async function initializePage() {
+      await loadQuotaStatus();  // Wait for quota to load first
+      await loadPlans();         // Then load plans (needs currentPlanId)
+    }
+    
+    initializePage();
   </script>
 </body>
 </html>
