@@ -15,6 +15,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="js/security-utils.js"></script>
 
   <style>
     :root {
@@ -2568,7 +2569,12 @@
       const feedback = document.createElement('div');
       feedback.className = 'url-feedback';
       feedback.style.cssText = 'color: #00f2ea; font-size: 0.85rem; margin-top: 0.25rem;';
-      feedback.innerHTML = `<i class="fas fa-check-circle"></i> Detected: ${platformName}`;
+      // Use SecurityUtils for safe HTML rendering
+      if (window.SecurityUtils) {
+        SecurityUtils.setInnerHTML(feedback, `<i class="fas fa-check-circle"></i> Detected: ${SecurityUtils.sanitizeText(platformName)}`, true);
+      } else {
+        feedback.innerHTML = `<i class="fas fa-check-circle"></i> Detected: ${platformName.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
+      }
       urlInput.parentElement.appendChild(feedback);
     }
 
@@ -2831,7 +2837,13 @@
             errorMsg = error.message;
           }
         }
-        statusDiv.innerHTML = `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${errorMsg}</div>`;
+        // Use SecurityUtils for safe HTML rendering
+        const safeErrorMsg = window.SecurityUtils ? SecurityUtils.sanitizeText(errorMsg) : errorMsg.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (window.SecurityUtils) {
+          SecurityUtils.setInnerHTML(statusDiv, `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${safeErrorMsg}</div>`, true);
+        } else {
+          statusDiv.innerHTML = `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${safeErrorMsg}</div>`;
+        }
         showToast(errorMsg, 'error');
       } finally {
         publishBtn.disabled = false;
@@ -3153,25 +3165,52 @@
         const totalCount = response.results?.length || 0;
 
         if (successCount === totalCount) {
-          statusDiv.innerHTML = `<div style="color: #00ff88;"><i class="fas fa-check-circle"></i> Successfully published to all ${totalCount} platform(s)!</div>`;
+          const safeMessage = window.SecurityUtils ? SecurityUtils.sanitizeText(`Successfully published to all ${totalCount} platform(s)!`) : `Successfully published to all ${totalCount} platform(s)!`;
+          if (window.SecurityUtils) {
+            SecurityUtils.setInnerHTML(statusDiv, `<div style="color: #00ff88;"><i class="fas fa-check-circle"></i> ${safeMessage}</div>`, true);
+          } else {
+            statusDiv.innerHTML = `<div style="color: #00ff88;"><i class="fas fa-check-circle"></i> ${safeMessage}</div>`;
+          }
           showToast(`Published to ${totalCount} platform(s)`, 'success');
         } else {
-          const errors = response.results?.filter(r => !r.success).map(r => `${r.platform}: ${r.error}`).join('<br>') || '';
-          statusDiv.innerHTML = `<div style="color: #ffaa00;"><i class="fas fa-exclamation-triangle"></i> Published to ${successCount}/${totalCount} platforms.<br>${errors}</div>`;
+          const errors = response.results?.filter(r => !r.success).map(r => {
+            const platform = window.SecurityUtils ? SecurityUtils.sanitizeText(r.platform) : r.platform.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const error = window.SecurityUtils ? SecurityUtils.sanitizeText(r.error) : r.error.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `${platform}: ${error}`;
+          }).join('<br>') || '';
+          const safeMessage = window.SecurityUtils ? SecurityUtils.sanitizeText(`Published to ${successCount}/${totalCount} platforms.`) : `Published to ${successCount}/${totalCount} platforms.`;
+          if (window.SecurityUtils) {
+            SecurityUtils.setInnerHTML(statusDiv, `<div style="color: #ffaa00;"><i class="fas fa-exclamation-triangle"></i> ${safeMessage}<br>${errors}</div>`, true);
+          } else {
+            statusDiv.innerHTML = `<div style="color: #ffaa00;"><i class="fas fa-exclamation-triangle"></i> ${safeMessage}<br>${errors}</div>`;
+          }
           showToast(`Published to ${successCount}/${totalCount} platforms`, 'error');
         }
 
         // Show platform URLs if available
-        const urls = response.results?.filter(r => r.platform_video_url).map(r => 
-          `<a href="${r.platform_video_url}" target="_blank" style="color: var(--accent-color);">View on ${r.platform}</a>`
-        ).join(' | ') || '';
+        const urls = response.results?.filter(r => r.platform_video_url).map(r => {
+          const platform = window.SecurityUtils ? SecurityUtils.sanitizeText(r.platform) : r.platform.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const url = window.SecurityUtils && SecurityUtils.validateURL(r.platform_video_url) ? r.platform_video_url : '#';
+          return `<a href="${url}" target="_blank" style="color: var(--accent-color);">View on ${platform}</a>`;
+        }).join(' | ') || '';
         if (urls) {
-          statusDiv.innerHTML += `<div style="margin-top: 0.5rem;">${urls}</div>`;
+          if (window.SecurityUtils) {
+            const currentHTML = statusDiv.innerHTML;
+            SecurityUtils.setInnerHTML(statusDiv, currentHTML + `<div style="margin-top: 0.5rem;">${urls}</div>`, true);
+          } else {
+            statusDiv.innerHTML += `<div style="margin-top: 0.5rem;">${urls}</div>`;
+          }
         }
 
       } catch (error) {
         console.error('Error publishing:', error);
-        statusDiv.innerHTML = `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${error.message || 'Failed to publish'}</div>`;
+        const errorMsg = error.message || 'Failed to publish';
+        const safeErrorMsg = window.SecurityUtils ? SecurityUtils.sanitizeText(errorMsg) : errorMsg.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (window.SecurityUtils) {
+          SecurityUtils.setInnerHTML(statusDiv, `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${safeErrorMsg}</div>`, true);
+        } else {
+          statusDiv.innerHTML = `<div style="color: #ff4444;"><i class="fas fa-times-circle"></i> ${safeErrorMsg}</div>`;
+        }
         showToast(error.message || 'Failed to publish to platforms', 'error');
       } finally {
         publishBtn.disabled = false;

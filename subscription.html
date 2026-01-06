@@ -565,6 +565,7 @@
     </div>
   </div>
 
+  <script src="js/security-utils.js"></script>
   <script src="js/super-affiliate-api.js"></script>
   <script>
     SuperAffiliateAPI.renderAuthNav('authNav');
@@ -598,7 +599,13 @@
     function showAlert(message, type = 'error') {
       const container = document.getElementById('alert-container');
       const alertClass = type === 'error' ? 'error-message' : 'success-message';
-      container.innerHTML = `<div class="${alertClass}">${message}</div>`;
+      // Use SecurityUtils for safe HTML rendering
+      const safeMessage = window.SecurityUtils ? SecurityUtils.sanitizeText(message) : message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (window.SecurityUtils) {
+        SecurityUtils.setInnerHTML(container, `<div class="${alertClass}">${safeMessage}</div>`, true);
+      } else {
+        container.innerHTML = `<div class="${alertClass}">${safeMessage}</div>`;
+      }
       setTimeout(() => {
         container.innerHTML = '';
       }, 5000);

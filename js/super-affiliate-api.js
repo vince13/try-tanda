@@ -417,22 +417,70 @@ class SuperAffiliateAPI {
    */
   static async login(emailOrUsername, password) {
     try {
-      const response = await this.apiRequest('/users/token/', {
+      // Use direct fetch for login to avoid token refresh logic interfering with error messages
+      const response = await fetch(`${API_BASE_URL}/users/token/`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ username: emailOrUsername, password }),
+        cache: 'no-store',
       });
 
+      // Read response body
+      const rawText = await response.text();
+      let data = null;
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch (_) {
+        data = null;
+      }
+
+      // Handle 401 Unauthorized - wrong credentials (not expired session)
+      if (response.status === 401) {
+        const errorMessage = (data && (data.detail || data.error || data.message)) || 
+                            'Invalid email/username or password. Please check your credentials and try again.';
+        throw new Error(errorMessage);
+      }
+
+      // Handle 400 Bad Request - validation errors
+      if (response.status === 400) {
+        const errorMessage = (data && (data.detail || data.error || data.message || 
+                            (data.non_field_errors && data.non_field_errors[0]))) || 
+                            'Invalid request. Please check your input and try again.';
+        throw new Error(errorMessage);
+      }
+
+      // Handle other errors
+      if (!response.ok) {
+        const errorMessage = (data && (data.detail || data.error || data.message)) || 
+                            `Login failed (${response.status}: ${response.statusText})`;
+        throw new Error(errorMessage);
+      }
+
       // JWT TokenObtainPairView returns { access: "...", refresh: "..." }
-      if (response.access) {
-        this.setTokensFromResponse(response);
-        return response;
+      if (data && data.access) {
+        this.setTokensFromResponse(data);
+        return data;
       } else {
         throw new Error('Invalid response format from login endpoint');
       }
     } catch (error) {
-      // Re-throw with more user-friendly message
-      if (error.message.includes('credentials') || error.message.includes('Invalid')) {
+      // Re-throw with more user-friendly message for credential errors
+      if (error.message && (
+        error.message.toLowerCase().includes('credentials') || 
+        error.message.toLowerCase().includes('invalid') ||
+        error.message.toLowerCase().includes('incorrect') ||
+        error.message.toLowerCase().includes('authentication') ||
+        error.message.toLowerCase().includes('password') ||
+        error.message.toLowerCase().includes('username') ||
+        error.message.toLowerCase().includes('email')
+      )) {
         throw new Error('Invalid email/username or password. Please check your credentials and try again.');
+      }
+      // Don't change "Session expired" messages - those are for authenticated requests
+      if (error.message && error.message.includes('Session expired')) {
+        throw error;
       }
       throw error;
     }

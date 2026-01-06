@@ -290,6 +290,11 @@
           placeholder="••••••••" 
           required
         >
+        <div style="text-align: right; margin-top: 0.5rem;">
+          <a href="#" id="forgot-password-link" style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem;">
+            <i class="fas fa-key"></i> Forgot Password?
+          </a>
+        </div>
       </div>
 
       <button type="submit" class="btn" id="login-btn">
@@ -381,18 +386,29 @@
       } catch (error) {
         console.error('Login error:', error);
         
-        // Handle different types of errors
+        // Handle different types of errors with accurate messages
         let errorMsg = 'Login failed. Please try again.';
         
         if (error.name === 'TypeError' && (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('network'))) {
           errorMsg = 'Network error: Cannot connect to server. Please check your internet connection and try again.';
         } else if (error.message && error.message.includes('Cannot connect to server')) {
           errorMsg = error.message;
-        } else if (error.message && error.message.includes('credentials') || error.message.includes('Invalid')) {
+        } else if (error.message && (
+          error.message.toLowerCase().includes('invalid') && 
+          (error.message.toLowerCase().includes('email') || 
+           error.message.toLowerCase().includes('username') || 
+           error.message.toLowerCase().includes('password') || 
+           error.message.toLowerCase().includes('credentials'))
+        )) {
+          // Wrong credentials - show accurate message
           errorMsg = 'Invalid email/username or password. Please check your credentials and try again.';
+        } else if (error.message && error.message.includes('Session expired')) {
+          // This should only happen if user was already logged in - unlikely on login page
+          errorMsg = 'Your session has expired. Please login again.';
         } else if (error.message && error.message.includes('timeout')) {
           errorMsg = 'Request timed out. Please check your internet connection and try again.';
         } else if (error.message) {
+          // Use the error message as-is if it's user-friendly
           errorMsg = error.message;
         } else if (error.toString && error.toString() !== '[object Object]') {
           errorMsg = error.toString();
@@ -412,6 +428,165 @@
         handleLogin(e);
       }
     });
+
+    // Handle Forgot Password
+    document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      showForgotPasswordModal();
+    });
+
+    function showForgotPasswordModal() {
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      `;
+
+      // Create modal content
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      `;
+
+      modal.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.5rem; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.5rem;">
+            <i class="fas fa-key"></i> Reset Password
+          </h2>
+          <p style="color: var(--text-secondary);">Enter your email address and we'll send you a link to reset your password.</p>
+        </div>
+        
+        <div id="forgot-password-error" class="error-message" style="display: none; margin-bottom: 1rem;"></div>
+        <div id="forgot-password-success" style="display: none; background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; color: #00ff88;">
+          <i class="fas fa-check-circle"></i> <span id="success-text"></span>
+        </div>
+        
+        <form id="forgot-password-form">
+          <div class="form-group">
+            <label for="reset-email">Email Address</label>
+            <input 
+              type="email" 
+              id="reset-email" 
+              name="email" 
+              placeholder="your@email.com" 
+              required
+              style="width: 100%; padding: 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;"
+            >
+          </div>
+          
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" id="cancel-forgot-password" class="btn" style="flex: 1; background: rgba(255, 255, 255, 0.1);">
+              Cancel
+            </button>
+            <button type="submit" id="submit-forgot-password" class="btn" style="flex: 1;">
+              <i class="fas fa-paper-plane"></i> Send Reset Link
+            </button>
+          </div>
+        </form>
+      `;
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      // Close modal handlers
+      const closeModal = () => {
+        document.body.removeChild(overlay);
+      };
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          closeModal();
+        }
+      });
+
+      document.getElementById('cancel-forgot-password').addEventListener('click', closeModal);
+
+      // Handle form submission
+      document.getElementById('forgot-password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submit-forgot-password');
+        const emailInput = document.getElementById('reset-email');
+        const errorDiv = document.getElementById('forgot-password-error');
+        const successDiv = document.getElementById('forgot-password-success');
+        const successText = document.getElementById('success-text');
+        
+        const email = emailInput.value.trim();
+        
+        // Hide previous messages
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        
+        // Validate email
+        if (!email || !email.includes('@')) {
+          errorDiv.textContent = 'Please enter a valid email address.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+        try {
+          const response = await SuperAffiliateAPI.apiRequest('/users/forgot-password/', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+          });
+          
+          if (response && response.message) {
+            successText.textContent = `Password reset link has been sent to ${email}. Please check your email.`;
+            successDiv.style.display = 'block';
+            emailInput.value = '';
+            
+            // Close modal after 3 seconds
+            setTimeout(() => {
+              closeModal();
+            }, 3000);
+          } else {
+            throw new Error('Failed to send password reset email');
+          }
+        } catch (error) {
+          console.error('Forgot password error:', error);
+          
+          let errorMsg = 'Failed to send password reset email. Please try again.';
+          
+          if (error.message) {
+            if (error.message.includes('not found') || error.message.includes('No account')) {
+              errorMsg = 'No account found with this email address. Please check your email and try again.';
+            } else if (error.message.includes('disabled')) {
+              errorMsg = 'This account is disabled. Please contact support.';
+            } else {
+              errorMsg = error.message;
+            }
+          }
+          
+          errorDiv.textContent = errorMsg;
+          errorDiv.style.display = 'block';
+          
+          // Re-enable button
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+        }
+      });
+    }
   </script>
 </body>
 </html>
