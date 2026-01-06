@@ -183,8 +183,22 @@
     }
 
     .plan-card.current {
-      border-color: #00ff00;
-      background: rgba(0, 255, 0, 0.05);
+      border: 3px solid var(--accent-color);
+      background: rgba(255, 0, 80, 0.1);
+      box-shadow: 0 0 20px rgba(255, 0, 80, 0.3);
+      transform: scale(1.02);
+      position: relative;
+    }
+    
+    .plan-card.current::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary-gradient);
+      border-radius: 0.5rem 0.5rem 0 0;
     }
 
     .plan-badge {
@@ -200,8 +214,23 @@
     }
 
     .plan-badge.current {
-      background: #00ff00;
-      color: #000;
+      background: var(--primary-gradient);
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
+      z-index: 10;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
     }
 
     .plan-name {
@@ -286,9 +315,17 @@
     }
 
     .plan-btn.current {
-      background: rgba(0, 255, 0, 0.2);
-      color: #00ff00;
-      border: 1px solid #00ff00;
+      background: var(--primary-gradient);
+      color: white;
+      border: 2px solid var(--accent-color);
+      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.3);
+      font-weight: 700;
+      cursor: default;
+    }
+    
+    .plan-btn.current:hover {
+      transform: none;
+      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.3);
     }
 
     .loading {
@@ -399,6 +436,7 @@
         const response = await SuperAffiliateAPI.apiRequest('/videos/overlay-quota/');
         quota = response;
         currentPlanId = response.plan?.id || null;
+        console.log('📊 Current plan ID:', currentPlanId, 'Plan name:', response.plan?.name);
 
         const quotaStatusEl = document.getElementById('quotaStatus');
         const plan = response.plan;
@@ -529,7 +567,14 @@
           const revenueSplit = plan.revenue_split_percentage || '70';
           const features = Array.isArray(plan.features) ? plan.features : [];
           
-          const isCurrentPlan = currentPlanId === planId;
+          // Compare by plan ID (more reliable) or fallback to plan name
+          const isCurrentPlan = (currentPlanId && planId && currentPlanId === planId) || 
+                                (!currentPlanId && quota?.plan?.name === planName);
+          
+          // Debug logging
+          if (isCurrentPlan) {
+            console.log(`✅ Current plan detected: ${planName} (ID: ${planId})`);
+          }
           const isFree = pricePerMonth === 0;
           const productsLimit = maxProducts === 0 ? 'Unlimited' : `${maxProducts}`;
           const videosLimit = maxVideos === 0 ? 'Unlimited' : `${maxVideos}`;
