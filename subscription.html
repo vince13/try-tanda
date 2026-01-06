@@ -558,6 +558,7 @@
     let currentPlanId = null;
     let plans = [];
     let quota = null;
+    let userRoleStatus = null; // Track user's seller/affiliate status
 
     // Format number with commas
     function formatNumber(num) {
@@ -992,11 +993,65 @@
             }, 1500);
           }
         } else {
-          showAlert(response.error || 'Failed to initialize subscription.', 'error');
+          // Check if error is about missing role
+          if (response.requires_role || response.redirect_to === 'role_onboarding') {
+            showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
+            // Redirect to role selection after 2 seconds
+            setTimeout(() => {
+              if (confirm('Would you like to become a seller or affiliate now?')) {
+                // Show options
+                const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+                if (choice) {
+                  window.location.href = 'become-seller.html';
+                } else {
+                  window.location.href = 'become-affiliate.html';
+                }
+              }
+            }, 2000);
+          } else {
+            showAlert(response.error || 'Failed to initialize subscription.', 'error');
+          }
         }
       } catch (error) {
         console.error('Error selecting plan:', error);
-        showAlert(error.message || 'Failed to process subscription. Please try again.', 'error');
+        
+        // Check if error response contains role requirement
+        // SuperAffiliateAPI.apiRequest throws errors with responseData property
+        if (error.responseData) {
+          if (error.responseData.requires_role || error.responseData.redirect_to === 'role_onboarding') {
+            showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
+            setTimeout(() => {
+              if (confirm('Would you like to become a seller or affiliate now?')) {
+                const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+                if (choice) {
+                  window.location.href = 'become-seller.html';
+                } else {
+                  window.location.href = 'become-affiliate.html';
+                }
+              }
+            }, 2000);
+            return;
+          }
+        }
+        
+        // Check error message for role requirement keywords
+        const errorMsg = error.message || 'Failed to process subscription. Please try again.';
+        if (errorMsg.includes('approved seller') || errorMsg.includes('approved affiliate') || errorMsg.includes('role onboarding')) {
+          showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
+          setTimeout(() => {
+            if (confirm('Would you like to become a seller or affiliate now?')) {
+              const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+              if (choice) {
+                window.location.href = 'become-seller.html';
+              } else {
+                window.location.href = 'become-affiliate.html';
+              }
+            }
+          }, 2000);
+          return;
+        }
+        
+        showAlert(errorMsg, 'error');
       }
     }
 
@@ -1030,10 +1085,104 @@
       verifyPayment(reference, null);
     }
 
-    // Load data on page load - MUST load quota first to get current plan
+    // Check user role status (seller/affiliate)
+    async function checkUserRole() {
+      try {
+        // Check if user is seller or affiliate
+        let isSeller = false;
+        let isAffiliate = false;
+        let sellerStatus = null;
+        let affiliateStatus = null;
+        
+        try {
+          const sellerResponse = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+          if (sellerResponse && sellerResponse.status === 'approved') {
+            isSeller = true;
+            sellerStatus = sellerResponse.status;
+          }
+        } catch (e) {
+          // User is not a seller or endpoint doesn't exist
+          console.log('User is not a seller:', e);
+        }
+        
+        try {
+          const affiliateResponse = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
+          if (affiliateResponse && affiliateResponse.status === 'approved') {
+            isAffiliate = true;
+            affiliateStatus = affiliateResponse.status;
+          }
+        } catch (e) {
+          // User is not an affiliate or endpoint doesn't exist
+          console.log('User is not an affiliate:', e);
+        }
+        
+        userRoleStatus = {
+          isSeller,
+          isAffiliate,
+          sellerStatus,
+          affiliateStatus,
+          hasRole: isSeller || isAffiliate
+        };
+        
+        // Check if user is admin/staff (can bypass role check)
+        const userInfo = SuperAffiliateAPI.getUserInfo();
+        if (userInfo && (userInfo.is_staff || userInfo.is_superuser || userInfo.role === 'admin')) {
+          userRoleStatus.hasRole = true; // Admin/staff can subscribe
+        }
+        
+        return userRoleStatus;
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        return { hasRole: false, isSeller: false, isAffiliate: false };
+      }
+    }
+    
+    // Show role onboarding message
+    function showRoleOnboardingMessage() {
+      const quotaStatusEl = document.getElementById('quotaStatus');
+      quotaStatusEl.innerHTML = `
+        <div class="card" style="border: 2px solid rgba(255, 165, 0, 0.5); background: rgba(255, 165, 0, 0.1);">
+          <h2 style="color: #ffb703; margin-bottom: 1rem;">
+            <i class="fas fa-exclamation-triangle"></i> Role Required
+          </h2>
+          <p style="margin-bottom: 1rem; line-height: 1.6;">
+            To subscribe to a plan and tag products in your videos, you must first become an <strong>approved seller</strong> or <strong>approved affiliate</strong>.
+          </p>
+          <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+            Subscriptions are only available to sellers and affiliates because product tagging requires role verification.
+          </p>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="become-seller.html" class="btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center;">
+              <i class="fas fa-store"></i> Become a Seller
+            </a>
+            <a href="become-affiliate.html" class="btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center;">
+              <i class="fas fa-bullhorn"></i> Become an Affiliate
+            </a>
+          </div>
+          <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+            After approval, you can return here to subscribe to a plan.
+          </p>
+        </div>
+      `;
+    }
+    
+    // Load data on page load - MUST check role first, then quota, then plans
     async function initializePage() {
-      await loadQuotaStatus();  // Wait for quota to load first
-      await loadPlans();         // Then load plans (needs currentPlanId)
+      // Step 1: Check user role
+      const roleStatus = await checkUserRole();
+      
+      if (!roleStatus.hasRole) {
+        // User doesn't have required role - show onboarding message
+        showRoleOnboardingMessage();
+        // Don't load plans - user can't subscribe anyway
+        return;
+      }
+      
+      // Step 2: Load quota status (needed for current plan)
+      await loadQuotaStatus();
+      
+      // Step 3: Load plans (needs currentPlanId)
+      await loadPlans();
     }
     
     initializePage();
