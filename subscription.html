@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Subscription Plans - Tanda Web</title>
+  <meta name="description" content="Choose a subscription plan to unlock product tagging features.">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* Mobile: Add horizontal scroll to nav items */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .quota-status {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .quota-status h2 {
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .quota-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .quota-item {
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 0.75rem;
+    }
+
+    .quota-item-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .quota-item-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .quota-item-limit {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .plan-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 2px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-color);
+      box-shadow: 0 10px 30px rgba(0, 242, 234, 0.2);
+    }
+
+    .plan-card.featured {
+      border-color: var(--accent-color);
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.1), rgba(0, 242, 234, 0.1));
+    }
+
+    .plan-card.current {
+      border-color: #00ff00;
+      background: rgba(0, 255, 0, 0.05);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .plan-badge.current {
+      background: #00ff00;
+      color: #000;
+    }
+
+    .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 1rem 0;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .plan-price .currency {
+      font-size: 1.5rem;
+      vertical-align: top;
+    }
+
+    .plan-price .period {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .plan-description {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+
+    .plan-features li {
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .plan-features li i {
+      color: var(--accent-color);
+      width: 20px;
+    }
+
+    .plan-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .plan-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .plan-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .plan-btn.current {
+      background: rgba(0, 255, 0, 0.2);
+      color: #00ff00;
+      border: 1px solid #00ff00;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .error-message {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #ff6b6b;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      color: #00ff00;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .plans-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .quota-info {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-crown"></i> Subscription Plans</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="alert-container"></div>
+
+    <!-- Current Quota Status -->
+    <div class="quota-status" id="quotaStatus">
+      <h2><i class="fas fa-chart-line"></i> Your Current Plan</h2>
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading quota status...
+      </div>
+    </div>
+
+    <!-- Subscription Plans -->
+    <div id="plansSection">
+      <h2 style="margin-bottom: 1rem; color: var(--accent-color);">
+        <i class="fas fa-rocket"></i> Choose Your Plan
+      </h2>
+      <div class="plans-grid" id="plansGrid">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading plans...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html';
+    }
+
+    let currentPlanId = null;
+    let plans = [];
+    let quota = null;
+
+    // Format number with commas
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Format price in Naira
+    function formatPrice(price) {
+      const num = parseFloat(price);
+      return formatNumber(num.toFixed(0));
+    }
+
+    // Show alert message
+    function showAlert(message, type = 'error') {
+      const container = document.getElementById('alert-container');
+      const alertClass = type === 'error' ? 'error-message' : 'success-message';
+      container.innerHTML = `<div class="${alertClass}">${message}</div>`;
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 5000);
+    }
+
+    // Load quota status
+    async function loadQuotaStatus() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/overlay-quota/');
+        quota = response;
+        currentPlanId = response.plan?.id || null;
+
+        const quotaStatusEl = document.getElementById('quotaStatus');
+        const plan = response.plan;
+        const usage = response.usage;
+
+        if (plan) {
+          const productsUsed = usage.products_used_this_month || 0;
+          const productsLimit = plan.max_products_per_month === 0 ? '∞' : plan.max_products_per_month;
+          const videosUsed = usage.videos_used_this_month || 0;
+          const videosLimit = plan.max_videos_per_month === 0 ? '∞' : plan.max_videos_per_month;
+
+          quotaStatusEl.innerHTML = `
+            <h2><i class="fas fa-chart-line"></i> Your Current Plan: ${plan.name}</h2>
+            <div class="quota-info">
+              <div class="quota-item">
+                <div class="quota-item-label">Products This Month</div>
+                <div class="quota-item-value">${productsUsed}</div>
+                <div class="quota-item-limit">of ${productsLimit}</div>
+              </div>
+              <div class="quota-item">
+                <div class="quota-item-label">Videos This Month</div>
+                <div class="quota-item-value">${videosUsed}</div>
+                <div class="quota-item-limit">of ${videosLimit}</div>
+              </div>
+              <div class="quota-item">
+                <div class="quota-item-label">Plan Price</div>
+                <div class="quota-item-value">₦${formatPrice(plan.price_per_month)}</div>
+                <div class="quota-item-limit">per month</div>
+              </div>
+            </div>
+          `;
+        } else {
+          quotaStatusEl.innerHTML = `
+            <h2><i class="fas fa-chart-line"></i> No Active Plan</h2>
+            <p style="color: var(--text-secondary);">You don't have an active subscription plan. Choose a plan below to get started.</p>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading quota status:', error);
+        document.getElementById('quotaStatus').innerHTML = `
+          <div class="error-message">Failed to load quota status. Please refresh the page.</div>
+        `;
+      }
+    }
+
+    // Load subscription plans
+    async function loadPlans() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/plans/');
+        plans = response.plans || [];
+
+        const plansGrid = document.getElementById('plansGrid');
+        
+        if (plans.length === 0) {
+          plansGrid.innerHTML = '<div class="error-message">No subscription plans available.</div>';
+          return;
+        }
+
+        plansGrid.innerHTML = plans.map(plan => {
+          const isCurrentPlan = currentPlanId === plan.id;
+          const isFree = parseFloat(plan.price_per_month) === 0;
+          const productsLimit = plan.max_products_per_month === 0 ? 'Unlimited' : `${plan.max_products_per_month}`;
+          const videosLimit = plan.max_videos_per_month === 0 ? 'Unlimited' : `${plan.max_videos_per_month}`;
+
+          return `
+            <div class="plan-card ${plan.is_featured ? 'featured' : ''} ${isCurrentPlan ? 'current' : ''}">
+              ${plan.is_featured ? '<div class="plan-badge">Popular</div>' : ''}
+              ${isCurrentPlan ? '<div class="plan-badge current">Current Plan</div>' : ''}
+              
+              <div class="plan-name">${plan.name}</div>
+              
+              <div class="plan-price">
+                <span class="currency">₦</span>${formatPrice(plan.price_per_month)}
+                <span class="period">/month</span>
+              </div>
+              
+              ${plan.description ? `<div class="plan-description">${plan.description}</div>` : ''}
+              
+              <ul class="plan-features">
+                <li><i class="fas fa-check"></i> ${productsLimit} products per month</li>
+                <li><i class="fas fa-check"></i> ${videosLimit} videos per month</li>
+                ${plan.allow_external_affiliate ? '<li><i class="fas fa-check"></i> Custom affiliate links</li>' : ''}
+                ${plan.allow_tanda_affiliate ? '<li><i class="fas fa-check"></i> Tanda affiliate (${plan.revenue_split_percentage}% commission)</li>' : ''}
+                ${plan.features && plan.features.length > 0 ? plan.features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('') : ''}
+              </ul>
+              
+              <button 
+                class="plan-btn ${isCurrentPlan ? 'current' : ''}" 
+                onclick="selectPlan('${plan.id}', ${isCurrentPlan}, ${isFree})"
+                ${isCurrentPlan ? 'disabled' : ''}
+              >
+                ${isCurrentPlan ? '<i class="fas fa-check-circle"></i> Current Plan' : isFree ? '<i class="fas fa-gift"></i> Get Started' : '<i class="fas fa-arrow-up"></i> Upgrade'}
+              </button>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Error loading plans:', error);
+        document.getElementById('plansGrid').innerHTML = `
+          <div class="error-message">Failed to load subscription plans. Please refresh the page.</div>
+        `;
+      }
+    }
+
+    // Select and subscribe to a plan
+    async function selectPlan(planId, isCurrent, isFree) {
+      if (isCurrent) {
+        showAlert('This is already your current plan.', 'error');
+        return;
+      }
+
+      try {
+        // Initialize payment
+        const response = await SuperAffiliateAPI.apiRequest(`/videos/subscription/initialize/${planId}/`, {
+          method: 'POST',
+        });
+
+        if (response.success) {
+          // Free plan - assign immediately
+          if (response.plan_assigned) {
+            showAlert(`Successfully subscribed to ${response.plan_name}!`, 'success');
+            setTimeout(() => {
+              loadQuotaStatus();
+              loadPlans();
+            }, 1000);
+          } else {
+            // Paid plan - redirect to Paystack payment page
+            const paymentUrl = response.authorization_url || response.payment_url;
+            if (paymentUrl) {
+              // Redirect to payment page
+              window.location.href = paymentUrl;
+            } else {
+              showAlert('Payment URL not available. Please try again.', 'error');
+            }
+          }
+        } else {
+          showAlert(response.error || 'Failed to initialize payment.', 'error');
+        }
+      } catch (error) {
+        console.error('Error selecting plan:', error);
+        showAlert(error.message || 'Failed to process subscription. Please try again.', 'error');
+      }
+    }
+
+    // Verify payment after Paystack redirect
+    async function verifyPayment(reference, planId) {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/verify/', {
+          method: 'POST',
+          body: JSON.stringify({ reference }),
+        });
+
+        if (response.success) {
+          showAlert(`Successfully subscribed to ${response.plan_name}!`, 'success');
+          setTimeout(() => {
+            loadQuotaStatus();
+            loadPlans();
+          }, 1000);
+        } else {
+          showAlert(response.error || 'Payment verification failed.', 'error');
+        }
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+        showAlert('Payment verification failed. Please contact support.', 'error');
+      }
+    }
+
+    // Check if we're returning from Paystack
+    const urlParams = new URLSearchParams(window.location.search);
+    const reference = urlParams.get('reference');
+    if (reference) {
+      verifyPayment(reference, null);
+    }
+
+    // Load data on page load
+    loadQuotaStatus();
+    loadPlans();
+  </script>
+</body>
+</html>
+

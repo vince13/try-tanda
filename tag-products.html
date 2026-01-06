@@ -867,6 +867,37 @@
   </div>
 
   <div class="container">
+    <!-- Quota Status Card -->
+    <div id="quotaStatusCard" style="background: var(--bg-card); backdrop-filter: blur(20px); border-radius: var(--border-radius); border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="color: var(--accent-color); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-chart-line"></i> Your Subscription Status
+        </h3>
+        <a href="subscription.html" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; text-decoration: none;">
+          <i class="fas fa-crown"></i> Manage Plan
+        </a>
+      </div>
+      <div id="quotaStatusContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Products Used</div>
+          <div id="quotaProducts" style="font-size: 1.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">-</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Videos Used</div>
+          <div id="quotaVideos" style="font-size: 1.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">-</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem;">
+          <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Current Plan</div>
+          <div id="quotaPlan" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);">Loading...</div>
+        </div>
+      </div>
+      <div id="quotaWarning" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(255, 0, 80, 0.1); border: 1px solid rgba(255, 0, 80, 0.3); border-radius: 0.5rem; color: #ff6b6b;">
+        <strong><i class="fas fa-exclamation-triangle"></i> Quota Exceeded:</strong>
+        <span id="quotaWarningText"></span>
+        <a href="subscription.html" style="color: var(--accent-color); text-decoration: underline; margin-left: 0.5rem;">Upgrade Now</a>
+      </div>
+    </div>
+
     <p class="hint">
       Add product tags to your video. Select a product from your shop or add an external product link.
     </p>
@@ -1100,6 +1131,9 @@
     if (initialVideoId) {
       document.getElementById('videoId').value = initialVideoId;
     }
+
+    // Load quota status on page load
+    loadQuotaStatus();
 
     // Product selector state
     let allProducts = [];
@@ -2008,6 +2042,94 @@
       }
     }
 
+    // Load quota status
+    let quotaStatus = null;
+    async function loadQuotaStatus() {
+      try {
+        quotaStatus = await SuperAffiliateAPI.apiRequest('/videos/overlay-quota/');
+        const plan = quotaStatus.plan;
+        const usage = quotaStatus.usage;
+
+        if (plan) {
+          const productsUsed = usage.products_used_this_month || 0;
+          const productsLimit = plan.max_products_per_month === 0 ? '∞' : plan.max_products_per_month;
+          const videosUsed = usage.videos_used_this_month || 0;
+          const videosLimit = plan.max_videos_per_month === 0 ? '∞' : plan.max_videos_per_month;
+
+          document.getElementById('quotaProducts').textContent = `${productsUsed} / ${productsLimit}`;
+          document.getElementById('quotaVideos').textContent = `${videosUsed} / ${videosLimit}`;
+          document.getElementById('quotaPlan').textContent = plan.name;
+
+          // Check if quota is exceeded
+          const productsExceeded = plan.max_products_per_month > 0 && productsUsed >= plan.max_products_per_month;
+          const videosExceeded = plan.max_videos_per_month > 0 && videosUsed >= plan.max_videos_per_month;
+
+          if (productsExceeded || videosExceeded) {
+            const warningText = [];
+            if (productsExceeded) warningText.push(`You've reached your monthly product limit (${productsLimit})`);
+            if (videosExceeded) warningText.push(`You've reached your monthly video limit (${videosLimit})`);
+            document.getElementById('quotaWarningText').textContent = warningText.join('. ') + '.';
+            document.getElementById('quotaWarning').style.display = 'block';
+          } else {
+            document.getElementById('quotaWarning').style.display = 'none';
+          }
+        } else {
+          document.getElementById('quotaProducts').textContent = 'N/A';
+          document.getElementById('quotaVideos').textContent = 'N/A';
+          document.getElementById('quotaPlan').textContent = 'No Plan';
+          document.getElementById('quotaWarningText').textContent = 'You need to subscribe to a plan to tag products.';
+          document.getElementById('quotaWarning').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading quota status:', error);
+        document.getElementById('quotaPlan').textContent = 'Error';
+      }
+    }
+
+    // Check quota before creating tag
+    function checkQuotaBeforeTagging(productType) {
+      if (!quotaStatus || !quotaStatus.plan) {
+        showToast('You need to subscribe to a plan to tag products. Please visit the subscription page.', 'error');
+        setTimeout(() => window.location.href = 'subscription.html', 2000);
+        return false;
+      }
+
+      const plan = quotaStatus.plan;
+      const usage = quotaStatus.usage;
+
+      // For external products, check product quota
+      if (productType === 'external' || productType === 'marketplace') {
+        if (plan.max_products_per_month > 0) {
+          const productsUsed = usage.products_used_this_month || 0;
+          if (productsUsed >= plan.max_products_per_month) {
+            showToast(
+              `You've reached your monthly product limit (${plan.max_products_per_month}). ` +
+              `Please upgrade your plan to tag more products.`,
+              'error'
+            );
+            setTimeout(() => window.location.href = 'subscription.html', 2000);
+            return false;
+          }
+        }
+      }
+
+      // Check video quota (if applicable)
+      if (plan.max_videos_per_month > 0) {
+        const videosUsed = usage.videos_used_this_month || 0;
+        if (videosUsed >= plan.max_videos_per_month) {
+          showToast(
+            `You've reached your monthly video limit (${plan.max_videos_per_month}). ` +
+            `Please upgrade your plan to tag more videos.`,
+            'error'
+          );
+          setTimeout(() => window.location.href = 'subscription.html', 2000);
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     async function createTag() {
       const btn = document.getElementById('createBtn');
       const videoId = document.getElementById('videoId').value.trim();
@@ -2018,6 +2140,11 @@
 
       if (!videoId) {
         return showToast('Please enter a Video ID to tag products on your video.', 'error');
+      }
+
+      // Check quota before proceeding
+      if (!checkQuotaBeforeTagging(productType)) {
+        return;
       }
       if (!/^\d+$/.test(videoId)) {
         return showToast(
@@ -2184,6 +2311,8 @@
         showToast('✅ Product tag created successfully! The tag will appear on your video.', 'success');
         document.getElementById('notes').value = '';
         await loadTags();
+        // Reload quota status after creating tag
+        await loadQuotaStatus();
       } catch (e) {
         let errorMsg = 'Failed to create product tag';
         if (e.message) {
