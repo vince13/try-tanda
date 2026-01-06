@@ -1267,9 +1267,9 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         max-width: 280px !important;
         opacity: 0 !important;
         visibility: hidden !important;
-        transform: translateY(-10px) !important;
-        /* Don't animate left/right/top changes (we position in JS). */
-        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s !important;
+        transform: none !important;
+        /* No animation - instant open/close */
+        transition: none !important;
         z-index: 10000 !important;
         padding: 0.5rem 0 !important;
         margin: 0 !important;
@@ -1277,7 +1277,6 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         display: block !important;
         pointer-events: none !important;
         overflow: visible !important;
-        will-change: opacity, transform;
         text-align: left !important;
       }
       
@@ -1291,11 +1290,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       .user-menu-dropdown .user-menu.active {
         opacity: 1 !important;
         visibility: visible !important;
-        transform: translateY(0) !important;
+        transform: none !important;
         pointer-events: auto !important;
-        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s !important;
+        transition: none !important;
       }
-      /* Close instantly (no animation) to avoid "flying away" on mobile. */
+      /* No animation - instant close */
       .user-menu-dropdown .user-menu.closing {
         transition: none !important;
       }
@@ -1416,7 +1415,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenuDropdown.classList.remove('active');
         userMenu.style.opacity = '0';
         userMenu.style.visibility = 'hidden';
-        userMenu.style.transform = 'translateY(-10px)';
+        userMenu.style.transform = 'none';
         userMenu.style.pointerEvents = 'none';
         // Reset positioning
         userMenu.style.position = '';
@@ -1553,7 +1552,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenuDropdown.classList.add('active');
         userMenu.style.opacity = '1';
         userMenu.style.visibility = 'visible';
-        userMenu.style.transform = 'translateY(0)';
+        userMenu.style.transform = 'none';
         userMenu.style.pointerEvents = 'auto';
         
         // Apply hover styles to all menu items
@@ -1614,7 +1613,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
             userMenuDropdown.classList.remove('active');
             userMenu.style.opacity = '0';
             userMenu.style.visibility = 'hidden';
-            userMenu.style.transform = 'translateY(-10px)';
+            userMenu.style.transform = 'none';
             userMenu.style.pointerEvents = 'none';
             // Reset positioning
             userMenu.style.position = '';
