@@ -1259,10 +1259,12 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       .user-menu-dropdown .user-menu {
         position: fixed !important;
         background: #000000 !important;
+        background-color: #000000 !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 1rem !important;
         box-shadow: 0 10px 40px rgba(0,0,0,0.9) !important;
         backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
         min-width: 220px !important;
         max-width: 280px !important;
         opacity: 0 !important;
@@ -1293,6 +1295,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         transform: none !important;
         pointer-events: auto !important;
         transition: none !important;
+        background: #000000 !important;
+        background-color: #000000 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
       }
       /* No animation - instant close */
       .user-menu-dropdown .user-menu.closing {
@@ -1554,6 +1561,10 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.style.visibility = 'visible';
         userMenu.style.transform = 'none';
         userMenu.style.pointerEvents = 'auto';
+        // Explicitly set opaque background to override any transparency
+        userMenu.style.background = '#000000';
+        userMenu.style.backdropFilter = 'none';
+        userMenu.style.webkitBackdropFilter = 'none';
         
         // Apply hover styles to all menu items
         const menuItems = userMenu.querySelectorAll('.user-menu-item');
