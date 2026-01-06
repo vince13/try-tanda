@@ -396,9 +396,6 @@
         <button class="tab" onclick="switchTab('settings')">
           <i class="fas fa-cog"></i> Settings
         </button>
-        <button class="tab" onclick="switchTab('security')">
-          <i class="fas fa-shield-alt"></i> Security
-        </button>
         <button class="tab" onclick="switchTab('platforms')">
           <i class="fas fa-link"></i> Platforms
         </button>
@@ -522,12 +519,9 @@
             </button>
           </form>
         </div>
-      </div>
 
-      <!-- Security Tab -->
-      <div id="tab-security" class="tab-content">
-        <div class="card">
-          <h2>Change Password</h2>
+        <div class="card" style="margin-top: 1.5rem;">
+          <h2><i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i> Security</h2>
           <form id="password-form" onsubmit="handlePasswordChange(event)">
             <div class="form-group">
               <label for="old_password">Current Password</label>
