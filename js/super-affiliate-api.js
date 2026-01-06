@@ -1565,6 +1565,9 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.style.background = '#000000';
         userMenu.style.backdropFilter = 'none';
         userMenu.style.webkitBackdropFilter = 'none';
+        // Ensure border and rounded edges match index.html
+        userMenu.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        userMenu.style.borderRadius = '1rem';
         
         // Apply hover styles to all menu items
         const menuItems = userMenu.querySelectorAll('.user-menu-item');
