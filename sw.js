@@ -62,6 +62,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Skip service worker for external R2 storage URLs (CORS issues)
+  // These are video/media files from Cloudflare R2 that don't have CORS headers
+  if (url.hostname.includes('.r2.dev') || 
+      url.hostname.includes('pub-3484fb4b3c5748cd80420365c258aaaa')) {
+    // Let browser handle these directly - don't intercept
+    event.respondWith(fetch(event.request).catch(() => {
+      // If fetch fails (CORS), return a rejected promise to avoid errors
+      return Promise.reject(new Error('CORS blocked'));
+    }));
+    return;
+  }
+  
   // NEVER cache API endpoints - always fetch fresh from network
   // This ensures profile data, avatars, and all dynamic content is always up-to-date
   if (url.pathname.includes('/api/') || 
@@ -96,6 +108,7 @@ self.addEventListener('fetch', (event) => {
   } 
   // For media files (avatars, videos, images), use network-first to avoid stale cache
   // This ensures updated avatars/images show immediately without hard refresh
+  // Skip external R2 URLs (already handled above)
   else if (url.pathname.includes('/media/') || 
            url.pathname.includes('/avatars/') ||
            url.pathname.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|svg)$/i)) {
@@ -106,9 +119,11 @@ self.addEventListener('fetch', (event) => {
           // This prevents stale avatars/images from showing
           return response;
         })
-        .catch(() => {
-          // If network fails, try cache as fallback
-          return caches.match(event.request);
+        .catch((error) => {
+          // If network fails (e.g., CORS), don't try cache - just fail silently
+          // This prevents CORS errors from propagating
+          console.warn('Service worker: Failed to fetch media file:', event.request.url, error);
+          return Promise.reject(error);
         })
     );
   } 
@@ -126,6 +141,11 @@ self.addEventListener('fetch', (event) => {
               });
             }
             return fetchResponse;
+          }).catch((error) => {
+            // If fetch fails (e.g., CORS), return error response instead of throwing
+            // This prevents uncaught promise rejections
+            console.warn('Service worker: Fetch failed:', event.request.url, error);
+            return Promise.reject(error);
           });
         })
     );

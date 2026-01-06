@@ -450,12 +450,30 @@
         console.log('Loading subscription plans from /videos/subscription/plans/...');
         let response = await SuperAffiliateAPI.apiRequest('/videos/subscription/plans/');
         console.log('Plans API response:', response);
+        console.log('Response type:', typeof response);
+        console.log('Is array?', Array.isArray(response));
+        console.log('Has plans key?', response?.plans !== undefined);
+        console.log('Plans value:', response?.plans);
         
-        // If subscription endpoint fails, try overlay-plans endpoint as fallback
-        if (!response || response.error || (!response.plans && !Array.isArray(response))) {
+        // If subscription endpoint returns empty or error, try overlay-plans endpoint as fallback
+        const hasPlans = (response?.plans && Array.isArray(response.plans) && response.plans.length > 0) || 
+                         (Array.isArray(response) && response.length > 0);
+        
+        if (!response || response.error || !hasPlans) {
           console.log('Trying fallback endpoint /videos/overlay-plans/...');
-          response = await SuperAffiliateAPI.apiRequest('/videos/overlay-plans/');
-          console.log('Fallback plans API response:', response);
+          try {
+            const fallbackResponse = await SuperAffiliateAPI.apiRequest('/videos/overlay-plans/');
+            console.log('Fallback plans API response:', fallbackResponse);
+            
+            // Use fallback if it has plans
+            if (fallbackResponse && 
+                ((fallbackResponse.plans && Array.isArray(fallbackResponse.plans) && fallbackResponse.plans.length > 0) ||
+                 (Array.isArray(fallbackResponse) && fallbackResponse.length > 0))) {
+              response = fallbackResponse;
+            }
+          } catch (fallbackError) {
+            console.warn('Fallback endpoint also failed:', fallbackError);
+          }
         }
         
         // Check for error in response
@@ -473,16 +491,21 @@
           plans = [];
         }
 
-        console.log('Parsed plans:', plans);
+        console.log('Final parsed plans:', plans);
+        console.log('Plans count:', plans.length);
         const plansGrid = document.getElementById('plansGrid');
         
         if (!Array.isArray(plans) || plans.length === 0) {
-          console.warn('No plans found. Response structure:', response);
+          console.warn('No plans found. Full response:', JSON.stringify(response, null, 2));
           plansGrid.innerHTML = `
             <div class="error-message">
               <p><strong>No subscription plans available.</strong></p>
               <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                ${response?.error ? `Error: ${response.error}` : 'Please contact support or check back later.'}
+                ${response?.error ? `Error: ${response.error}` : 'Plans may not be configured yet. Please contact support.'}
+              </p>
+              <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                If you're an admin, ensure plans are seeded in the database using:<br>
+                <code style="background: rgba(255,255,255,0.1); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">python manage.py seed_pricing_plans</code>
               </p>
               <button onclick="loadPlans()" class="btn" style="margin-top: 1rem;">
                 <i class="fas fa-redo"></i> Retry
