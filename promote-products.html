@@ -102,6 +102,49 @@
       font-weight: 800;
     }
 
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* Mobile: Add horizontal scroll to nav items - same as profile.html */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -805,11 +848,11 @@
         let promotion = null;
         try {
           const promoteResponse = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/promote/', {
-            method: 'POST',
-            body: JSON.stringify({
-              product: productId
-            })
-          });
+          method: 'POST',
+          body: JSON.stringify({
+            product: productId
+          })
+        });
           promotion = promoteResponse;
         } catch (error) {
           // Promotion might already exist, try to get it
@@ -1013,7 +1056,7 @@
           const img = product.image;
           if (img.startsWith('http://') || img.startsWith('https://')) {
             return img;
-          }
+        }
           const path = img.startsWith('/') ? img : '/' + img;
           return API_BASE_URL + path;
         }
