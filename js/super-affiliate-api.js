@@ -1898,11 +1898,26 @@ style.textContent = `
     align-items: center;
     gap: 0.5rem;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     position: relative; /* Ensure dropdown can escape overflow */
   }
   .tanda-nav-container::-webkit-scrollbar { display: none; }
+  
+  /* Mobile: Ensure tanda-nav-container is scrollable */
+  @media (max-width: 768px) {
+    .tanda-nav-container {
+      flex: 1;
+      min-width: 0;
+      max-width: 100%;
+    }
+    
+    .tanda-nav-container .user-menu-wrapper {
+      min-width: max-content;
+      width: max-content;
+    }
+  }
   
   /* Ensure user menu dropdown can escape overflow clipping */
   .tanda-nav-container .user-menu-wrapper {

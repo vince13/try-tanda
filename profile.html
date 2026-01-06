@@ -64,21 +64,59 @@
       gap: 0.5rem;
       overflow: visible;
       position: relative;
+      min-width: 0;
+    }
+    
+    /* Ensure nav children don't shrink */
+    .nav > * {
+      flex-shrink: 0;
     }
     
     /* Mobile: Add horizontal scroll to nav items */
     @media (max-width: 768px) {
       .nav {
+        overflow-x: visible;
+        overflow-y: visible;
+        gap: 0.5rem;
+        min-width: 0;
+        flex: 1;
+      }
+      
+      /* Make tanda-nav-container the scrollable container */
+      .nav #authNav,
+      .nav .tanda-nav-container {
+        flex: 1;
+        min-width: 0;
+        max-width: 100%;
         overflow-x: auto;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        gap: 0.5rem;
-        padding-right: 0.5rem;
+        position: relative;
       }
       
-      .nav::-webkit-scrollbar {
+      .nav #authNav::-webkit-scrollbar,
+      .nav .tanda-nav-container::-webkit-scrollbar {
         display: none;
+      }
+      
+      /* Ensure user-menu-wrapper inside tanda-nav-container doesn't wrap */
+      .nav .tanda-nav-container .user-menu-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        flex-wrap: nowrap !important;
+        min-width: max-content !important;
+        white-space: nowrap !important;
+        width: max-content !important;
+      }
+      
+      /* Ensure nav items don't shrink */
+      .nav .tanda-nav-container .nav-link-btn,
+      .nav .tanda-nav-container .user-menu-toggle,
+      .nav .tanda-nav-container .user-menu-wrapper > * {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
       }
       
       /* Ensure user menu dropdown can escape overflow on mobile */
@@ -89,17 +127,6 @@
       
       .nav .user-menu-wrapper {
         overflow: visible !important;
-      }
-      
-      .nav .tanda-nav-container {
-        overflow-x: auto;
-        overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-      
-      .nav .tanda-nav-container::-webkit-scrollbar {
-        display: none;
       }
     }
 
