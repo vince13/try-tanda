@@ -367,6 +367,23 @@
       border: 2px solid rgba(255, 165, 0, 0.7);
     }
 
+    /* Role onboarding buttons */
+    .role-btn {
+      width: 100%;
+    }
+
+    .role-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+      opacity: 0.95;
+    }
+
+    @media (max-width: 768px) {
+      .role-btn {
+        min-width: 100%;
+      }
+    }
+
     /* Confirmation Modal */
     .modal-overlay {
       display: none;
@@ -1170,25 +1187,28 @@
     function showRoleOnboardingMessage() {
       const quotaStatusEl = document.getElementById('quotaStatus');
       quotaStatusEl.innerHTML = `
-        <div class="card" style="border: 2px solid rgba(255, 165, 0, 0.5); background: rgba(255, 165, 0, 0.1);">
-          <h2 style="color: #ffb703; margin-bottom: 1rem;">
-            <i class="fas fa-exclamation-triangle"></i> Role Required
-          </h2>
-          <p style="margin-bottom: 1rem; line-height: 1.6;">
+        <h2 style="color: var(--accent-color); margin-bottom: 1rem;">
+          <i class="fas fa-exclamation-triangle"></i> Role Required
+        </h2>
+        <div style="background: var(--bg-card); backdrop-filter: blur(20px); border-radius: var(--border-radius); border: 1px solid rgba(255,255,255,0.1); padding: 2rem; margin-top: 1rem;">
+          <p style="margin-bottom: 1rem; line-height: 1.6; color: var(--text-primary); font-size: 1rem;">
             To subscribe to a plan and tag products in your videos, you must first become an <strong>approved seller</strong> or <strong>approved affiliate</strong>.
           </p>
-          <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-            Subscriptions are only available to sellers and affiliates because product tagging requires role verification.
-          </p>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="become-seller.html" class="btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center;">
+          <div style="padding: 1rem; background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); border-radius: 0.75rem; margin-bottom: 1.5rem;">
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0;">
+              <i class="fas fa-info-circle" style="color: #ffb703; margin-right: 0.5rem;"></i>
+              Subscriptions are only available to sellers and affiliates because product tagging requires role verification.
+            </p>
+          </div>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <a href="become-seller.html" class="role-btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center; padding: 1rem 1.5rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; color: white; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem; border: none; cursor: pointer;">
               <i class="fas fa-store"></i> Become a Seller
             </a>
-            <a href="become-affiliate.html" class="btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center;">
+            <a href="become-affiliate.html" class="role-btn" style="background: var(--primary-gradient); flex: 1; min-width: 200px; text-align: center; padding: 1rem 1.5rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; color: white; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem; border: none; cursor: pointer;">
               <i class="fas fa-bullhorn"></i> Become an Affiliate
             </a>
           </div>
-          <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+          <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
             After approval, you can return here to subscribe to a plan.
           </p>
         </div>
