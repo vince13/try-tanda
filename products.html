@@ -1147,6 +1147,8 @@
       try {
         const response = await SuperAffiliateAPI.apiRequest('/commerce/categories/');
         console.log('📦 Categories response:', response);
+        console.log('📦 Categories response type:', typeof response);
+        console.log('📦 Categories response is array:', Array.isArray(response));
         let categories = [];
         
         // Handle different response formats
@@ -1158,9 +1160,12 @@
           categories = response.categories;
         } else if (response && response.data && Array.isArray(response.data)) {
           categories = response.data;
+        } else {
+          console.warn('⚠️ Unexpected categories response format:', response);
         }
 
         console.log(`✅ Found ${categories.length} categories`);
+        console.log('📋 Category names:', categories.map(c => c.name || c.title || c.slug || 'Unknown'));
 
         // Load category chips
         if (chipsContainer) {
