@@ -307,6 +307,130 @@
       display: block;
     }
 
+    /* Email verification styles */
+    .email-verify-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .email-verify-container input {
+      flex: 1;
+    }
+
+    .btn-verify {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0.9rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-verify:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn-verify:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .verification-status {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      display: none;
+    }
+
+    .verification-status.show {
+      display: block;
+    }
+
+    .verification-status.pending {
+      background: rgba(255, 165, 0, 0.1);
+      border: 1px solid rgba(255, 165, 0, 0.3);
+      color: #ffaa00;
+    }
+
+    .verification-status.success {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: #00ff88;
+    }
+
+    .verification-status.error {
+      background: rgba(255, 0, 80, 0.1);
+      border: 1px solid rgba(255, 0, 80, 0.3);
+      color: #ff6b6b;
+    }
+
+    .verification-code-group {
+      margin-top: 0.75rem;
+    }
+
+    .verification-code-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .verification-code-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .verification-code-container input {
+      flex: 1;
+      padding: 0.9rem 1rem;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.6rem;
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      text-align: center;
+      letter-spacing: 0.2em;
+      font-weight: 600;
+    }
+
+    .verification-code-container input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .btn-verify-code {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0.9rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-verify-code:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+    }
+
+    .btn-verify-code:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -492,10 +616,25 @@
           <form id="settings-form" onsubmit="handleSettingsUpdate(event)">
             <div class="form-group">
               <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" required>
+              <div class="email-verify-container">
+                <input type="email" id="email" name="email" required>
+                <button type="button" id="send-verification-btn" class="btn-verify">
+                  <i class="fas fa-envelope"></i> <span class="btn-text">Send Code</span>
+                </button>
+              </div>
               <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
-                Changing your email requires verification
+                Changing your email requires verification. Click "Send Code" to receive a verification code.
               </small>
+              <div id="email-verification-status" class="verification-status" style="display: none;"></div>
+              <div id="verification-code-group" class="verification-code-group" style="display: none;">
+                <label for="verification_code" class="verification-code-label">Verification Code</label>
+                <div class="verification-code-container">
+                  <input type="text" id="verification_code" placeholder="000000" maxlength="6" inputmode="numeric">
+                  <button type="button" id="verify-code-btn" class="btn-verify-code">
+                    <i class="fas fa-check"></i> <span class="btn-text">Verify Code</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -688,11 +827,159 @@
       document.getElementById('phone_number').value = data.phone_number || '';
 
       // Settings form
-      document.getElementById('email').value = data.email || '';
+      const emailInput = document.getElementById('email');
+      emailInput.value = data.email || '';
+      originalEmail = data.email || '';
+      emailVerified = false;
+      resetEmailVerificationUI();
       document.getElementById('email_visible').checked = data.email_visible || false;
       if (data.privacy_settings) {
         document.getElementById('show_followers').checked = data.privacy_settings.show_followers !== false;
         document.getElementById('show_following').checked = data.privacy_settings.show_following !== false;
+      }
+    }
+
+    // Email verification state
+    let originalEmail = '';
+    let emailVerified = false;
+    let pendingEmail = '';
+
+    function resetEmailVerificationUI() {
+      const statusDiv = document.getElementById('email-verification-status');
+      const codeGroup = document.getElementById('verification-code-group');
+      const verifyBtn = document.getElementById('send-verification-btn');
+      
+      statusDiv.style.display = 'none';
+      statusDiv.className = '';
+      codeGroup.style.display = 'none';
+      document.getElementById('verification_code').value = '';
+      verifyBtn.innerHTML = '<i class="fas fa-envelope"></i> <span class="btn-text">Send Code</span>';
+      verifyBtn.disabled = false;
+      emailVerified = false;
+      pendingEmail = '';
+    }
+
+    function checkEmailChange() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      if (email !== originalEmail) {
+        resetEmailVerificationUI();
+      } else {
+        // Email is back to original, no verification needed
+        emailVerified = true;
+        resetEmailVerificationUI();
+      }
+    }
+
+    // Send verification code
+    async function sendEmailVerificationCode() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const verifyBtn = document.getElementById('send-verification-btn');
+      const statusDiv = document.getElementById('email-verification-status');
+      const codeGroup = document.getElementById('verification-code-group');
+
+      if (!email) {
+        showError('Please enter an email address first');
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      // Check if email is different from original
+      if (email === originalEmail) {
+        showError('This is your current email address. No verification needed.');
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      statusDiv.style.display = 'block';
+      statusDiv.className = 'verification-status show pending';
+      statusDiv.innerHTML = '<i class="fas fa-clock"></i> Sending verification code...';
+
+      try {
+        // First, update the email (backend will send verification code)
+        const response = await SuperAffiliateAPI.apiRequest('/users/profile/update/', {
+          method: 'PUT',
+          body: JSON.stringify({ email }),
+        });
+
+        if (response && response.email_verification_required) {
+          pendingEmail = email;
+          statusDiv.className = 'verification-status show success';
+          statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Verification code sent! Check your email.';
+          codeGroup.style.display = 'block';
+          document.getElementById('verification_code').focus();
+          verifyBtn.innerHTML = '<i class="fas fa-redo"></i> Resend';
+          verifyBtn.disabled = false;
+        } else {
+          // Email was updated without verification (shouldn't happen, but handle it)
+          originalEmail = email;
+          emailVerified = true;
+          showSuccess('Email updated successfully!');
+          resetEmailVerificationUI();
+        }
+      } catch (error) {
+        console.error('Send verification code error:', error);
+        statusDiv.className = 'verification-status show error';
+        statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (error.message || 'Failed to send verification code. Please try again.');
+        verifyBtn.innerHTML = '<i class="fas fa-envelope"></i> <span class="btn-text">Send Code</span>';
+        verifyBtn.disabled = false;
+      }
+    }
+
+    // Verify code
+    async function verifyEmailCode() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const code = document.getElementById('verification_code').value.trim();
+      const verifyCodeBtn = document.getElementById('verify-code-btn');
+      const statusDiv = document.getElementById('email-verification-status');
+
+      if (!email) {
+        showError('Please enter an email address first');
+        return;
+      }
+
+      if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
+        showError('Please enter a valid 6-digit verification code');
+        return;
+      }
+
+      verifyCodeBtn.disabled = true;
+      verifyCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/users/verify-email/', {
+          method: 'POST',
+          body: JSON.stringify({ email, code }),
+        });
+
+        if (response && response.email_verified) {
+          emailVerified = true;
+          originalEmail = email;
+          statusDiv.className = 'verification-status show success';
+          statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Email verified successfully!';
+          document.getElementById('verification_code').setAttribute('readonly', 'readonly');
+          verifyCodeBtn.disabled = true;
+          verifyCodeBtn.innerHTML = '<i class="fas fa-check"></i> Verified';
+          showSuccess('Email updated and verified successfully!');
+          // Reload profile to get updated email
+          setTimeout(() => {
+            loadProfile();
+          }, 1000);
+        } else {
+          throw new Error('Verification failed');
+        }
+      } catch (error) {
+        console.error('Verify code error:', error);
+        statusDiv.className = 'verification-status show error';
+        statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (error.message || 'Invalid verification code. Please try again.');
+        verifyCodeBtn.disabled = false;
+        verifyCodeBtn.innerHTML = '<i class="fas fa-check"></i> <span class="btn-text">Verify Code</span>';
       }
     }
 
@@ -722,28 +1009,34 @@
     async function handleSettingsUpdate(event) {
       event.preventDefault();
       try {
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim().toLowerCase();
         const emailVisible = document.getElementById('email_visible').checked;
         const showFollowers = document.getElementById('show_followers').checked;
         const showFollowing = document.getElementById('show_following').checked;
 
-        // 1) Update user profile fields (email/email_visible)
+        // Check if email changed and needs verification
+        if (email !== originalEmail && !emailVerified) {
+          showError('Please verify your new email address before saving. Click "Send Code" to receive a verification code.');
+          return;
+        }
+
+        // 1) Update user profile fields (email_visible only - email is already updated after verification)
+        // If email was verified, it's already updated in the backend, so we don't send it again
         const profileResp = await SuperAffiliateAPI.apiRequest('/users/profile/update/', {
           method: 'PUT',
-          body: { email, email_visible: emailVisible },
+          body: JSON.stringify({ 
+            email_visible: emailVisible 
+          }),
         });
 
         // 2) Update privacy settings (followers/following visibility)
         await SuperAffiliateAPI.apiRequest('/users/privacy-settings/', {
           method: 'PUT',
-          body: { show_followers: showFollowers, show_following: showFollowing },
+          body: JSON.stringify({ show_followers: showFollowers, show_following: showFollowing }),
         });
 
         showSuccess('Settings updated successfully!');
-        if (profileResp && profileResp.email_verification_required) {
-          showError('Email change requires verification. Please check your new email.');
-        }
-
+        
         // Refresh UI state from source of truth
         loadProfile();
       } catch (error) {
@@ -884,6 +1177,41 @@
 
     // Initialize profile after service worker is registered
     loadProfile();
+
+    // Email verification event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      const sendCodeBtn = document.getElementById('send-verification-btn');
+      const verifyCodeBtn = document.getElementById('verify-code-btn');
+      const emailInput = document.getElementById('email');
+      const codeInput = document.getElementById('verification_code');
+
+      if (sendCodeBtn) {
+        sendCodeBtn.addEventListener('click', sendEmailVerificationCode);
+      }
+
+      if (verifyCodeBtn) {
+        verifyCodeBtn.addEventListener('click', verifyEmailCode);
+      }
+
+      if (emailInput) {
+        emailInput.addEventListener('blur', checkEmailChange);
+        emailInput.addEventListener('input', checkEmailChange);
+      }
+
+      if (codeInput) {
+        // Allow Enter key to submit verification code
+        codeInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            verifyEmailCode();
+          }
+        });
+
+        // Auto-format verification code input (numbers only)
+        codeInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+        });
+      }
+    });
   </script>
 </body>
 </html>
