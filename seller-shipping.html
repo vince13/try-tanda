@@ -521,17 +521,62 @@
       window.location.href = 'super-affiliate-login.html';
     }
 
-    // Render auth nav
-    SuperAffiliateAPI.renderAuthNav('authNav');
+    // Render auth nav (suppress 404 errors for optional endpoints)
+    try {
+      SuperAffiliateAPI.renderAuthNav('authNav');
+    } catch (error) {
+      console.warn('Navigation rendering warning (non-critical):', error);
+    }
+
+    // Check if user is a seller
+    async function checkSellerStatus() {
+      try {
+        const profile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+        if (!profile || !profile.id) {
+          showAlert('You need to be a seller to manage shipping methods. Please register as a seller first.', 'error');
+          setTimeout(() => {
+            window.location.href = 'become-seller.html';
+          }, 2000);
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('Error checking seller status:', error);
+        showAlert('You need to be a seller to manage shipping methods. Please register as a seller first.', 'error');
+        setTimeout(() => {
+          window.location.href = 'become-seller.html';
+        }, 2000);
+        return false;
+      }
+    }
 
     // Load shipping methods
     async function loadMethods() {
       try {
-        const methods = await SuperAffiliateAPI.apiRequest('/commerce/seller/shipping/methods/');
+        // First check if user is a seller
+        const isSeller = await checkSellerStatus();
+        if (!isSeller) {
+          document.getElementById('loading-section').style.display = 'none';
+          return;
+        }
+
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/seller/shipping/methods/');
+        // Handle both array and paginated response formats
+        const methods = Array.isArray(response) 
+          ? response 
+          : (response.results || response.data || []);
         displayMethods(methods);
       } catch (error) {
         console.error('Error loading methods:', error);
-        showAlert('Failed to load shipping methods. Please try again.', 'error');
+        // Check if it's a 404 (seller not found) or other error
+        if (error.message && (error.message.includes('404') || error.message.includes('Not Found'))) {
+          showAlert('You need to be a seller to manage shipping methods. Please register as a seller first.', 'error');
+          setTimeout(() => {
+            window.location.href = 'become-seller.html';
+          }, 2000);
+        } else {
+          showAlert('Failed to load shipping methods. Please try again.', 'error');
+        }
         document.getElementById('loading-section').style.display = 'none';
       }
     }
@@ -543,6 +588,12 @@
 
       loadingSection.style.display = 'none';
       methodsSection.style.display = 'block';
+
+      // Ensure methods is an array
+      if (!Array.isArray(methods)) {
+        console.error('Methods is not an array:', methods);
+        methods = [];
+      }
 
       if (!methods || methods.length === 0) {
         listContainer.innerHTML = `

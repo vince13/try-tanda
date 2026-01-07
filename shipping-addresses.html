@@ -508,7 +508,11 @@
     // Load addresses
     async function loadAddresses() {
       try {
-        const addresses = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
+        // Handle both array and paginated response formats
+        const addresses = Array.isArray(response) 
+          ? response 
+          : (response.results || response.data || []);
         displayAddresses(addresses);
       } catch (error) {
         console.error('Error loading addresses:', error);
@@ -524,6 +528,12 @@
 
       loadingSection.style.display = 'none';
       addressesSection.style.display = 'block';
+
+      // Ensure addresses is an array
+      if (!Array.isArray(addresses)) {
+        console.error('Addresses is not an array:', addresses);
+        addresses = [];
+      }
 
       if (!addresses || addresses.length === 0) {
         listContainer.innerHTML = `
