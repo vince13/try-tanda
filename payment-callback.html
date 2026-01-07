@@ -222,50 +222,74 @@
         return;
       }
 
-      // Verify payment
-      async function verifyPayment() {
-      try {
-        if (paymentReference) {
-          // Verify payment by reference
-          const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/payment/verify/${paymentReference}/`);
-          
-          if (response.success || response.payment_status === 'paid' || response.status === 'success') {
-            showSuccess(response.order_id || orderId);
-          } else {
-            showError(response.message || 'Payment verification failed');
-          }
-        } else if (orderId) {
-          // If no reference, check order status directly
-          const orderResponse = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
-          
-          if (orderResponse.payment_status === 'paid' || orderResponse.status === 'paid') {
-            showSuccess(orderId);
-          } else {
-            // Wait a bit and check again (payment might still be processing)
-            setTimeout(() => {
-              verifyPayment();
-            }, 2000);
-          }
+      function getApiBase() {
+        if (typeof SuperAffiliateAPI !== 'undefined' && typeof SuperAffiliateAPI.getApiBase === 'function') {
+          return SuperAffiliateAPI.getApiBase();
         }
-      } catch (error) {
-        console.error('Payment verification error:', error);
-        // If verification fails, check order status as fallback
-        if (orderId) {
-          try {
-            const orderResponse = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
-            if (orderResponse.payment_status === 'paid') {
-              showSuccess(orderId);
+        const metaTag = document.querySelector('meta[name="api-base-url"]');
+        if (metaTag && metaTag.content) {
+          return metaTag.content.endsWith('/api') ? metaTag.content : metaTag.content + '/api';
+        }
+        return '/api';
+      }
+
+      const API_BASE = getApiBase();
+
+      // Verify payment WITHOUT triggering auth redirects/logouts
+      async function verifyPayment() {
+        try {
+          if (paymentReference) {
+            // Use public redirect endpoint which has AllowAny permissions
+            const url = `${API_BASE}/commerce/orders/payment/redirect/?reference=${encodeURIComponent(paymentReference)}&json=1`;
+            const resp = await fetch(url, {
+              method: 'GET',
+              credentials: 'include',
+            });
+
+            const data = await resp.json().catch(() => ({}));
+
+            if (resp.ok && (data.status === 'success' || data.status === 'ok')) {
+              showSuccess(data.order_id || orderId);
             } else {
-              showError('Payment verification failed. Please check your order status.');
+              const msg = data.message || data.error || 'Payment verification failed. Please check your order status.';
+              showError(msg);
             }
-          } catch (err) {
-            showError('Unable to verify payment. Please check your orders.');
+          } else if (orderId) {
+            // Fallback: check order status directly, but do NOT clear tokens or redirect on 401
+            const token = (typeof SuperAffiliateAPI !== 'undefined' && typeof SuperAffiliateAPI.getToken === 'function')
+              ? SuperAffiliateAPI.getToken()
+              : null;
+
+            const headers = {};
+            if (token) {
+              headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const orderResp = await fetch(`${API_BASE}/commerce/orders/${orderId}/`, {
+              method: 'GET',
+              headers,
+              credentials: 'include',
+            });
+
+            if (orderResp.ok) {
+              const orderData = await orderResp.json();
+              if (orderData.payment_status === 'paid' || orderData.status === 'paid' || orderData.status === 'confirmed') {
+                showSuccess(orderId);
+              } else {
+                // Wait a bit and check again (payment might still be processing)
+                setTimeout(() => {
+                  verifyPayment();
+                }, 2000);
+              }
+            } else {
+              showError('Payment verification failed. Please check your orders.');
+            }
           }
-        } else {
-          showError('Payment verification failed. Please check your orders.');
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          showError('Unable to verify payment. Please check your orders.');
         }
       }
-    }
 
     function showSuccess(orderId) {
       document.getElementById('loading-state').style.display = 'none';
