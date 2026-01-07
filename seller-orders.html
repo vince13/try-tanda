@@ -414,6 +414,11 @@
       outline: none;
     }
 
+    /* Make datetime-local calendar icon visible on dark background */
+    .modal-form input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+
     .modal-form textarea {
       min-height: 72px;
       resize: vertical;
