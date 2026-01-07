@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <title>Seller Revenue - Tanda</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .title {
+      font-size: 2rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-caption {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 1.5rem 1.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      color: var(--accent-color);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.65rem 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      gap: 0.25rem;
+    }
+
+    .badge-paid {
+      background: rgba(76, 175, 80, 0.12);
+      color: #4caf50;
+    }
+
+    .badge-pending {
+      background: rgba(255, 193, 7, 0.12);
+      color: #ffc107;
+    }
+
+    .badge-failed {
+      background: rgba(244, 67, 54, 0.12);
+      color: #f44336;
+    }
+
+    .status-label {
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-size: 0.7rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Seller Revenue</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <p>Loading revenue...</p>
+    </div>
+
+    <div id="revenue-section" style="display: none;">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Revenue (All Orders)</div>
+          <div class="stat-value" id="rev-total">₦0</div>
+          <div class="stat-caption">Includes paid and pending orders.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Paid Revenue</div>
+          <div class="stat-value" id="rev-paid">₦0</div>
+          <div class="stat-caption">Orders marked as paid.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Revenue</div>
+          <div class="stat-value" id="rev-pending">₦0</div>
+          <div class="stat-caption">Orders awaiting payment confirmation.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fas fa-money-check-alt"></i> Revenue by Order</h2>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="revenue-rows">
+              <tr>
+                <td colspan="6">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    // Require auth
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    const fmtMoney = (n) => {
+      return '₦' + parseFloat(n || 0).toLocaleString('en-NG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+    };
+
+    async function loadRevenue() {
+      try {
+        const stats = await SuperAffiliateAPI.apiRequest('/commerce/seller/stats/');
+        const ordersResp = await SuperAffiliateAPI.apiRequest('/commerce/seller/orders/?per_page=100');
+        const orders = ordersResp.orders || [];
+
+        document.getElementById('rev-total').textContent = fmtMoney(
+          (stats.total_revenue_paid || 0) + (stats.total_revenue_pending || 0)
+        );
+        document.getElementById('rev-paid').textContent = fmtMoney(stats.total_revenue_paid || 0);
+        document.getElementById('rev-pending').textContent = fmtMoney(stats.total_revenue_pending || 0);
+
+        const tbody = document.getElementById('revenue-rows');
+        if (!orders.length) {
+          tbody.innerHTML = '<tr><td colspan="6">No orders yet.</td></tr>';
+        } else {
+          tbody.innerHTML = orders.map(order => {
+            const createdAt = order.created_at ? new Date(order.created_at) : null;
+            const dateStr = createdAt ? createdAt.toLocaleDateString('en-NG', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            }) : '-';
+
+            const customerName = order.customer?.username || order.customer?.email || 'Customer';
+            const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+            const orderStatus = (order.status || 'pending').toLowerCase();
+
+            let paymentClass = 'badge-pending';
+            let paymentLabel = 'PENDING';
+            if (paymentStatus === 'paid') {
+              paymentClass = 'badge-paid';
+              paymentLabel = 'PAID';
+            } else if (paymentStatus === 'failed') {
+              paymentClass = 'badge-failed';
+              paymentLabel = 'FAILED';
+            }
+
+            return `
+              <tr>
+                <td>${(order.id || '').substring(0, 8).toUpperCase()}</td>
+                <td>${dateStr}</td>
+                <td>${customerName}</td>
+                <td>${fmtMoney(order.total || 0)}</td>
+                <td><span class="badge ${paymentClass}">${paymentLabel}</span></td>
+                <td class="status-label">${orderStatus}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('revenue-section').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading revenue:', error);
+        const loading = document.getElementById('loading-section');
+        loading.textContent = 'Failed to load revenue. Please refresh the page.';
+      }
+    }
+
+    loadRevenue();
+  </script>
+</body>
+</html>
+
+

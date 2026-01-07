@@ -504,7 +504,7 @@
         </label>
         <label>
           Estimated Delivery Time
-          <input type="text" id="estimated-delivery-time" placeholder="e.g. Today by 4 PM">
+          <input type="datetime-local" id="estimated-delivery-time" placeholder="Select date & time">
         </label>
         <label>
           Status
@@ -760,7 +760,16 @@
             document.getElementById('driver-phone').value = tracking.driver_phone;
           }
           if (tracking.estimated_delivery_time) {
-            document.getElementById('estimated-delivery-time').value = tracking.estimated_delivery_time;
+            // Convert ISO timestamp to datetime-local value (YYYY-MM-DDTHH:MM)
+            const iso = tracking.estimated_delivery_time;
+            const d = new Date(iso);
+            if (!isNaN(d.getTime())) {
+              const pad = (n) => String(n).padStart(2, '0');
+              const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+              document.getElementById('estimated-delivery-time').value = local;
+            } else {
+              document.getElementById('estimated-delivery-time').value = '';
+            }
           }
           if (tracking.status) {
             document.getElementById('driver-status').value = tracking.status;
@@ -782,8 +791,17 @@
       const orderId = document.getElementById('driver-order-id').value;
       const driverName = document.getElementById('driver-name').value.trim();
       const driverPhone = document.getElementById('driver-phone').value.trim();
-      const estimatedDeliveryTime = document.getElementById('estimated-delivery-time').value.trim();
+      const estimatedDeliveryRaw = document.getElementById('estimated-delivery-time').value.trim();
       const status = document.getElementById('driver-status').value;
+
+      // Convert datetime-local back to ISO string for the API
+      let estimatedDeliveryTime = estimatedDeliveryRaw;
+      if (estimatedDeliveryRaw) {
+        const localDate = new Date(estimatedDeliveryRaw);
+        if (!isNaN(localDate.getTime())) {
+          estimatedDeliveryTime = localDate.toISOString();
+        }
+      }
 
       const payload = {
         status,
