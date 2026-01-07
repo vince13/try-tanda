@@ -584,9 +584,17 @@
         return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
       };
 
-      document.getElementById('subtotal').textContent = formatCurrency(order.subtotal || order.total);
-      document.getElementById('shipping').textContent = formatCurrency(order.shipping_cost || 0);
-      document.getElementById('total').textContent = formatCurrency(order.total);
+      // Subtotal comes from backend; fall back to total if missing
+      const subtotalValue = (order.subtotal != null ? order.subtotal : order.total);
+      // Shipping is stored on the order as `shipping`; fall back to `shipping_cost` if present
+      const rawShipping = (order.shipping != null ? order.shipping : order.shipping_cost);
+      const shippingValue = rawShipping != null ? rawShipping : 0;
+      // Total from backend already includes shipping and tax
+      const totalValue = order.total != null ? order.total : (subtotalValue || 0) + (shippingValue || 0);
+
+      document.getElementById('subtotal').text = formatCurrency(subtotalValue || 0);
+      document.getElementById('shipping').textContent = formatCurrency(shippingValue || 0);
+      document.getElementById('total').textContent = formatCurrency(totalValue || 0);
 
       // Payment Section
       const paymentStatus = order.payment_status || 'pending';
