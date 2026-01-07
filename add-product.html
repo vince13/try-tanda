@@ -619,20 +619,51 @@
           setTimeout(() => {
             window.location.href = 'become-seller.html';
           }, 2000);
-          return false;
+          return { isApproved: false, status: null };
         }
         if (profile.status !== 'approved') {
           showAlert('Your seller account is pending approval. You cannot add products until approved.', 'error');
-          return false;
+          return { isApproved: false, status: profile.status };
         }
-        return true;
+        return { isApproved: true, status: profile.status };
       } catch (error) {
         showAlert('You need to be a seller to add products. Please register as a seller first.', 'error');
         setTimeout(() => {
           window.location.href = 'become-seller.html';
         }, 2000);
-        return false;
+        return { isApproved: false, status: null };
       }
+    }
+
+    // Initialize page - check seller status and disable button if not approved
+    async function initializePage() {
+      const submitBtn = document.getElementById('submit-btn');
+      
+      // Disable button initially while checking status
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'not-allowed';
+      
+      const sellerStatus = await checkSellerStatus();
+      
+      if (!sellerStatus.isApproved) {
+        // Keep button disabled if seller is not approved
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.title = sellerStatus.status === 'pending' 
+          ? 'Your seller account is pending approval. You cannot add products until approved.'
+          : 'You need to be an approved seller to add products.';
+      } else {
+        // Enable button if seller is approved
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.title = '';
+      }
+      
+      // Load categories regardless of approval status
+      await loadCategories();
     }
 
     // Load categories (include empty categories for product creation)
@@ -697,8 +728,13 @@
     async function handleSubmit(event) {
       event.preventDefault();
       
-      const isSeller = await checkSellerStatus();
-      if (!isSeller) return;
+      const sellerStatus = await checkSellerStatus();
+      if (!sellerStatus.isApproved) {
+        // Button should already be disabled, but add extra check
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        return;
+      }
 
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
@@ -773,9 +809,8 @@
       }
     }
 
-    // Initialize
-    checkSellerStatus();
-    loadCategories();
+    // Initialize page - check seller status and disable button if not approved
+    initializePage();
   </script>
 </body>
 </html>
