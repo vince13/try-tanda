@@ -614,7 +614,7 @@
 
         const status = (order.status || 'pending').toLowerCase();
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
-        const shipping = order.shipping != null ? order.shipping : (order.shipping_cost || 0);
+      const shipping = order.shipping != null ? order.shipping : (order.shipping_cost || 0);
 
         let paymentLabel = 'PENDING';
         let paymentClass = 'badge-pending';
@@ -626,10 +626,11 @@
           paymentClass = 'badge-failed';
         }
 
+        const orderId = order.id || '';
         return `
           <tr>
             <td>
-              <div class="order-id">${order.id.substring(0, 8).toUpperCase()}</div>
+              <div class="order-id">${orderId ? orderId.substring(0, 8).toUpperCase() : '-'}</div>
               <div class="order-date">${dateStr} ${timeStr}</div>
             </td>
             <td>
