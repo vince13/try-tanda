@@ -502,6 +502,9 @@
         <button class="tab active" onclick="switchTab('transactions')">
           <i class="fas fa-list"></i> Transactions
         </button>
+        <button class="tab" onclick="switchTab('earnings')">
+          <i class="fas fa-coins"></i> Earnings
+        </button>
         <button class="tab" onclick="switchTab('withdraw')">
           <i class="fas fa-money-bill-wave"></i> Withdraw
         </button>
@@ -517,6 +520,132 @@
           <div id="transactions-list">
             <div class="loading">Loading transactions...</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Earnings Tab -->
+      <div id="tab-earnings" class="tab-content">
+        <!-- Earnings Sub-tabs -->
+        <div class="tabs" style="margin-bottom: 1rem; border-bottom: none;">
+          <button class="tab active" onclick="switchEarningsTab('ad')" id="earnings-tab-ad">
+            <i class="fas fa-ad"></i> Ad Earnings
+          </button>
+          <button class="tab" onclick="switchEarningsTab('seller')" id="earnings-tab-seller">
+            <i class="fas fa-store"></i> Seller
+          </button>
+          <button class="tab" onclick="switchEarningsTab('affiliate')" id="earnings-tab-affiliate">
+            <i class="fas fa-users"></i> Affiliate
+          </button>
+        </div>
+
+        <!-- Ad Earnings Section -->
+        <div id="earnings-ad" class="earnings-section">
+          <div class="card">
+            <h2><i class="fas fa-ad" style="color: var(--accent-color);"></i> Ad Earnings</h2>
+            <div id="ad-earnings-content">
+              <div class="loading">Loading ad earnings...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seller Earnings Section -->
+        <div id="earnings-seller" class="earnings-section" style="display: none;">
+          <div class="card">
+            <h2><i class="fas fa-store" style="color: #9c27b0;"></i> Seller Earnings</h2>
+            <div style="background: rgba(156, 39, 176, 0.1); border: 1px solid rgba(156, 39, 176, 0.3); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-info-circle" style="color: #9c27b0;"></i>
+                <span style="color: #e1bee7; font-size: 0.9rem;">Seller earnings are available for payout after a 7-day safety period from order delivery.</span>
+              </div>
+            </div>
+            <div id="seller-earnings-content">
+              <div class="loading">Loading seller earnings...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Affiliate Earnings Section -->
+        <div id="earnings-affiliate" class="earnings-section" style="display: none;">
+          <div class="card">
+            <h2><i class="fas fa-users" style="color: #009688;"></i> Affiliate Earnings</h2>
+            <div style="background: rgba(0, 150, 136, 0.1); border: 1px solid rgba(0, 150, 136, 0.3); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-info-circle" style="color: #009688;"></i>
+                <span style="color: #b2dfdb; font-size: 0.9rem;">Affiliate commissions are available for payout after the holdback period (typically 30 days).</span>
+              </div>
+            </div>
+            <div id="affiliate-earnings-content">
+              <div class="loading">Loading affiliate earnings...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payout History -->
+        <div class="card" style="margin-top: 1.5rem;">
+          <h2><i class="fas fa-history" style="color: var(--accent-color);"></i> Payout History</h2>
+          <div id="payout-history-list">
+            <div class="loading">Loading payout history...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payout Request Modal -->
+      <div id="payout-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="card" style="max-width: 500px; width: 90%; margin: 2rem; max-height: 90vh; overflow-y: auto;">
+          <h2 id="payout-modal-title">Request Payout</h2>
+          <form id="payout-request-form" onsubmit="handlePayoutRequest(event)">
+            <input type="hidden" id="payout-source-type" value="">
+            
+            <div class="form-group">
+              <label>Available Balance</label>
+              <div id="payout-available-balance" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">₦0.00</div>
+            </div>
+
+            <div class="form-group">
+              <label for="payout-amount">Amount (NGN)</label>
+              <input type="number" id="payout-amount" name="amount" min="1000" step="0.01" required>
+              <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                Minimum payout: ₦1,000
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Payout Method</label>
+              <div style="margin-top: 0.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.5rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1);">
+                  <input type="radio" name="payout-method" value="wallet" checked onchange="togglePayoutMethod()">
+                  <i class="fas fa-wallet"></i>
+                  <span>Add to Wallet Balance</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1);">
+                  <input type="radio" name="payout-method" value="bank_account" onchange="togglePayoutMethod()">
+                  <i class="fas fa-university"></i>
+                  <span>Transfer to Bank Account</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="payout-bank-selection" style="display: none;">
+              <div class="form-group">
+                <label>Select Bank Account</label>
+                <select id="payout-bank-account" style="width: 100%; padding: 0.9rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 0.6rem; color: var(--text-primary); font-size: 1rem;">
+                  <option value="">Loading bank accounts...</option>
+                </select>
+                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                  No bank account? Add one in the Withdraw tab first.
+                </small>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+              <button type="button" class="btn btn-secondary" onclick="closePayoutModal()" style="flex: 1;">
+                Cancel
+              </button>
+              <button type="submit" class="btn" id="payout-submit-btn" style="flex: 1;">
+                <i class="fas fa-paper-plane"></i> Submit Request
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -649,6 +778,13 @@
   <script src="js/super-affiliate-api.js"></script>
   <script>
     let walletData = null;
+    
+    // Role-based access control
+    let userRoles = {
+      isSeller: false,
+      isAffiliate: false,
+      isLoading: true
+    };
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -1490,12 +1626,327 @@
 
     function switchTab(tabName) {
       // Update tab buttons
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tabs:first-of-type .tab').forEach(tab => tab.classList.remove('active'));
       event.target.classList.add('active');
 
       // Update tab content
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       document.getElementById(`tab-${tabName}`).classList.add('active');
+
+      // Load earnings data when switching to earnings tab
+      if (tabName === 'earnings') {
+        loadAllEarnings();
+      }
+    }
+
+    // Earnings tab functions
+    let earningsData = {
+      ad: null,
+      seller: null,
+      affiliate: null
+    };
+
+    function switchEarningsTab(type) {
+      // Update sub-tab buttons
+      document.querySelectorAll('#tab-earnings .tabs .tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(`earnings-tab-${type}`).classList.add('active');
+
+      // Update earnings sections
+      document.querySelectorAll('.earnings-section').forEach(section => section.style.display = 'none');
+      document.getElementById(`earnings-${type}`).style.display = 'block';
+    }
+
+    async function loadAllEarnings() {
+      const promises = [loadAdEarnings(), loadPayoutHistory()];
+      
+      // Only load seller earnings if user is a seller
+      if (userRoles.isSeller) {
+        promises.push(loadSellerEarnings());
+      }
+      
+      // Only load affiliate earnings if user is an affiliate
+      if (userRoles.isAffiliate) {
+        promises.push(loadAffiliateEarnings());
+      }
+      
+      await Promise.all(promises);
+    }
+
+    async function loadAdEarnings() {
+      const container = document.getElementById('ad-earnings-content');
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/ad-earnings/');
+        if (response.success && response.ad_earnings) {
+          earningsData.ad = response.ad_earnings;
+          displayEarnings('ad', response.ad_earnings, '#00f2ea', 'Ad');
+        } else {
+          container.innerHTML = '<p style="color: var(--text-secondary);">No ad earnings data available.</p>';
+        }
+      } catch (error) {
+        console.error('Error loading ad earnings:', error);
+        container.innerHTML = '<p style="color: #ff6b6b;">Failed to load ad earnings.</p>';
+      }
+    }
+
+    async function loadSellerEarnings() {
+      const container = document.getElementById('seller-earnings-content');
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/seller-earnings/');
+        if (response.success && response.seller_earnings) {
+          earningsData.seller = response.seller_earnings;
+          displayEarnings('seller', response.seller_earnings, '#9c27b0', 'Seller');
+        } else {
+          container.innerHTML = '<p style="color: var(--text-secondary);">No seller earnings yet. Start selling to earn!</p>';
+        }
+      } catch (error) {
+        console.error('Error loading seller earnings:', error);
+        container.innerHTML = '<p style="color: #ff6b6b;">Failed to load seller earnings.</p>';
+      }
+    }
+
+    async function loadAffiliateEarnings() {
+      const container = document.getElementById('affiliate-earnings-content');
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/affiliate-earnings/');
+        if (response.success && response.affiliate_earnings) {
+          earningsData.affiliate = response.affiliate_earnings;
+          displayEarnings('affiliate', response.affiliate_earnings, '#009688', 'Affiliate');
+        } else {
+          container.innerHTML = '<p style="color: var(--text-secondary);">No affiliate earnings yet. Start promoting products to earn commissions!</p>';
+        }
+      } catch (error) {
+        console.error('Error loading affiliate earnings:', error);
+        container.innerHTML = '<p style="color: #ff6b6b;">Failed to load affiliate earnings.</p>';
+      }
+    }
+
+    function displayEarnings(type, data, color, label) {
+      const container = document.getElementById(`${type}-earnings-content`);
+      const pending = parseFloat(data.pending || 0);
+      const paid = parseFloat(data.paid || 0);
+      const total = pending + paid;
+      const minimumPayout = parseFloat(data.minimum_payout || 1000);
+      const canRequestPayout = data.can_request_payout || false;
+
+      const sourceType = type === 'ad' ? 'ad_earnings' : type === 'seller' ? 'seller_earnings' : 'affiliate_earnings';
+
+      container.innerHTML = `
+        <div class="stats-grid" style="margin-bottom: 1.5rem;">
+          <div class="stat-card" style="border-left: 4px solid #ffc107;">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value" style="color: #ffc107;">₦${formatCurrency(pending)}</div>
+          </div>
+          <div class="stat-card" style="border-left: 4px solid #00ff88;">
+            <div class="stat-label">Paid</div>
+            <div class="stat-value" style="color: #00ff88;">₦${formatCurrency(paid)}</div>
+          </div>
+          <div class="stat-card" style="border-left: 4px solid ${color};">
+            <div class="stat-label">Total</div>
+            <div class="stat-value" style="color: ${color};">₦${formatCurrency(total)}</div>
+          </div>
+        </div>
+
+        ${pending >= minimumPayout ? `
+          <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-check-circle" style="color: #00ff88;"></i>
+              <strong style="color: #00ff88;">You can request a payout!</strong>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+              Minimum payout: ₦${formatCurrency(minimumPayout)}
+            </p>
+            <button class="btn" onclick="openPayoutModal('${sourceType}', ${pending}, '${label}')" ${!canRequestPayout ? 'disabled' : ''}>
+              <i class="fas fa-money-bill-wave"></i> ${canRequestPayout ? 'Request Payout' : 'Request Pending'}
+            </button>
+          </div>
+        ` : `
+          <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 0.5rem; padding: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-hourglass-half" style="color: #ffc107;"></i>
+              <strong style="color: #ffc107;">Keep earning to request payout</strong>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              You need ₦${formatCurrency(minimumPayout - pending)} more to reach the minimum payout of ₦${formatCurrency(minimumPayout)}
+            </p>
+          </div>
+        `}
+      `;
+    }
+
+    async function loadPayoutHistory() {
+      const container = document.getElementById('payout-history-list');
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/payout-requests/');
+        if (response.success && response.payout_requests) {
+          const requests = response.payout_requests;
+          if (requests.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No payout requests yet</p>';
+            return;
+          }
+
+          container.innerHTML = requests.map(req => {
+            const statusColors = {
+              'pending': { bg: 'rgba(255, 193, 7, 0.2)', color: '#ffc107' },
+              'approved': { bg: 'rgba(63, 81, 181, 0.2)', color: '#3f51b5' },
+              'paid': { bg: 'rgba(0, 255, 136, 0.2)', color: '#00ff88' },
+              'rejected': { bg: 'rgba(255, 107, 107, 0.2)', color: '#ff6b6b' }
+            };
+            const status = statusColors[req.status] || statusColors.pending;
+            const sourceLabels = {
+              'ad_earnings': 'Ad Earnings',
+              'seller_earnings': 'Seller Earnings',
+              'affiliate_earnings': 'Affiliate Earnings'
+            };
+            const sourceLabel = sourceLabels[req.source_type] || req.source_type || 'Ad Earnings';
+
+            return `
+              <div class="transaction-item">
+                <div class="transaction-info">
+                  <div class="transaction-type">
+                    ₦${formatCurrency(req.amount)}
+                    <span class="status-badge" style="background: ${status.bg}; color: ${status.color}; border: 1px solid ${status.color}40;">${req.status.toUpperCase()}</span>
+                  </div>
+                  <div class="transaction-date">
+                    ${sourceLabel} • ${req.payout_method === 'wallet' ? 'To Wallet' : 'To Bank'} • ${formatDate(req.created_at)}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No payout requests yet</p>';
+        }
+      } catch (error) {
+        console.error('Error loading payout history:', error);
+        container.innerHTML = '<p style="color: #ff6b6b;">Failed to load payout history.</p>';
+      }
+    }
+
+    // Payout Modal Functions
+    let currentPayoutSourceType = '';
+    let currentPayoutAmount = 0;
+
+    function openPayoutModal(sourceType, availableAmount, label) {
+      currentPayoutSourceType = sourceType;
+      currentPayoutAmount = availableAmount;
+
+      document.getElementById('payout-modal-title').textContent = `Request ${label} Payout`;
+      document.getElementById('payout-source-type').value = sourceType;
+      document.getElementById('payout-available-balance').textContent = `₦${formatCurrency(availableAmount)}`;
+      document.getElementById('payout-amount').value = availableAmount;
+      document.getElementById('payout-amount').max = availableAmount;
+
+      // Load bank accounts
+      loadPayoutBankAccounts();
+
+      // Show modal
+      document.getElementById('payout-modal').style.display = 'flex';
+    }
+
+    function closePayoutModal() {
+      document.getElementById('payout-modal').style.display = 'none';
+      document.getElementById('payout-request-form').reset();
+    }
+
+    async function loadPayoutBankAccounts() {
+      const select = document.getElementById('payout-bank-account');
+      try {
+        const paymentMethods = await SuperAffiliateAPI.apiRequest('/wallet/payment-methods/');
+        const bankAccounts = Array.isArray(paymentMethods) 
+          ? paymentMethods.filter(pm => pm.type === 'bank' && pm.bank)
+          : [];
+
+        if (bankAccounts.length === 0) {
+          select.innerHTML = '<option value="">No bank accounts found</option>';
+        } else {
+          select.innerHTML = '<option value="">Select a bank account</option>' +
+            bankAccounts.map(pm => {
+              const bank = pm.bank || {};
+              const displayName = `${bank.bank_name || 'Bank'} • ****${bank.account_number ? bank.account_number.slice(-4) : ''} - ${bank.account_name || ''}`;
+              return `<option value="${pm.id}">${displayName}</option>`;
+            }).join('');
+        }
+      } catch (error) {
+        console.error('Error loading bank accounts:', error);
+        select.innerHTML = '<option value="">Error loading accounts</option>';
+      }
+    }
+
+    function togglePayoutMethod() {
+      const method = document.querySelector('input[name="payout-method"]:checked').value;
+      document.getElementById('payout-bank-selection').style.display = method === 'bank_account' ? 'block' : 'none';
+    }
+
+    async function handlePayoutRequest(event) {
+      event.preventDefault();
+
+      const sourceType = document.getElementById('payout-source-type').value;
+      const amount = parseFloat(document.getElementById('payout-amount').value);
+      const payoutMethod = document.querySelector('input[name="payout-method"]:checked').value;
+      const bankAccountId = document.getElementById('payout-bank-account').value;
+
+      if (!amount || amount < 1000) {
+        showError('Minimum payout amount is ₦1,000');
+        return;
+      }
+
+      if (amount > currentPayoutAmount) {
+        showError(`Amount cannot exceed available balance of ₦${formatCurrency(currentPayoutAmount)}`);
+        return;
+      }
+
+      if (payoutMethod === 'bank_account' && !bankAccountId) {
+        showError('Please select a bank account');
+        return;
+      }
+
+      const submitBtn = document.getElementById('payout-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        const requestData = {
+          amount: amount,
+          payout_method: payoutMethod,
+          source_type: sourceType
+        };
+
+        if (payoutMethod === 'bank_account') {
+          requestData.bank_account_id = parseInt(bankAccountId);
+        }
+
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/payout-requests/create/', {
+          method: 'POST',
+          body: JSON.stringify(requestData)
+        });
+
+        if (response.success) {
+          showSuccess('Payout request submitted successfully!');
+          closePayoutModal();
+          loadAllEarnings(); // Refresh earnings data
+        } else {
+          showError(response.error || 'Failed to submit payout request');
+        }
+      } catch (error) {
+        console.error('Payout request error:', error);
+        showError(error.message || 'Failed to submit payout request');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request';
+      }
+    }
+
+    function formatCurrency(amount) {
+      return parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-NG', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      });
     }
 
     function showError(message) {
@@ -1522,9 +1973,78 @@
       }
     }
 
+    // Check user roles and initialize
+    async function initializeWallet() {
+      await checkUserRoles();
+      loadWallet();
+      initializeWithdrawalForm();
+    }
+
+    async function checkUserRoles() {
+      try {
+        // Check seller profile
+        try {
+          const sellerProfile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+          if (sellerProfile && sellerProfile.id) {
+            userRoles.isSeller = true;
+          }
+        } catch (e) {
+          // 404 is expected if user is not a seller
+          userRoles.isSeller = false;
+        }
+
+        // Check affiliate profile
+        try {
+          const affiliateProfile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
+          if (affiliateProfile && affiliateProfile.id) {
+            userRoles.isAffiliate = true;
+          }
+        } catch (e) {
+          // 404 is expected if user is not an affiliate
+          userRoles.isAffiliate = false;
+        }
+
+        // Update UI to show/hide relevant tabs
+        updateEarningsTabsVisibility();
+        userRoles.isLoading = false;
+      } catch (e) {
+        console.error('Error checking user roles:', e);
+        userRoles.isLoading = false;
+      }
+    }
+
+    function updateEarningsTabsVisibility() {
+      // Always show Ad Earnings tab
+      const adTab = document.getElementById('earnings-tab-ad');
+      if (adTab) adTab.style.display = 'block';
+
+      // Show/hide Seller tab based on role
+      const sellerTab = document.getElementById('earnings-tab-seller');
+      const sellerSection = document.getElementById('earnings-seller');
+      if (sellerTab && sellerSection) {
+        if (userRoles.isSeller) {
+          sellerTab.style.display = 'block';
+        } else {
+          sellerTab.style.display = 'none';
+          sellerSection.style.display = 'none';
+        }
+      }
+
+      // Show/hide Affiliate tab based on role
+      const affiliateTab = document.getElementById('earnings-tab-affiliate');
+      const affiliateSection = document.getElementById('earnings-affiliate');
+      if (affiliateTab && affiliateSection) {
+        if (userRoles.isAffiliate) {
+          affiliateTab.style.display = 'block';
+        } else {
+          affiliateTab.style.display = 'none';
+          affiliateSection.style.display = 'none';
+        }
+      }
+    }
+
     // Initialize
-    loadWallet();
-    initializeWithdrawalForm();
+    initializeWallet();
   </script>
 </body>
 </html>
