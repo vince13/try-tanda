@@ -405,6 +405,52 @@
   <div class="container">
     <div id="alert-container"></div>
 
+    <!-- Tax & Fees Settings -->
+    <div class="card" id="tax-card" style="margin-bottom: 1.5rem;">
+      <h2><i class="fas fa-receipt"></i> Tax &amp; Fees</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+        Set your default <strong>tax rate (VAT / sales tax)</strong> for orders from your shop.
+        This percentage is applied on top of your product prices when calculating the order total.
+      </p>
+
+      <form id="tax-form" onsubmit="handleTaxSubmit(event)" style="max-width: 420px;">
+        <div class="form-group">
+          <label for="tax_rate">Tax Rate (%)</label>
+          <input 
+            type="number" 
+            id="tax_rate" 
+            name="tax_rate" 
+            step="0.1" 
+            min="0" 
+            max="25" 
+            placeholder="e.g., 7.5"
+          >
+          <div class="form-help">
+            Enter your tax rate as a percentage. For example, <strong>7.5</strong> means 7.5% VAT.
+            Leave as <strong>0</strong> if you do not charge tax or it is already included in your prices.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.25rem; max-width: 420px;">
+          <button type="submit" class="btn btn-primary" id="tax-submit-btn" style="flex: 1;">
+            <i class="fas fa-save"></i> Save Tax Settings
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            style="flex: 1;" 
+            onclick="resetTaxToProfile()"
+          >
+            Reset
+          </button>
+        </div>
+
+        <p id="tax-last-updated" style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); display: none;">
+          Last updated just now.
+        </p>
+      </form>
+    </div>
+
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <h2><i class="fas fa-shipping-fast"></i> My Shipping Methods</h2>
@@ -515,6 +561,7 @@
   <script src="js/super-affiliate-api.js"></script>
   <script>
     let currentMethodId = null;
+    let currentSellerProfile = null;
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -539,6 +586,9 @@
           }, 2000);
           return false;
         }
+        // Store profile globally and populate tax settings
+        currentSellerProfile = profile;
+        populateTaxSettingsFromProfile();
         return true;
       } catch (error) {
         console.error('Error checking seller status:', error);
@@ -547,6 +597,26 @@
           window.location.href = 'become-seller.html';
         }, 2000);
         return false;
+      }
+    }
+
+    function populateTaxSettingsFromProfile() {
+      try {
+        const taxInput = document.getElementById('tax_rate');
+        if (!taxInput || !currentSellerProfile) return;
+
+        const raw = currentSellerProfile.tax_rate;
+        const value = raw !== undefined && raw !== null ? parseFloat(raw) : NaN;
+        if (!isNaN(value)) {
+          taxInput.value = value.toString();
+        }
+
+        const lastUpdatedEl = document.getElementById('tax-last-updated');
+        if (lastUpdatedEl) {
+          lastUpdatedEl.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('Unable to populate tax settings from profile:', e);
       }
     }
 
@@ -784,6 +854,58 @@
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save"></i> Save Method';
       }
+    }
+
+    // Handle saving tax settings
+    async function handleTaxSubmit(event) {
+      event.preventDefault();
+
+      const input = document.getElementById('tax_rate');
+      const btn = document.getElementById('tax-submit-btn');
+      if (!input || !btn) return;
+
+      const rawValue = input.value.trim();
+      const parsed = rawValue === '' ? 0 : parseFloat(rawValue);
+
+      if (isNaN(parsed)) {
+        showAlert('Please enter a valid number for tax rate.', 'error');
+        return;
+      }
+
+      if (parsed < 0 || parsed > 25) {
+        showAlert('Tax rate should be between 0% and 25%.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+      try {
+        const payload = { tax_rate: parsed };
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/seller/update/', {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
+
+        currentSellerProfile = response || currentSellerProfile;
+        showAlert('Tax settings updated successfully.', 'success');
+
+        const lastUpdatedEl = document.getElementById('tax-last-updated');
+        if (lastUpdatedEl) {
+          lastUpdatedEl.textContent = 'Last updated just now.';
+          lastUpdatedEl.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error saving tax settings:', error);
+        showAlert(error.message || 'Failed to save tax settings. Please try again.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save Tax Settings';
+      }
+    }
+
+    function resetTaxToProfile() {
+      populateTaxSettingsFromProfile();
     }
 
     async function deleteMethod(methodId) {
