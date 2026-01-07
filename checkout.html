@@ -1313,6 +1313,9 @@
           shipping_address: shippingAddressId,
           billing_address: shippingAddressId, // Use same for billing
           payment_method: document.querySelector('input[name="payment_method"]:checked').value,
+          // Explicitly set callback URL so Paystack redirects back to the same origin
+          // (works for both localhost and production like https://app.tanda.media)
+          callback_url: `${window.location.origin}/payment-callback.html`,
         };
         
         // Include selected shipping methods if available
