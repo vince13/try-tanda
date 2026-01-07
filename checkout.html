@@ -1017,11 +1017,19 @@
         
         for (const [sellerId, sellerGroup] of Object.entries(itemsBySeller)) {
           try {
+            // Get seller ID from product's creator_seller_info if available, otherwise use creator ID
+            // Note: sellerId is the user ID, but we need the Seller model ID
+            let sellerModelId = parseInt(sellerId);
+            const firstProduct = sellerGroup.items[0]?.product;
+            if (firstProduct?.creator_seller_info?.id) {
+              sellerModelId = parseInt(firstProduct.creator_seller_info.id);
+            }
+            
             const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/calculator/', {
               method: 'POST',
               body: JSON.stringify({
-                seller_id: parseInt(sellerId),
-                address_id: addressId,
+                seller_id: sellerModelId,
+                shipping_address_id: parseInt(addressId),
                 order_total: sellerGroup.subtotal
               })
             });

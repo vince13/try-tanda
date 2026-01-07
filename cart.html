@@ -1056,14 +1056,23 @@
         
         for (const [sellerId, sellerGroup] of Object.entries(itemsBySeller)) {
           try {
+            // Get seller ID from product's creator_seller_info if available
+            let sellerUuid = sellerId;
+            const firstProduct = sellerGroup.items[0]?.product;
+            if (firstProduct?.creator_seller_info?.id) {
+              sellerUuid = firstProduct.creator_seller_info.id;
+            } else if (firstProduct?.creator_seller_info?.seller_id) {
+              sellerUuid = firstProduct.creator_seller_info.seller_id;
+            }
+            
             const requestBody = {
-              seller_id: parseInt(sellerId),
+              seller_id: sellerUuid,
               order_total: sellerGroup.subtotal
             };
             
             // Include address if available
             if (defaultAddress) {
-              requestBody.address_id = defaultAddress.id;
+              requestBody.shipping_address_id = defaultAddress.id;
             }
             
             const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/calculator/', {
