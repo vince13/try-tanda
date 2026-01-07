@@ -592,7 +592,7 @@
       // Total from backend already includes shipping and tax
       const totalValue = order.total != null ? order.total : (subtotalValue || 0) + (shippingValue || 0);
 
-      document.getElementById('subtotal').text = formatCurrency(subtotalValue || 0);
+      document.getElementById('subtotal').textContent = formatCurrency(subtotalValue || 0);
       document.getElementById('shipping').textContent = formatCurrency(shippingValue || 0);
       document.getElementById('total').textContent = formatCurrency(totalValue || 0);
 
