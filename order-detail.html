@@ -708,6 +708,13 @@
     async function loadOrder() {
       try {
         const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
+
+        // Some errors are returned as JSON with an error field; treat those as failures
+        if (!response || response.error) {
+          const message = response && response.error ? response.error : 'Order not found';
+          throw new Error(message);
+        }
+
         orderData = response;
         displayOrder(response);
         document.getElementById('loading-section').style.display = 'none';
@@ -720,6 +727,10 @@
     }
 
     function displayOrder(order) {
+      if (!order || !order.id) {
+        showError('Order not found');
+        return;
+      }
       // Order ID and Date
       document.getElementById('order-id').textContent = order.id.substring(0, 8).toUpperCase();
       if (order.created_at) {
@@ -1022,10 +1033,10 @@
       document.getElementById('loading-section').style.display = 'none';
     }
 
-    // Load order on page load if orderId exists
-    if (orderId) {
-      loadOrder();
-    }
+      // Load order on page load if orderId exists
+      if (orderId) {
+        loadOrder();
+      }
   </script>
 </body>
 </html>
