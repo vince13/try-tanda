@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Customer Orders - Seller Dashboard - Tanda</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .filter-select {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.4rem 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filter-select select {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .filter-select option {
+      color: #000;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .orders-table th,
+    .orders-table td {
+      padding: 0.75rem 0.5rem;
+      text-align: left;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      vertical-align: top;
+    }
+
+    .orders-table th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    .orders-table tr:last-child th,
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .order-id {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .order-date {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: rgba(255, 193, 7, 0.15);
+      color: #ffc107;
+    }
+
+    .status-confirmed {
+      background: rgba(0, 242, 234, 0.12);
+      color: var(--accent-color);
+    }
+
+    .status-processing {
+      background: rgba(33, 150, 243, 0.18);
+      color: #29b6f6;
+    }
+
+    .status-shipped {
+      background: rgba(63, 81, 181, 0.18);
+      color: #90caf9;
+    }
+
+    .status-delivered {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+    }
+
+    .status-cancelled {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .status-refunded {
+      background: rgba(156, 39, 176, 0.2);
+      color: #e1bee7;
+    }
+
+    .status-select {
+      background: transparent;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-primary);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .status-select option {
+      color: #000;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-paid {
+      background: rgba(0, 200, 83, 0.2);
+      color: #00e676;
+    }
+
+    .badge-pending {
+      background: rgba(255, 193, 7, 0.15);
+      color: #ffc107;
+    }
+
+    .badge-failed {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .order-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .btn-xs {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+
+    .btn-xs:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn-xs.primary {
+      background: var(--primary-gradient);
+      color: #ffffff;
+    }
+
+    .badge-shipping {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .badge-shipping i {
+      font-size: 0.85rem;
+      color: var(--accent-color);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .loading .spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent-color);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 1.5rem;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .modal-form {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .modal-form label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .modal-form input,
+    .modal-form textarea,
+    .modal-form select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .modal-form textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .modal-actions .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .btn-save {
+      background: var(--primary-gradient);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Customer Orders</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <div class="spinner"></div>
+      <p>Loading orders...</p>
+    </div>
+
+    <div id="orders-section" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-shopping-bag"></i> Orders from Your Customers</h2>
+          <div class="filters">
+            <div class="filter-select">
+              <i class="fas fa-filter"></i>
+              <span>Status:</span>
+              <select id="status-filter" onchange="onStatusFilterChange(this.value)">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="orders-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign / Update Driver Modal -->
+  <div id="driver-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign / Update Driver</h3>
+        <button class="modal-close" onclick="closeDriverModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="driver-form" class="modal-form" onsubmit="submitDriverForm(event)">
+        <input type="hidden" id="driver-order-id">
+        <label>
+          Driver Name
+          <input type="text" id="driver-name" placeholder="e.g. John Doe">
+        </label>
+        <label>
+          Driver Phone
+          <input type="tel" id="driver-phone" placeholder="+234 800 000 0000">
+        </label>
+        <label>
+          Estimated Delivery Time
+          <input type="text" id="estimated-delivery-time" placeholder="e.g. Today by 4 PM">
+        </label>
+        <label>
+          Status
+          <select id="driver-status">
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeDriverModal()">Cancel</button>
+          <button type="submit" class="btn btn-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentStatusFilter = '';
+    let isLoading = false;
+
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    async function loadOrders(page = 1, statusFilter = '') {
+      if (isLoading) return;
+      isLoading = true;
+      document.getElementById('loading-section').style.display = 'block';
+      document.getElementById('orders-section').style.display = 'none';
+
+      try {
+        let url = `/commerce/seller/orders/?page=${page}`;
+        if (statusFilter) {
+          url += `&status=${encodeURIComponent(statusFilter)}`;
+        }
+
+        const response = await SuperAffiliateAPI.apiRequest(url);
+        const orders = response.orders || [];
+        currentPage = response.current_page || 1;
+        totalPages = response.total_pages || 1;
+        renderOrders(orders);
+
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('orders-section').style.display = 'block';
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('loading-section').innerHTML = `
+          <div style="color: #f44336;">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>Failed to load orders. ${error.message || 'Please try again.'}</p>
+            <button class="btn-xs primary" onclick="location.reload()" style="margin-top: 1rem;">
+              <i class="fas fa-redo"></i> Retry
+            </button>
+          </div>
+        `;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-container');
+
+      if (!orders || orders.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <h3>No customer orders yet</h3>
+            <p>When customers purchase your products, their orders will appear here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      const rowsHtml = orders.map(order => {
+        const createdAt = order.created_at ? new Date(order.created_at) : null;
+        const dateStr = createdAt ? createdAt.toLocaleDateString('en-NG', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }) : '-';
+        const timeStr = createdAt ? createdAt.toLocaleTimeString('en-NG', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }) : '';
+
+        const customerName = order.customer?.username || order.customer?.email || 'Customer';
+        const items = order.items || [];
+        const firstItem = items[0];
+        const firstItemName = firstItem?.product?.name || 'Product';
+        const itemCount = items.length;
+
+        const status = (order.status || 'pending').toLowerCase();
+        const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+        const shipping = order.shipping != null ? order.shipping : (order.shipping_cost || 0);
+
+        let paymentLabel = 'PENDING';
+        let paymentClass = 'badge-pending';
+        if (paymentStatus === 'paid') {
+          paymentLabel = 'PAID';
+          paymentClass = 'badge-paid';
+        } else if (paymentStatus === 'failed') {
+          paymentLabel = 'FAILED';
+          paymentClass = 'badge-failed';
+        }
+
+        return `
+          <tr>
+            <td>
+              <div class="order-id">${order.id.substring(0, 8).toUpperCase()}</div>
+              <div class="order-date">${dateStr} ${timeStr}</div>
+            </td>
+            <td>
+              <div>${customerName}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                ${firstItemName}${itemCount > 1 ? ` +${itemCount - 1} more` : ''}
+              </div>
+            </td>
+            <td>
+              <div>${formatCurrency(order.subtotal || 0)}</div>
+              <div class="badge-shipping">
+                <i class="fas fa-truck"></i>
+                <span>${formatCurrency(shipping)}</span>
+              </div>
+            </td>
+            <td>
+              <span class="status-pill status-${status}">${status.toUpperCase()}</span>
+              <div style="margin-top: 4px;">
+                <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)" value="${status}">
+                  <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+                  <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                  <option value="processing" ${status === 'processing' ? 'selected' : ''}>Processing</option>
+                  <option value="shipped" ${status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                  <option value="delivered" ${status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                  <option value="cancelled" ${status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                  <option value="refunded" ${status === 'refunded' ? 'selected' : ''}>Refunded</option>
+                </select>
+              </div>
+            </td>
+            <td>
+              <span class="badge ${paymentClass}">${paymentLabel}</span>
+            </td>
+            <td>
+              <div class="order-actions">
+                <button class="btn-xs" onclick="viewOrder('${order.id}')">
+                  <i class="fas fa-eye"></i> View
+                </button>
+                <button class="btn-xs" onclick="openDriverModal('${order.id}')">
+                  <i class="fas fa-motorcycle"></i> Driver
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const paginationHtml = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+          <div>Page ${currentPage} of ${totalPages}</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-xs" onclick="changePage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>
+              <i class="fas fa-chevron-left"></i> Prev
+            </button>
+            <button class="btn-xs" onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Amounts</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+        ${paginationHtml}
+      `;
+    }
+
+    function onStatusFilterChange(status) {
+      currentStatusFilter = status;
+      loadOrders(1, status);
+    }
+
+    function changePage(page) {
+      if (page < 1 || page > totalPages) return;
+      loadOrders(page, currentStatusFilter);
+    }
+
+    function viewOrder(orderId) {
+      window.location.href = `order-detail.html?id=${orderId}`;
+    }
+
+    async function updateOrderStatus(orderId, status) {
+      try {
+        const result = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/status/`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        });
+        showToast(`Order status updated to ${status.toUpperCase()}`, 'success');
+        // Refresh current page to reflect changes
+        loadOrders(currentPage, currentStatusFilter);
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        showToast(error.message || 'Failed to update order status', 'error');
+      }
+    }
+
+    async function openDriverModal(orderId) {
+      document.getElementById('driver-order-id').value = orderId;
+      document.getElementById('driver-name').value = '';
+      document.getElementById('driver-phone').value = '';
+      document.getElementById('estimated-delivery-time').value = '';
+      document.getElementById('driver-status').value = 'confirmed';
+
+      try {
+        // Try to load existing tracking info
+        const tracking = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/tracking/`);
+        if (tracking) {
+          if (tracking.driver_name) {
+            document.getElementById('driver-name').value = tracking.driver_name;
+          }
+          if (tracking.driver_phone) {
+            document.getElementById('driver-phone').value = tracking.driver_phone;
+          }
+          if (tracking.estimated_delivery_time) {
+            document.getElementById('estimated-delivery-time').value = tracking.estimated_delivery_time;
+          }
+          if (tracking.status) {
+            document.getElementById('driver-status').value = tracking.status;
+          }
+        }
+      } catch (error) {
+        console.log('No existing tracking or error fetching tracking:', error);
+      }
+
+      document.getElementById('driver-modal').classList.add('active');
+    }
+
+    function closeDriverModal() {
+      document.getElementById('driver-modal').classList.remove('active');
+    }
+
+    async function submitDriverForm(event) {
+      event.preventDefault();
+      const orderId = document.getElementById('driver-order-id').value;
+      const driverName = document.getElementById('driver-name').value.trim();
+      const driverPhone = document.getElementById('driver-phone').value.trim();
+      const estimatedDeliveryTime = document.getElementById('estimated-delivery-time').value.trim();
+      const status = document.getElementById('driver-status').value;
+
+      const payload = {
+        status,
+        driver_name: driverName,
+        driver_phone: driverPhone,
+        estimated_delivery_time: estimatedDeliveryTime,
+      };
+
+      try {
+        // First try to update existing tracking
+        try {
+          await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/tracking/status/`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+        } catch (err) {
+          // If tracking doesn't exist yet, start it
+          await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/tracking/start/`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+        }
+
+        showToast('Driver details updated successfully', 'success');
+        closeDriverModal();
+        // Refresh order list to pick up any status changes
+        loadOrders(currentPage, currentStatusFilter);
+      } catch (error) {
+        console.error('Error updating driver info:', error);
+        showToast(error.message || 'Failed to update driver information', 'error');
+      }
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: ${type === 'success' ? '#00f2ea' : type === 'error' ? '#ff0050' : '#ffc107'};
+        color: white;
+        padding: 0.9rem 1.4rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        z-index: 9999;
+        font-size: 0.9rem;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Initial load
+    loadOrders();
+  </script>
+</body>
+</html>
+
+
