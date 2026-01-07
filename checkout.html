@@ -90,6 +90,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .title {
@@ -105,6 +106,43 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+    
+    /* Mobile: Add horizontal scroll to nav items - same as profile.html */
+    @media (max-width: 768px) {
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Ensure nav children don't shrink */
+      .nav > * {
+        flex-shrink: 0;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
     }
 
     .container {
@@ -500,6 +538,7 @@
     let cartData = null;
     let shippingAddresses = [];
     let selectedAddressId = null;
+    let currentShippingCost = 0;
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -540,6 +579,9 @@
           // No addresses - require new address form
           document.getElementById('address-selection-section').style.display = 'none';
           document.getElementById('new-address-form').style.display = 'block';
+          // Reset shipping cost when no address is selected
+          currentShippingCost = 0;
+          updateOrderTotals();
         }
       } catch (error) {
         console.error('Error loading shipping addresses:', error);
@@ -558,10 +600,18 @@
       selectionSection.style.display = 'block';
       newAddressForm.style.display = 'none';
       
+      // Remove required attributes from new address form fields when selection is shown
+      const newAddressFields = newAddressForm.querySelectorAll('input[required], textarea[required]');
+      newAddressFields.forEach(field => {
+        field.removeAttribute('required');
+      });
+      
       // Find default address or first address
       const defaultAddress = shippingAddresses.find(addr => addr.is_default) || shippingAddresses[0];
       if (defaultAddress) {
         selectedAddressId = defaultAddress.id;
+        // Calculate shipping when address is selected
+        calculateShippingCost(defaultAddress.id);
       }
       
       addressList.innerHTML = shippingAddresses.map(address => `
@@ -594,6 +644,8 @@
           radio.checked = true;
         }
       });
+      // Calculate shipping cost when address changes
+      calculateShippingCost(addressId);
     }
 
     function showNewAddressForm() {
@@ -639,13 +691,103 @@
 
       document.getElementById('order-items').innerHTML = itemsHtml;
 
+      updateOrderTotals();
+    }
+
+    function updateOrderTotals() {
+      if (!cartData) return;
+      
+      const items = cartData.items || [];
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
       const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
-      const shipping = 0;
+      const shipping = currentShippingCost;
       const total = subtotal + shipping;
 
       document.getElementById('subtotal').textContent = formatCurrency(subtotal);
       document.getElementById('shipping').textContent = formatCurrency(shipping);
       document.getElementById('total').textContent = formatCurrency(total);
+    }
+
+    async function calculateShippingCost(addressId) {
+      if (!cartData || !addressId) {
+        currentShippingCost = 0;
+        updateOrderTotals();
+        return;
+      }
+
+      try {
+        // Get the selected address
+        const address = shippingAddresses.find(addr => addr.id === addressId);
+        if (!address) {
+          currentShippingCost = 0;
+          updateOrderTotals();
+          return;
+        }
+
+        // Calculate subtotal for free shipping threshold check
+        const items = cartData.items || [];
+        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
+
+        // Group items by seller to calculate shipping per seller
+        const itemsBySeller = {};
+        items.forEach(item => {
+          const sellerId = item.product?.creator?.id;
+          if (sellerId) {
+            if (!itemsBySeller[sellerId]) {
+              itemsBySeller[sellerId] = {
+                seller: item.product.creator,
+                items: [],
+                subtotal: 0
+              };
+            }
+            itemsBySeller[sellerId].items.push(item);
+            itemsBySeller[sellerId].subtotal += parseFloat(item.product?.price || 0) * item.quantity;
+          }
+        });
+
+        // Calculate shipping for each seller and sum them
+        let totalShipping = 0;
+        const shippingPromises = Object.values(itemsBySeller).map(async (sellerGroup) => {
+          try {
+            const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/calculator/', {
+              method: 'POST',
+              body: JSON.stringify({
+                seller_id: sellerGroup.seller.id,
+                address_id: addressId,
+                order_total: sellerGroup.subtotal
+              })
+            });
+
+            // Get the cheapest available shipping option
+            if (response.shipping_options && response.shipping_options.length > 0) {
+              const availableOptions = response.shipping_options.filter(opt => opt.is_available);
+              if (availableOptions.length > 0) {
+                const cheapest = availableOptions.reduce((min, opt) => 
+                  (opt.cost < min.cost) ? opt : min
+                );
+                return parseFloat(cheapest.cost || 0);
+              }
+            }
+            return 0;
+          } catch (error) {
+            console.error('Error calculating shipping for seller:', error);
+            return 0;
+          }
+        });
+
+        const shippingCosts = await Promise.all(shippingPromises);
+        totalShipping = shippingCosts.reduce((sum, cost) => sum + cost, 0);
+        
+        currentShippingCost = totalShipping;
+        updateOrderTotals();
+      } catch (error) {
+        console.error('Error calculating shipping cost:', error);
+        currentShippingCost = 0;
+        updateOrderTotals();
+      }
     }
 
     async function handleCheckout(event) {
@@ -694,6 +836,10 @@
           });
           shippingAddressId = addressResponse.id;
           console.log('Shipping address created:', shippingAddressId);
+          // Add to addresses array so calculateShippingCost can find it
+          shippingAddresses.push(addressResponse);
+          // Calculate shipping cost for the new address
+          await calculateShippingCost(shippingAddressId);
         } catch (error) {
           // Address creation failed - don't proceed with order
           console.error('Address creation failed:', error);
