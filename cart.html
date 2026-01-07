@@ -90,6 +90,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .title {
@@ -105,6 +106,43 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+    
+    /* Mobile: Add horizontal scroll to nav items - same as profile.html */
+    @media (max-width: 768px) {
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Ensure nav children don't shrink */
+      .nav > * {
+        flex-shrink: 0;
+      }
+      
+      /* Ensure user menu dropdown can escape overflow on mobile */
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .nav {
+        gap: 0.15rem;
+      }
     }
 
     .container {

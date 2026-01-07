@@ -218,6 +218,79 @@
       cursor: not-allowed;
     }
 
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-color);
+    }
+
+    .address-option {
+      padding: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.6rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .address-option:hover {
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .address-option.selected {
+      border-color: var(--accent-color);
+      background: rgba(0, 242, 234, 0.1);
+    }
+
+    .address-option input[type="radio"] {
+      margin-right: 0.75rem;
+      width: auto;
+    }
+
+    .address-option-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .address-option-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .address-option-default {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .address-option-details {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
     .order-item {
       display: flex;
       gap: 1rem;
@@ -337,36 +410,51 @@
           <form id="checkout-form" onsubmit="handleCheckout(event)">
             <div class="card">
               <h2>Shipping Address</h2>
-              <div class="form-group">
-                <label for="shipping-full-name">Full Name</label>
-                <input type="text" id="shipping-full-name" required>
-              </div>
-              <div class="form-group">
-                <label for="shipping-phone">Phone Number</label>
-                <input type="tel" id="shipping-phone" required>
-              </div>
-              <div class="form-group">
-                <label for="shipping-address">Address</label>
-                <textarea id="shipping-address" rows="3" required></textarea>
-              </div>
-              <div class="form-row">
+              
+              <!-- Address Selection Section -->
+              <div id="address-selection-section" style="display: none;">
                 <div class="form-group">
-                  <label for="shipping-city">City</label>
-                  <input type="text" id="shipping-city" required>
-                </div>
-                <div class="form-group">
-                  <label for="shipping-state">State</label>
-                  <input type="text" id="shipping-state" required>
+                  <label>Select an Address</label>
+                  <div id="address-list" style="margin-bottom: 1rem;"></div>
+                  <button type="button" class="btn-secondary" onclick="showNewAddressForm()" style="width: auto; margin-top: 0.5rem;">
+                    <i class="fas fa-plus"></i> Add New Address
+                  </button>
                 </div>
               </div>
-              <div class="form-row">
+
+              <!-- New Address Form Section -->
+              <div id="new-address-form">
                 <div class="form-group">
-                  <label for="shipping-country">Country</label>
-                  <input type="text" id="shipping-country" value="Nigeria" required>
+                  <label for="shipping-full-name">Full Name</label>
+                  <input type="text" id="shipping-full-name" required>
                 </div>
                 <div class="form-group">
-                  <label for="shipping-postal-code">Postal Code</label>
-                  <input type="text" id="shipping-postal-code" placeholder="Optional">
+                  <label for="shipping-phone">Phone Number</label>
+                  <input type="tel" id="shipping-phone" required>
+                </div>
+                <div class="form-group">
+                  <label for="shipping-address">Address</label>
+                  <textarea id="shipping-address" rows="3" required></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="shipping-city">City</label>
+                    <input type="text" id="shipping-city" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="shipping-state">State</label>
+                    <input type="text" id="shipping-state" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="shipping-country">Country</label>
+                    <input type="text" id="shipping-country" value="Nigeria" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="shipping-postal-code">Postal Code</label>
+                    <input type="text" id="shipping-postal-code" placeholder="Optional">
+                  </div>
                 </div>
               </div>
             </div>
@@ -410,6 +498,8 @@
   <script src="js/super-affiliate-api.js?v=3"></script>
   <script>
     let cartData = null;
+    let shippingAddresses = [];
+    let selectedAddressId = null;
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -426,10 +516,112 @@
         displayOrderSummary(response);
         document.getElementById('loading-section').style.display = 'none';
         document.getElementById('checkout-section').style.display = 'block';
+        
+        // Load shipping addresses
+        await loadShippingAddresses();
       } catch (error) {
         console.error('Error loading cart:', error);
         window.location.href = 'cart.html';
       }
+    }
+
+    async function loadShippingAddresses() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
+        // Handle both array and paginated response formats
+        shippingAddresses = Array.isArray(response) 
+          ? response 
+          : (response.results || response.data || []);
+        
+        if (shippingAddresses && shippingAddresses.length > 0) {
+          // Show address selection, hide new address form
+          displayAddressSelection();
+        } else {
+          // No addresses - require new address form
+          document.getElementById('address-selection-section').style.display = 'none';
+          document.getElementById('new-address-form').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error loading shipping addresses:', error);
+        // If error, show new address form as fallback
+        document.getElementById('address-selection-section').style.display = 'none';
+        document.getElementById('new-address-form').style.display = 'block';
+      }
+    }
+
+    function displayAddressSelection() {
+      const addressList = document.getElementById('address-list');
+      const selectionSection = document.getElementById('address-selection-section');
+      const newAddressForm = document.getElementById('new-address-form');
+      
+      // Show selection section, hide new address form
+      selectionSection.style.display = 'block';
+      newAddressForm.style.display = 'none';
+      
+      // Find default address or first address
+      const defaultAddress = shippingAddresses.find(addr => addr.is_default) || shippingAddresses[0];
+      if (defaultAddress) {
+        selectedAddressId = defaultAddress.id;
+      }
+      
+      addressList.innerHTML = shippingAddresses.map(address => `
+        <div class="address-option ${address.id === selectedAddressId ? 'selected' : ''}" onclick="selectAddress(${address.id})">
+          <div class="address-option-header">
+            <label style="display: flex; align-items: center; cursor: pointer; width: 100%;">
+              <input type="radio" name="shipping-address" value="${address.id}" ${address.id === selectedAddressId ? 'checked' : ''} onchange="selectAddress(${address.id})">
+              <span class="address-option-name">${address.full_name}</span>
+            </label>
+            ${address.is_default ? '<span class="address-option-default">Default</span>' : ''}
+          </div>
+          <div class="address-option-details">
+            <div>${address.phone_number}</div>
+            <div>${address.street_address}${address.apartment_suite ? ', ' + address.apartment_suite : ''}</div>
+            <div>${address.city}, ${address.state}${address.postal_code ? ' ' + address.postal_code : ''}</div>
+            <div>${address.country}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectAddress(addressId) {
+      selectedAddressId = addressId;
+      // Update visual selection
+      document.querySelectorAll('.address-option').forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        if (radio && parseInt(radio.value) === addressId) {
+          option.classList.add('selected');
+          radio.checked = true;
+        }
+      });
+    }
+
+    function showNewAddressForm() {
+      document.getElementById('address-selection-section').style.display = 'none';
+      document.getElementById('new-address-form').style.display = 'block';
+      selectedAddressId = null;
+      
+      // Clear any selected radio buttons
+      document.querySelectorAll('input[name="shipping-address"]').forEach(radio => {
+        radio.checked = false;
+      });
+      
+      // Add required attributes back to new address form fields
+      const newAddressForm = document.getElementById('new-address-form');
+      const requiredFields = [
+        'shipping-full-name',
+        'shipping-phone',
+        'shipping-address',
+        'shipping-city',
+        'shipping-state',
+        'shipping-country'
+      ];
+      requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.setAttribute('required', 'required');
+        }
+      });
     }
 
     function displayOrderSummary(data) {
@@ -462,23 +654,29 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-      // Validate form
-      const fullName = document.getElementById('shipping-full-name').value.trim();
-      const phone = document.getElementById('shipping-phone').value.trim();
-      const address = document.getElementById('shipping-address').value.trim();
-      const city = document.getElementById('shipping-city').value.trim();
-      const state = document.getElementById('shipping-state').value.trim();
-      const country = document.getElementById('shipping-country').value.trim();
+      let shippingAddressId = null;
 
-      if (!fullName || !phone || !address || !city || !state || !country) {
-        showToast('Please fill in all shipping details', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
-        return;
-      }
+      // Check if user selected an existing address
+      if (selectedAddressId) {
+        shippingAddressId = selectedAddressId;
+        console.log('Using existing shipping address:', shippingAddressId);
+      } else {
+        // User is creating a new address - validate form
+        const fullName = document.getElementById('shipping-full-name').value.trim();
+        const phone = document.getElementById('shipping-phone').value.trim();
+        const address = document.getElementById('shipping-address').value.trim();
+        const city = document.getElementById('shipping-city').value.trim();
+        const state = document.getElementById('shipping-state').value.trim();
+        const country = document.getElementById('shipping-country').value.trim();
 
-      try {
-        // First create shipping address
+        if (!fullName || !phone || !address || !city || !state || !country) {
+          showToast('Please fill in all shipping details', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
+          return;
+        }
+
+        // Create new shipping address
         const shippingAddressData = {
           full_name: document.getElementById('shipping-full-name').value,
           phone_number: document.getElementById('shipping-phone').value,
@@ -489,8 +687,6 @@
           postal_code: document.getElementById('shipping-postal-code').value || '',
         };
 
-        // Create shipping address
-        let shippingAddressId;
         try {
           const addressResponse = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/', {
             method: 'POST',
@@ -507,14 +703,17 @@
           btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
           return; // Stop execution
         }
+      }
 
-        // Validate that we have an address ID
-        if (!shippingAddressId) {
-          showToast('Failed to create shipping address. Please try again.', 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
-          return;
-        }
+      // Validate that we have an address ID
+      if (!shippingAddressId) {
+        showToast('Please select or add a shipping address', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
+        return;
+      }
+
+      try {
 
         // Create order
         const orderData = {
