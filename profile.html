@@ -415,7 +415,12 @@
                 <i class="fas fa-user"></i>
               </div>
             </div>
-            <div>
+            <div style="flex: 1;">
+              <div style="margin-bottom: 1rem;">
+                <div id="user-role-badge" style="display: inline-block; padding: 0.5rem 1rem; background: rgba(0, 242, 234, 0.15); border: 1px solid rgba(0, 242, 234, 0.3); border-radius: 0.5rem; color: var(--accent-color); font-weight: 600; font-size: 0.9rem;">
+                  <i class="fas fa-user-tag"></i> <span id="user-role-text">Loading...</span>
+                </div>
+              </div>
               <button class="btn btn-secondary" onclick="document.getElementById('avatar-input').click()">
                 <i class="fas fa-camera"></i> Change Avatar
               </button>
@@ -640,6 +645,25 @@
 
       // Avatar
       setAvatar(data.avatar);
+
+      // User Role
+      const roleElement = document.getElementById('user-role-text');
+      const roleBadge = document.getElementById('user-role-badge');
+      if (data.role) {
+        const roleMap = {
+          'basic': { text: 'Basic User', icon: 'fa-user', color: 'rgba(255, 255, 255, 0.15)', border: 'rgba(255, 255, 255, 0.3)' },
+          'seller': { text: 'Seller', icon: 'fa-store', color: 'rgba(0, 242, 234, 0.15)', border: 'rgba(0, 242, 234, 0.3)' },
+          'affiliate': { text: 'Affiliate', icon: 'fa-bullhorn', color: 'rgba(255, 0, 80, 0.15)', border: 'rgba(255, 0, 80, 0.3)' },
+          'admin': { text: 'Admin', icon: 'fa-shield-alt', color: 'rgba(255, 215, 0, 0.15)', border: 'rgba(255, 215, 0, 0.3)' }
+        };
+        const roleInfo = roleMap[data.role.toLowerCase()] || roleMap['basic'];
+        roleElement.innerHTML = `<i class="fas ${roleInfo.icon}"></i> ${roleInfo.text}`;
+        roleBadge.style.background = roleInfo.color;
+        roleBadge.style.borderColor = roleInfo.border;
+        roleBadge.style.color = data.role === 'admin' ? '#ffd700' : (data.role === 'affiliate' ? '#ff0050' : 'var(--accent-color)');
+      } else {
+        roleElement.innerHTML = '<i class="fas fa-user"></i> Basic User';
+      }
 
       // Stats - use backend values as-is (they work in Flutter Android)
       // Handle null/undefined by converting to 0, but preserve actual numbers including 0
