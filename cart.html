@@ -593,9 +593,12 @@
             <span>Subtotal</span>
             <span id="subtotal">₦0.00</span>
           </div>
-          <div class="summary-row">
-            <span>Shipping</span>
-            <span id="shipping">₦0.00</span>
+          <div class="summary-row" id="shipping-estimate-row">
+            <span>Shipping (estimate)</span>
+            <span id="shipping">Calculating...</span>
+          </div>
+          <div id="shipping-note" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -0.5rem; margin-bottom: 1rem;">
+            <i class="fas fa-info-circle"></i> Final shipping calculated at checkout
           </div>
           <div class="summary-row summary-total">
             <span>Total</span>
@@ -623,6 +626,7 @@
   <script src="js/super-affiliate-api.js?v=3"></script>
   <script>
     let cartData = null;
+    let estimatedShipping = 0;
 
     // Define global functions FIRST before they're used in HTML generation
     window.validateCartQuantity = function(itemId, value) {
@@ -822,16 +826,17 @@
         
         // Calculate totals
         const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
-        const shipping = 0;
-        const total = subtotal + shipping;
 
         const formatCurrency = (amount) => {
           return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
         };
 
         document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-        document.getElementById('shipping').textContent = formatCurrency(shipping);
-        document.getElementById('total').textContent = formatCurrency(total);
+        
+        // Recalculate shipping estimate when quantity changes
+        calculateShippingEstimate(items, subtotal);
+        
+        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedShipping);
         
         // Also update individual item quantities in case they changed
         items.forEach(item => {
@@ -997,12 +1002,112 @@
 
       // Calculate totals
       const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
-      const shipping = 0; // TODO: Calculate shipping
-      const total = subtotal + shipping;
-
+      
       document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-      document.getElementById('shipping').textContent = formatCurrency(shipping);
-      document.getElementById('total').textContent = formatCurrency(total);
+      
+      // Start shipping estimate calculation
+      calculateShippingEstimate(items, subtotal);
+      
+      // Show initial total without shipping
+      document.getElementById('total').textContent = formatCurrency(subtotal);
+    }
+
+    async function calculateShippingEstimate(items, subtotal) {
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+      
+      try {
+        // Get user's default shipping address
+        let defaultAddress = null;
+        try {
+          const addressResponse = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
+          const addresses = Array.isArray(addressResponse) 
+            ? addressResponse 
+            : (addressResponse.results || addressResponse.data || []);
+          
+          if (addresses.length > 0) {
+            defaultAddress = addresses.find(addr => addr.is_default) || addresses[0];
+          }
+        } catch (err) {
+          console.log('No saved addresses for shipping estimate');
+        }
+        
+        // Group items by seller
+        const itemsBySeller = {};
+        items.forEach(item => {
+          const sellerId = item.product?.creator?.id;
+          if (sellerId) {
+            if (!itemsBySeller[sellerId]) {
+              itemsBySeller[sellerId] = {
+                seller: item.product.creator,
+                items: [],
+                subtotal: 0
+              };
+            }
+            itemsBySeller[sellerId].items.push(item);
+            itemsBySeller[sellerId].subtotal += parseFloat(item.product?.price || 0) * item.quantity;
+          }
+        });
+        
+        // Calculate shipping for each seller
+        let totalShipping = 0;
+        let hasShippingMethods = false;
+        
+        for (const [sellerId, sellerGroup] of Object.entries(itemsBySeller)) {
+          try {
+            const requestBody = {
+              seller_id: parseInt(sellerId),
+              order_total: sellerGroup.subtotal
+            };
+            
+            // Include address if available
+            if (defaultAddress) {
+              requestBody.address_id = defaultAddress.id;
+            }
+            
+            const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/calculator/', {
+              method: 'POST',
+              body: JSON.stringify(requestBody)
+            });
+            
+            if (response.shipping_options && response.shipping_options.length > 0) {
+              hasShippingMethods = true;
+              const availableOptions = response.shipping_options.filter(opt => opt.is_available);
+              if (availableOptions.length > 0) {
+                // Get cheapest option for estimate
+                const cheapest = availableOptions.reduce((min, opt) => 
+                  (opt.cost < min.cost) ? opt : min
+                );
+                totalShipping += parseFloat(cheapest.cost || 0);
+              }
+            }
+          } catch (error) {
+            console.log('Error calculating shipping for seller:', sellerId, error);
+          }
+        }
+        
+        estimatedShipping = totalShipping;
+        
+        if (hasShippingMethods && totalShipping > 0) {
+          document.getElementById('shipping').textContent = formatCurrency(totalShipping);
+          document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Estimate based on cheapest option. Final at checkout.';
+        } else if (hasShippingMethods && totalShipping === 0) {
+          document.getElementById('shipping').textContent = 'FREE';
+          document.getElementById('shipping-note').innerHTML = '<i class="fas fa-gift"></i> Free shipping available!';
+        } else {
+          document.getElementById('shipping').textContent = 'TBD';
+          document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+        }
+        
+        // Update total
+        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedShipping);
+        
+      } catch (error) {
+        console.error('Error calculating shipping estimate:', error);
+        document.getElementById('shipping').textContent = 'TBD';
+        document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+      }
     }
 
     async function updateQuantity(itemId, quantity) {
