@@ -546,6 +546,14 @@
               <div class="loading">Loading ad earnings...</div>
             </div>
           </div>
+          
+          <!-- Ad Payout History -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <h2><i class="fas fa-history" style="color: var(--accent-color);"></i> Payout History</h2>
+            <div id="ad-payout-history-list">
+              <div class="loading">Loading payout history...</div>
+            </div>
+          </div>
         </div>
 
         <!-- Seller Earnings Section -->
@@ -560,6 +568,14 @@
             </div>
             <div id="seller-earnings-content">
               <div class="loading">Loading seller earnings...</div>
+            </div>
+          </div>
+          
+          <!-- Seller Payout History -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <h2><i class="fas fa-history" style="color: #9c27b0;"></i> Payout History</h2>
+            <div id="seller-payout-history-list">
+              <div class="loading">Loading payout history...</div>
             </div>
           </div>
         </div>
@@ -578,13 +594,13 @@
               <div class="loading">Loading affiliate earnings...</div>
             </div>
           </div>
-        </div>
-
-        <!-- Payout History -->
-        <div class="card" style="margin-top: 1.5rem;">
-          <h2><i class="fas fa-history" style="color: var(--accent-color);"></i> Payout History</h2>
-          <div id="payout-history-list">
-            <div class="loading">Loading payout history...</div>
+          
+          <!-- Affiliate Payout History -->
+          <div class="card" style="margin-top: 1.5rem;">
+            <h2><i class="fas fa-history" style="color: #009688;"></i> Payout History</h2>
+            <div id="affiliate-payout-history-list">
+              <div class="loading">Loading payout history...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -599,6 +615,7 @@
             <div class="form-group">
               <label>Available Balance</label>
               <div id="payout-available-balance" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">₦0.00</div>
+              <div id="payout-reserved-info" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: rgba(255, 193, 7, 0.1); border-radius: 0.375rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;"></div>
             </div>
 
             <div class="form-group">
@@ -1657,16 +1674,21 @@
     }
 
     async function loadAllEarnings() {
-      const promises = [loadAdEarnings(), loadPayoutHistory()];
+      const promises = [
+        loadAdEarnings(), 
+        loadPayoutHistory('ad_earnings', 'ad-payout-history-list')
+      ];
       
       // Only load seller earnings if user is a seller
       if (userRoles.isSeller) {
         promises.push(loadSellerEarnings());
+        promises.push(loadPayoutHistory('seller_earnings', 'seller-payout-history-list'));
       }
       
       // Only load affiliate earnings if user is an affiliate
       if (userRoles.isAffiliate) {
         promises.push(loadAffiliateEarnings());
+        promises.push(loadPayoutHistory('affiliate_earnings', 'affiliate-payout-history-list'));
       }
       
       await Promise.all(promises);
@@ -1722,13 +1744,20 @@
 
     function displayEarnings(type, data, color, label) {
       const container = document.getElementById(`${type}-earnings-content`);
+      const sourceType = type === 'ad' ? 'ad_earnings' : type === 'seller' ? 'seller_earnings' : 'affiliate_earnings';
+      
+      // For seller and affiliate, use the detailed breakdown
+      if (type === 'seller' || type === 'affiliate') {
+        displayDetailedEarnings(type, data, color, label, sourceType);
+        return;
+      }
+      
+      // For ad earnings, use the simple display
       const pending = parseFloat(data.pending || 0);
       const paid = parseFloat(data.paid || 0);
       const total = pending + paid;
       const minimumPayout = parseFloat(data.minimum_payout || 1000);
       const canRequestPayout = data.can_request_payout || false;
-
-      const sourceType = type === 'ad' ? 'ad_earnings' : type === 'seller' ? 'seller_earnings' : 'affiliate_earnings';
 
       container.innerHTML = `
         <div class="stats-grid" style="margin-bottom: 1.5rem;">
@@ -1772,13 +1801,179 @@
         `}
       `;
     }
+    
+    function displayDetailedEarnings(type, data, color, label, sourceType) {
+      const container = document.getElementById(`${type}-earnings-content`);
+      
+      // Extract values with fallbacks
+      const pendingAwaiting = parseFloat(
+        data.pending_awaiting_holdback || 
+        data.pending_awaiting_safety || 
+        data.breakdown?.awaiting_holdback_period?.net ||
+        data.breakdown?.awaiting_safety_period?.net || 
+        0
+      );
+      const available = parseFloat(data.available_ready_for_payout || 0);
+      const paid = parseFloat(data.paid || 0);
+      const reserved = parseFloat(data.reserved_outstanding || 0);
+      const availableAfterReserved = parseFloat(data.available_after_reserved || (available - reserved));
+      const minimumPayout = parseFloat(data.minimum_payout || 1000);
+      const canRequestPayout = data.can_request_payout || false;
+      
+      // Total earnings from all delivered orders
+      const totalPotential = parseFloat(data.breakdown?.total_potential || (pendingAwaiting + available + paid));
+      
+      // Breakdown details
+      const breakdown = data.breakdown || {};
+      const processed = breakdown.processed || {};
+      const eligible = breakdown.eligible_for_processing || {};
+      const awaiting = breakdown.awaiting_holdback_period || breakdown.awaiting_safety_period || {};
+      
+      const processedNet = parseFloat(processed.net || 0);
+      const eligibleNet = parseFloat(eligible.net || 0);
+      const awaitingNet = parseFloat(awaiting.net || 0);
+      
+      // Period label (holdback for affiliate, safety for seller)
+      const periodLabel = type === 'affiliate' ? 'Holdback' : 'Safety';
+      const periodDays = type === 'affiliate' 
+        ? (awaiting.holdback_period_days || 30)
+        : (awaiting.safety_period_days || 7);
+      
+      container.innerHTML = `
+        <!-- Summary Cards -->
+        <div class="stats-grid" style="margin-bottom: 1.5rem;">
+          <div class="stat-card" style="border-left: 4px solid #ffc107;">
+            <div class="stat-label">Pending (Awaiting ${periodLabel})</div>
+            <div class="stat-value" style="color: #ffc107;">₦${formatCurrency(pendingAwaiting)}</div>
+          </div>
+          <div class="stat-card" style="border-left: 4px solid #009688;">
+            <div class="stat-label">Available (Ready for Payout)</div>
+            <div class="stat-value" style="color: #009688;">₦${formatCurrency(available)}</div>
+          </div>
+          <div class="stat-card" style="border-left: 4px solid #00ff88;">
+            <div class="stat-label">Paid</div>
+            <div class="stat-value" style="color: #00ff88;">₦${formatCurrency(paid)}</div>
+          </div>
+        </div>
 
-    async function loadPayoutHistory() {
-      const container = document.getElementById('payout-history-list');
+        <!-- Total Earnings Card -->
+        <div style="background: rgba(0, 150, 136, 0.1); border: 1px solid rgba(0, 150, 136, 0.3); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <h3 style="color: #009688; margin-bottom: 0.5rem; font-size: 1rem;">
+            <i class="fas fa-chart-line"></i> Total Earnings (Net)
+          </h3>
+          <div style="font-size: 2rem; font-weight: 700; color: ${color}; margin-bottom: 1rem;">
+            ₦${formatCurrency(totalPotential)}
+          </div>
+          
+          <!-- Earnings Status Breakdown -->
+          <div style="border-top: 1px solid rgba(0, 150, 136, 0.3); padding-top: 1rem; margin-top: 1rem;">
+            <h4 style="color: #009688; font-size: 0.9rem; margin-bottom: 0.75rem; font-weight: 600;">
+              Earnings Status Breakdown
+            </h4>
+            
+            ${processedNet > 0 || eligibleNet > 0 ? `
+              <!-- Available (Ready for Payout) -->
+              <div style="background: rgba(0, 150, 136, 0.15); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fas fa-wallet" style="color: #009688; font-size: 0.875rem;"></i>
+                  <strong style="color: #009688; font-size: 0.875rem;">Available (Ready for Payout)</strong>
+                </div>
+                ${processedNet > 0 ? `
+                  <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem; margin-left: 1.5rem;">
+                    <span>In Wallet</span>
+                    <span style="color: #00ff88;">₦${formatCurrency(processedNet)}</span>
+                  </div>
+                ` : ''}
+                ${eligibleNet > 0 ? `
+                  <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem; margin-left: 1.5rem;">
+                    <span>Ready to Process</span>
+                    <span style="color: #009688;">₦${formatCurrency(eligibleNet)}</span>
+                  </div>
+                ` : ''}
+                <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.875rem; margin-left: 1.5rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(0, 150, 136, 0.2);">
+                  <span style="color: #009688;">Total Available</span>
+                  <span style="color: #009688;">₦${formatCurrency(available)}</span>
+                </div>
+              </div>
+            ` : ''}
+            
+            <!-- Total Potential Earnings -->
+            <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <span>Total Potential Earnings (Pending + Available)</span>
+              <span style="color: ${color}; font-weight: 600;">₦${formatCurrency(totalPotential)}</span>
+            </div>
+            
+            <!-- Total Paid Out -->
+            <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <span>Total Paid Out</span>
+              <span style="color: #00ff88; font-weight: 600;">₦${formatCurrency(paid)}</span>
+            </div>
+            
+            <!-- Grand Total -->
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0, 150, 136, 0.3);">
+              <span style="color: ${color};">Grand Total (All Earnings)</span>
+              <span style="color: ${color};">₦${formatCurrency(totalPotential)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Payout Request Section -->
+        ${canRequestPayout && availableAfterReserved >= minimumPayout ? `
+          <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-check-circle" style="color: #00ff88;"></i>
+              <strong style="color: #00ff88;">You can request a payout!</strong>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+              Available: ₦${formatCurrency(availableAfterReserved)} (Minimum: ₦${formatCurrency(minimumPayout)})
+            </p>
+            ${reserved > 0 ? `
+              <p style="color: #ffc107; font-size: 0.85rem; font-style: italic; margin-bottom: 1rem;">
+                <i class="fas fa-info-circle"></i> Reserved in pending requests: ₦${formatCurrency(reserved)}
+              </p>
+            ` : ''}
+            <button class="btn" onclick="openPayoutModal('${sourceType}', ${availableAfterReserved}, '${label}', ${reserved})">
+              <i class="fas fa-money-bill-wave"></i> Request Payout
+            </button>
+          </div>
+        ` : `
+          <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 0.5rem; padding: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <i class="fas fa-hourglass-half" style="color: #ffc107;"></i>
+              <strong style="color: #ffc107;">Keep ${type === 'seller' ? 'selling' : 'promoting'} to request payout</strong>
+            </div>
+            ${availableAfterReserved > 0 ? `
+              <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                Available: ₦${formatCurrency(availableAfterReserved)}. You need ₦${formatCurrency(Math.max(0, minimumPayout - availableAfterReserved))} more to reach the minimum payout of ₦${formatCurrency(minimumPayout)}.
+              </p>
+            ` : pendingAwaiting > 0 ? `
+              <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                You have ₦${formatCurrency(pendingAwaiting)} pending (awaiting ${periodLabel.toLowerCase()} period of ${periodDays} days). Once the ${periodLabel.toLowerCase()} period passes, it will become available for payout.
+              </p>
+            ` : `
+              <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                You need ₦${formatCurrency(minimumPayout)} to reach the minimum payout.
+              </p>
+            `}
+          </div>
+        `}
+      `;
+    }
+
+    async function loadPayoutHistory(sourceTypeFilter = null, containerId = 'payout-history-list') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      
       try {
         const response = await SuperAffiliateAPI.apiRequest('/wallet/payout-requests/');
         if (response.success && response.payout_requests) {
-          const requests = response.payout_requests;
+          let requests = response.payout_requests;
+          
+          // Filter by source type if specified
+          if (sourceTypeFilter) {
+            requests = requests.filter(req => req.source_type === sourceTypeFilter);
+          }
+          
           if (requests.length === 0) {
             container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No payout requests yet</p>';
             return;
@@ -1826,7 +2021,7 @@
     let currentPayoutSourceType = '';
     let currentPayoutAmount = 0;
 
-    function openPayoutModal(sourceType, availableAmount, label) {
+    function openPayoutModal(sourceType, availableAmount, label, reserved = 0) {
       currentPayoutSourceType = sourceType;
       currentPayoutAmount = availableAmount;
 
@@ -1835,6 +2030,20 @@
       document.getElementById('payout-available-balance').textContent = `₦${formatCurrency(availableAmount)}`;
       document.getElementById('payout-amount').value = availableAmount;
       document.getElementById('payout-amount').max = availableAmount;
+      
+      // Show reserved info if present
+      const reservedInfo = document.getElementById('payout-reserved-info');
+      if (reservedInfo) {
+        if (reserved > 0) {
+          reservedInfo.style.display = 'block';
+          reservedInfo.innerHTML = `
+            <i class="fas fa-info-circle" style="color: #ffc107;"></i>
+            <span style="color: #ffc107;">₦${formatCurrency(reserved)} is reserved in pending payout requests</span>
+          `;
+        } else {
+          reservedInfo.style.display = 'none';
+        }
+      }
 
       // Load bank accounts
       loadPayoutBankAccounts();
