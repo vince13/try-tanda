@@ -1748,6 +1748,13 @@
       
       // For seller and affiliate, use the detailed breakdown
       if (type === 'seller' || type === 'affiliate') {
+        console.log(`[Wallet] Displaying detailed earnings for ${type}:`, {
+          pending_awaiting_holdback: data.pending_awaiting_holdback,
+          pending_awaiting_safety: data.pending_awaiting_safety,
+          available_ready_for_payout: data.available_ready_for_payout,
+          paid: data.paid,
+          breakdown: data.breakdown
+        });
         displayDetailedEarnings(type, data, color, label, sourceType);
         return;
       }
@@ -1805,18 +1812,43 @@
     function displayDetailedEarnings(type, data, color, label, sourceType) {
       const container = document.getElementById(`${type}-earnings-content`);
       
-      // Extract values with fallbacks
-      const pendingAwaiting = parseFloat(
-        data.pending_awaiting_holdback || 
-        data.pending_awaiting_safety || 
-        data.breakdown?.awaiting_holdback_period?.net ||
-        data.breakdown?.awaiting_safety_period?.net || 
-        0
+      // Extract values with proper fallbacks - prioritize top-level fields from API
+      // IMPORTANT: Do NOT use data.pending as it's a legacy field set to available_ready_for_payout
+      // For affiliate: pending_awaiting_holdback, for seller: pending_awaiting_safety
+      let pendingAwaiting = 0;
+      if (type === 'affiliate') {
+        // First try top-level field, then breakdown
+        if (data.pending_awaiting_holdback !== undefined && data.pending_awaiting_holdback !== null) {
+          pendingAwaiting = parseFloat(data.pending_awaiting_holdback);
+        } else if (data.breakdown?.awaiting_holdback_period?.net !== undefined) {
+          pendingAwaiting = parseFloat(data.breakdown.awaiting_holdback_period.net);
+        }
+      } else if (type === 'seller') {
+        // First try top-level field, then breakdown
+        if (data.pending_awaiting_safety !== undefined && data.pending_awaiting_safety !== null) {
+          pendingAwaiting = parseFloat(data.pending_awaiting_safety);
+        } else if (data.breakdown?.awaiting_safety_period?.net !== undefined) {
+          pendingAwaiting = parseFloat(data.breakdown.awaiting_safety_period.net);
+        }
+      }
+      
+      // Available is what's ready for payout (in wallet + eligible to process)
+      // Use available_ready_for_payout, NOT data.pending (which is a legacy field)
+      const available = parseFloat(
+        data.available_ready_for_payout !== undefined && data.available_ready_for_payout !== null
+          ? data.available_ready_for_payout
+          : 0
       );
-      const available = parseFloat(data.available_ready_for_payout || 0);
-      const paid = parseFloat(data.paid || 0);
+      
+      // Paid is what's already been paid out
+      const paid = parseFloat(data.paid !== undefined && data.paid !== null ? data.paid : 0);
+      
+      // Reserved amount in pending/approved payout requests
       const reserved = parseFloat(data.reserved_outstanding || 0);
-      const availableAfterReserved = parseFloat(data.available_after_reserved || (available - reserved));
+      
+      // Available after subtracting reserved
+      const availableAfterReserved = parseFloat(data.available_after_reserved || Math.max(0, available - reserved));
+      
       const minimumPayout = parseFloat(data.minimum_payout || 1000);
       const canRequestPayout = data.can_request_payout || false;
       
@@ -1838,6 +1870,16 @@
       const periodDays = type === 'affiliate' 
         ? (awaiting.holdback_period_days || 30)
         : (awaiting.safety_period_days || 7);
+      
+      // Debug logging
+      console.log(`[Wallet] displayDetailedEarnings for ${type}:`, {
+        pendingAwaiting,
+        available,
+        paid,
+        reserved,
+        availableAfterReserved,
+        canRequestPayout
+      });
       
       container.innerHTML = `
         <!-- Summary Cards -->
