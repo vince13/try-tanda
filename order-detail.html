@@ -206,6 +206,7 @@
       display: flex;
       gap: 1.5rem;
       padding: 1.5rem 0;
+      position: relative;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -240,6 +241,65 @@
     .item-quantity {
       color: var(--text-secondary);
       font-size: 0.9rem;
+    }
+
+    /* Digital Product Badge in Order Items */
+    .digital-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      background: rgba(0, 242, 234, 0.15);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      border-radius: 0.4rem;
+      color: #00f2ea;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .digital-badge i {
+      font-size: 0.7rem;
+    }
+
+    /* Download Button in Order Items */
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-download-small {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #00f2ea, #00d4c8);
+      color: #000;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-download-small:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 242, 234, 0.4);
+    }
+
+    .btn-download-small i {
+      font-size: 0.9rem;
+    }
+
+    .download-info {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
     }
 
     .order-summary {
@@ -670,10 +730,30 @@
           </button>
         </div>
 
-        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <!-- Return Request Information Card -->
+        <div id="return-request-card" class="card" style="display: none; margin-top: 1.5rem; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3);">
+          <h2 style="font-size: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-undo" style="color: #ff9800;"></i> Return Request
+          </h2>
+          <div id="return-request-content"></div>
+        </div>
+
+        <div id="order-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
           <a href="orders.html" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Back to Orders
           </a>
+          <!-- Cancel Order button - shown for paid orders that are pending or confirmed (before shipping) -->
+          <button id="cancel-order-btn" class="btn" style="display: none; background: rgba(255, 152, 0, 0.2); color: #ff9800; border: 1px solid #ff9800;" onclick="cancelOrder()">
+            <i class="fas fa-times-circle"></i> Cancel Order
+          </button>
+          <!-- Request Return button - shown for delivered orders (excluding digital-only) -->
+          <button id="request-return-btn" class="btn" style="display: none; background: rgba(255, 87, 34, 0.2); color: #ff5722; border: 1px solid #ff5722;" onclick="requestReturn()">
+            <i class="fas fa-undo"></i> Request Return
+          </button>
+          <!-- Acknowledge Return button - shown when seller has approved return -->
+          <button id="acknowledge-return-btn" class="btn" style="display: none; background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid #4caf50;" onclick="acknowledgeReturn()">
+            <i class="fas fa-check-circle"></i> Acknowledge Return
+          </button>
         </div>
       </div>
     </div>
@@ -726,11 +806,26 @@
       }
     }
 
+    // Check if order contains only digital products
+    function isDigitalOnlyOrder(order) {
+      const items = order.items || [];
+      if (items.length === 0) return false;
+      
+      // Check if all items are digital (not physical or hybrid)
+      return items.every(item => {
+        const productType = item.product?.product_type?.toLowerCase() || 'physical';
+        return productType === 'digital';
+      });
+    }
+
     function displayOrder(order) {
       if (!order || !order.id) {
         showError('Order not found');
         return;
       }
+      
+      const isDigitalOnly = isDigitalOnlyOrder(order);
+      
       // Order ID and Date
       document.getElementById('order-id').textContent = order.id.substring(0, 8).toUpperCase();
       if (order.created_at) {
@@ -770,13 +865,32 @@
             return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
           };
 
+          const isDigital = item.product?.product_type === 'digital' || item.product?.product_type === 'hybrid';
+          const hasDownloadLink = item.download_link && order.payment_status === 'paid';
+
           return `
             <div class="order-item">
               ${imageUrl ? `<img src="${imageUrl}" alt="${item.product?.name || 'Product'}" class="item-image" onerror="this.style.display='none';">` : '<div class="item-image" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
               <div class="item-details">
-                <div class="item-name">${item.product?.name || 'Product'}</div>
+                <div class="item-name">
+                  ${item.product?.name || 'Product'}
+                  ${isDigital ? '<span class="digital-badge"><i class="fas fa-download"></i> Digital</span>' : ''}
+                </div>
                 <div class="item-price">${formatCurrency(item.product?.price || 0)}</div>
                 <div class="item-quantity">Quantity: ${item.quantity}</div>
+                
+                ${hasDownloadLink ? `
+                  <div class="item-actions">
+                    <a href="${item.download_link}" class="btn-download-small" target="_blank" onclick="trackDownload('${item.product?.id}')">
+                      <i class="fas fa-download"></i> Download
+                    </a>
+                    ${item.download_info ? `
+                      <span class="download-info">
+                        ${item.download_info.download_count || 0}/${item.download_info.max_downloads || '∞'} downloads
+                      </span>
+                    ` : ''}
+                  </div>
+                ` : ''}
               </div>
             </div>
           `;
@@ -800,20 +914,200 @@
       document.getElementById('shipping').textContent = formatCurrency(shippingValue || 0);
       document.getElementById('total').textContent = formatCurrency(totalValue || 0);
 
-      // Shipping address (from order.shipping_address JSON)
-      renderShippingAddress(order.shipping_address);
+      // Shipping address (from order.shipping_address JSON) - only for physical/hybrid orders
+      if (!isDigitalOnly && order.shipping_address && order.shipping_address.type !== 'digital') {
+        renderShippingAddress(order.shipping_address);
+      } else {
+        // Hide shipping address card for digital orders
+        const shippingCard = document.getElementById('shipping-address-card');
+        if (shippingCard) {
+          shippingCard.style.display = 'none';
+        }
+      }
 
-      // Delivery status tracker based on order.status
-      renderTrackingSteps(order);
+      // Delivery status tracker - only for physical/hybrid orders
+      if (!isDigitalOnly) {
+        renderTrackingSteps(order);
+        // Load delivery tracking (driver + ETA) if available
+        if (order.id) {
+          loadDeliveryTracking(order.id);
+        }
+      } else {
+        // Hide delivery tracking card for digital orders
+        const deliveryCard = document.getElementById('delivery-card');
+        if (deliveryCard) {
+          deliveryCard.style.display = 'none';
+        }
+      }
 
-      // Load delivery tracking (driver + ETA) if available
-      if (order.id) {
-        loadDeliveryTracking(order.id);
+      // Show/hide Cancel Order button - for paid orders that are pending or confirmed (before shipping)
+      const cancelBtn = document.getElementById('cancel-order-btn');
+      const paymentStatus = order.payment_status?.toLowerCase() || '';
+      const orderStatus = order.status?.toLowerCase() || '';
+      const isPaid = paymentStatus === 'paid';
+      const canCancel = isPaid && ['pending', 'confirmed'].includes(orderStatus) && orderStatus !== 'cancelled';
+      
+      if (cancelBtn) {
+        if (canCancel) {
+          cancelBtn.style.display = 'inline-flex';
+        } else {
+          cancelBtn.style.display = 'none';
+        }
+      }
+
+      // Show/hide Request Return button - for delivered orders (excluding digital-only)
+      const returnBtn = document.getElementById('request-return-btn');
+      const canReturn = !isDigitalOnly && orderStatus === 'delivered' && !order.return_status;
+      
+      if (returnBtn) {
+        if (canReturn) {
+          returnBtn.style.display = 'inline-flex';
+        } else {
+          returnBtn.style.display = 'none';
+        }
+      }
+
+      // Display Return Request Information (if return has been requested)
+      const returnCard = document.getElementById('return-request-card');
+      const returnContent = document.getElementById('return-request-content');
+      const returnStatus = order.return_status?.toLowerCase() || '';
+      const hasReturnRequest = orderStatus || order.status?.toLowerCase() === 'return_requested';
+      
+      if (hasReturnRequest && returnCard && returnContent) {
+          const returnReason = order.return_reason || '';
+          const sellerResponse = order.seller_response || '';
+          
+          // Get return status display text and color
+          let statusText, statusColor, statusClass;
+          switch (returnStatus) {
+            case 'pending':
+              statusText = 'Pending Review';
+              statusColor = '#ff9800';
+              statusClass = 'status-pending';
+              break;
+            case 'seller_reviewing':
+              statusText = 'Seller Reviewing';
+              statusColor = '#2196f3';
+              statusClass = 'status-processing';
+              break;
+            case 'seller_approved':
+              statusText = 'Seller Approved';
+              statusColor = '#4caf50';
+              statusClass = 'status-confirmed';
+              break;
+            case 'seller_rejected':
+              statusText = 'Seller Rejected';
+              statusColor = '#f44336';
+              statusClass = 'status-cancelled';
+              break;
+            case 'processing':
+              statusText = 'Processing Return';
+              statusColor = '#2196f3';
+              statusClass = 'status-processing';
+              break;
+            case 'admin_approved':
+              statusText = 'Admin Approved';
+              statusColor = '#4caf50';
+              statusClass = 'status-confirmed';
+              break;
+            case 'admin_rejected':
+              statusText = 'Admin Rejected';
+              statusColor = '#f44336';
+              statusClass = 'status-cancelled';
+              break;
+            case 'completed':
+              statusText = 'Return Completed';
+              statusColor = '#4caf50';
+              statusClass = 'status-confirmed';
+              break;
+            default:
+              statusText = 'Unknown';
+              statusColor = '#9e9e9e';
+              statusClass = 'status-pending';
+          }
+          
+          let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <span style="color: var(--text-secondary); font-size: 0.9rem;">Status:</span>
+              <span class="status-badge ${statusClass}" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600;">
+                ${statusText}
+              </span>
+            </div>
+          `;
+          
+          if (returnReason) {
+            html += `
+              <div style="margin-bottom: 1rem;">
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Your Reason:</div>
+                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+                  ${returnReason}
+                </div>
+              </div>
+            `;
+          }
+          
+          if (sellerResponse) {
+            const responseBgColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.1)' : 
+                                   returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.1)' : 
+                                   'rgba(255, 255, 255, 0.05)';
+            const responseBorderColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.3)' : 
+                                       returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.3)' : 
+                                       'rgba(255, 255, 255, 0.1)';
+            
+            html += `
+              <div style="margin-bottom: 1rem;">
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Seller Response:</div>
+                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: ${responseBgColor}; border: 1px solid ${responseBorderColor}; border-radius: 0.5rem;">
+                  ${sellerResponse}
+                </div>
+              </div>
+            `;
+          }
+          
+          const buyerResponse = order.buyer_response || '';
+          if (buyerResponse) {
+            html += `
+              <div style="margin-bottom: 1rem;">
+                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Your Response:</div>
+                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 0.5rem;">
+                  ${buyerResponse}
+                </div>
+              </div>
+            `;
+          }
+          
+          // Add Response button (shown when seller has responded and not processing/completed)
+          if (sellerResponse && returnStatus !== 'processing' && returnStatus !== 'completed') {
+            html += `
+              <div style="margin-top: 1rem;">
+                <button onclick="showBuyerResponseModal('${order.id}')" class="btn" style="width: 100%; background: rgba(33, 150, 243, 0.1); color: #2196f3; border: 1px solid #2196f3; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem;">
+                  <i class="fas fa-comment"></i> ${buyerResponse ? 'Update Response' : 'Add Response'}
+                </button>
+              </div>
+            `;
+          }
+          
+          returnContent.innerHTML = html;
+          returnCard.style.display = 'block';
+        }
+      } else {
+        if (returnCard) {
+          returnCard.style.display = 'none';
+        }
+      }
+
+      // Show/hide Acknowledge Return button - when seller has approved
+      const acknowledgeBtn = document.getElementById('acknowledge-return-btn');
+      if (acknowledgeBtn) {
+        if (returnStatus === 'seller_approved') {
+          acknowledgeBtn.style.display = 'inline-flex';
+        } else {
+          acknowledgeBtn.style.display = 'none';
+        }
       }
 
       // Payment Section
-      const paymentStatus = order.payment_status || 'pending';
-      document.getElementById('payment-status').textContent = paymentStatus.toUpperCase();
+      document.getElementById('payment-status').textContent = (paymentStatus || 'pending').toUpperCase();
 
       // Show payment button if order is pending payment
       if (paymentStatus === 'pending' || paymentStatus === 'unpaid') {
@@ -836,6 +1130,12 @@
         document.getElementById('payment-reference').style.display = 'block';
         document.getElementById('reference-value').textContent = order.transaction_id || order.payment_reference;
       }
+    }
+
+    function trackDownload(productId) {
+      // Track download event (optional analytics)
+      console.log('Download initiated for product:', productId);
+      // Could send analytics event here
     }
 
     function renderShippingAddress(address) {
@@ -880,6 +1180,12 @@
       const card = document.getElementById('delivery-card');
       const stepsContainer = document.getElementById('tracking-steps');
       if (!card || !stepsContainer) return;
+      
+      // Don't show tracking for digital-only orders
+      if (isDigitalOnlyOrder(order)) {
+        card.style.display = 'none';
+        return;
+      }
 
       const rawStatus = (order.status || 'pending').toLowerCase();
       const steps = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
@@ -1031,6 +1337,199 @@
       document.getElementById('error-message').textContent = message;
       document.getElementById('error-section').style.display = 'block';
       document.getElementById('loading-section').style.display = 'none';
+    }
+
+    async function cancelOrder() {
+      if (!orderId) {
+        showToast('Order ID not found', 'error');
+        return;
+      }
+
+      if (!orderData) {
+        showToast('Order data not loaded', 'error');
+        return;
+      }
+
+      const paymentStatus = orderData.payment_status?.toLowerCase() || '';
+      const isPaid = paymentStatus === 'paid';
+      const message = isPaid
+        ? 'Are you sure you want to cancel this order? The refund amount will be credited to your wallet balance for future purchases. This action cannot be undone.'
+        : 'Are you sure you want to cancel this order? This action cannot be undone.';
+
+      if (!confirm(message)) {
+        return;
+      }
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/cancel/`, {
+          method: 'POST',
+          body: JSON.stringify({})
+        });
+
+        if (response.message) {
+          // Extract refund amount and digital items excluded from response
+          const refundAmount = response.refund_amount;
+          const digitalExcluded = response.digital_items_excluded;
+          
+          let refundMessage;
+          if (refundAmount && refundAmount > 0) {
+            refundMessage = `Order cancelled successfully. ₦${parseFloat(refundAmount).toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})} has been credited to your wallet balance.`;
+            if (digitalExcluded && digitalExcluded > 0) {
+              refundMessage += `\n\nNote: ₦${parseFloat(digitalExcluded).toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})} for digital products was excluded as digital products are non-refundable.`;
+            }
+          } else if (digitalExcluded && digitalExcluded > 0) {
+            refundMessage = 'Order cancelled successfully.\n\nNote: Digital products are non-refundable, so no refund was processed for this order.';
+          } else {
+            refundMessage = response.message || 'Order cancelled successfully.';
+          }
+          
+          showToast(refundMessage, 'success');
+          
+          // Reload order to reflect cancellation
+          setTimeout(() => {
+            loadOrder();
+          }, 1000);
+        } else {
+          showToast(response.error || 'Failed to cancel order', 'error');
+        }
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+        showToast(error.message || 'Failed to cancel order. Please try again.', 'error');
+      }
+    }
+
+    async function requestReturn() {
+      if (!orderId) {
+        showToast('Order ID not found', 'error');
+        return;
+      }
+
+      const reason = prompt('Please provide a reason for the return request:');
+      if (!reason || reason.trim().length < 10) {
+        if (reason !== null) {
+          showToast('Please provide a reason with at least 10 characters', 'error');
+        }
+        return;
+      }
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/return/`, {
+          method: 'POST',
+          body: JSON.stringify({
+            reason: reason.trim()
+          })
+        });
+
+        if (response.message) {
+          showToast('Return request submitted successfully', 'success');
+          
+          // Reload order to reflect return request
+          setTimeout(() => {
+            loadOrder();
+          }, 1000);
+        } else {
+          showToast(response.error || 'Failed to submit return request', 'error');
+        }
+      } catch (error) {
+        console.error('Error requesting return:', error);
+        showToast(error.message || 'Failed to submit return request. Please try again.', 'error');
+      }
+    }
+
+    async function acknowledgeReturn() {
+      if (!orderId) {
+        showToast('Order ID not found', 'error');
+        return;
+      }
+
+      if (!orderData) {
+        showToast('Order data not loaded', 'error');
+        return;
+      }
+
+      const returnStatus = orderData.return_status?.toLowerCase() || '';
+      if (returnStatus !== 'seller_approved') {
+        showToast('Return request must be approved by seller before acknowledgment', 'error');
+        return;
+      }
+
+      const message = prompt(
+        'By acknowledging, you confirm that you will proceed with the return process.\n\n' +
+        'The seller has approved your return request. Admin will now process the return and refund.\n\n' +
+        'Optional: Add a message:',
+        ''
+      );
+
+      if (message === null) {
+        return; // User cancelled
+      }
+
+      try {
+        const data = message.trim() ? { message: message.trim() } : {};
+        const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/return/acknowledge/`, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        if (response.message) {
+          showToast(response.message || 'Return request acknowledged successfully', 'success');
+          
+          // Reload order to reflect acknowledgment
+          setTimeout(() => {
+            loadOrder();
+          }, 1000);
+        } else {
+          showToast(response.error || 'Failed to acknowledge return request', 'error');
+        }
+      } catch (error) {
+        console.error('Error acknowledging return:', error);
+        showToast(error.message || 'Failed to acknowledge return request. Please try again.', 'error');
+      }
+    }
+
+    function showBuyerResponseModal(orderId) {
+      const currentResponse = orderData?.buyer_response || '';
+      const message = prompt(
+        'Add your response or message regarding the return request:',
+        currentResponse
+      );
+      
+      if (message === null) return; // User cancelled
+      
+      if (!message.trim()) {
+        showToast('Response message cannot be empty', 'error');
+        return;
+      }
+      
+      if (message.trim().length < 10) {
+        showToast('Response must be at least 10 characters', 'error');
+        return;
+      }
+      
+      submitBuyerResponse(orderId, message.trim());
+    }
+
+    async function submitBuyerResponse(orderId, response) {
+      try {
+        const result = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/return/buyer-response/`, {
+          method: 'POST',
+          body: JSON.stringify({ response })
+        });
+
+        if (result.message) {
+          showToast(result.message || 'Response submitted successfully', 'success');
+          
+          // Reload order to reflect response
+          setTimeout(() => {
+            loadOrder();
+          }, 1000);
+        } else {
+          showToast(result.error || 'Failed to submit response', 'error');
+        }
+      } catch (error) {
+        console.error('Error submitting buyer response:', error);
+        showToast(error.message || 'Failed to submit response. Please try again.', 'error');
+      }
     }
 
       // Load order on page load if orderId exists

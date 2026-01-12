@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>My Downloads - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      .nav {
+        gap: 0.25rem;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .downloads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .download-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .download-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+
+    .download-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 0.5rem;
+      background: rgba(0, 242, 234, 0.1);
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .download-icon i {
+      font-size: 1.5rem;
+      color: var(--accent-color);
+    }
+
+    .download-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .download-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .download-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .download-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-badge.available {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .status-badge.expired {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    .status-badge.limited {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .btn-download-compact {
+      background: linear-gradient(135deg, #00f2ea, #00d4c8);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      align-self: flex-start;
+    }
+
+    .btn-download-compact:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 242, 234, 0.4);
+    }
+
+    .btn-download-compact:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      opacity: 0.3;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .downloads-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .download-item {
+        flex-direction: column;
+      }
+
+      .btn-download-compact {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">My Downloads</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="loading-section" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Loading downloads...</p>
+    </div>
+
+    <div id="downloads-section" style="display: none;">
+      <div class="downloads-grid" id="downloads-grid"></div>
+    </div>
+
+    <div id="empty-section" class="empty-state" style="display: none;">
+      <i class="fas fa-download"></i>
+      <h2 style="margin-bottom: 1rem;">No downloads yet</h2>
+      <p style="margin-bottom: 1.5rem;">You haven't purchased any digital products yet.</p>
+      <a href="products.html" class="btn-download-compact" style="text-decoration: none;">
+        <i class="fas fa-shopping-bag"></i> Browse Products
+      </a>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js"></script>
+  <script>
+    // Check authentication
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    // Render auth nav
+    SuperAffiliateAPI.renderAuthNav('authNav');
+
+    async function loadDownloads() {
+      try {
+        // Get all orders with paid status
+        const ordersResponse = await SuperAffiliateAPI.apiRequest('/commerce/orders/?payment_status=paid');
+        const orders = ordersResponse.results || ordersResponse.orders || ordersResponse;
+        const ordersArray = Array.isArray(orders) ? orders : [orders];
+
+        // Extract all digital downloads from orders
+        const downloads = [];
+        for (const order of ordersArray) {
+          if (order.items) {
+            for (const item of order.items) {
+              if (item.download_link && (item.product?.product_type === 'digital' || item.product?.product_type === 'hybrid')) {
+                downloads.push({
+                  product: item.product,
+                  download_link: item.download_link,
+                  download_info: item.download_info,
+                  order_id: order.id,
+                  order_date: order.created_at,
+                  item: item
+                });
+              }
+            }
+          }
+        }
+
+        displayDownloads(downloads);
+      } catch (error) {
+        console.error('Error loading downloads:', error);
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('empty-section').style.display = 'block';
+      }
+    }
+
+    function displayDownloads(downloads) {
+      document.getElementById('loading-section').style.display = 'none';
+
+      if (downloads.length === 0) {
+        document.getElementById('empty-section').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('downloads-section').style.display = 'block';
+
+      const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      };
+
+      const getFileIcon = (format) => {
+        if (!format) return 'fa-file';
+        const ext = format.toLowerCase();
+        if (ext === 'pdf') return 'fa-file-pdf';
+        if (['zip', 'rar', '7z'].includes(ext)) return 'fa-file-archive';
+        if (['mp3', 'wav', 'flac'].includes(ext)) return 'fa-file-audio';
+        if (['mp4', 'avi', 'mov'].includes(ext)) return 'fa-file-video';
+        if (['doc', 'docx'].includes(ext)) return 'fa-file-word';
+        return 'fa-file';
+      };
+
+      const getStatusBadge = (downloadInfo) => {
+        if (!downloadInfo) return '<span class="status-badge available">Available</span>';
+        
+        if (!downloadInfo.is_available) {
+          return '<span class="status-badge expired">Expired</span>';
+        }
+        
+        if (downloadInfo.max_downloads > 0 && downloadInfo.download_count >= downloadInfo.max_downloads) {
+          return '<span class="status-badge limited">Limit Reached</span>';
+        }
+        
+        return '<span class="status-badge available">Available</span>';
+      };
+
+      const grid = document.getElementById('downloads-grid');
+      grid.innerHTML = downloads.map(download => {
+        const product = download.product;
+        const info = download.download_info;
+        const fileFormat = product.digital_file_format || 'FILE';
+        const fileSize = product.digital_file_size ? formatFileSize(product.digital_file_size) : 'N/A';
+        
+        return `
+          <div class="download-item">
+            <div class="download-icon">
+              <i class="fas ${getFileIcon(fileFormat)}"></i>
+            </div>
+            <div class="download-info">
+              <div class="download-name">${product.name || 'Product'}</div>
+              <div class="download-meta">
+                <span>${fileFormat} • ${fileSize}</span>
+                <span>Purchased: ${formatDate(download.order_date)}</span>
+              </div>
+              <div class="download-status">
+                ${getStatusBadge(info)}
+                ${info ? `<span>${info.download_count || 0}/${info.max_downloads || '∞'} downloads</span>` : ''}
+              </div>
+            </div>
+            <a href="${download.download_link}" 
+               class="btn-download-compact" 
+               target="_blank"
+               ${info && !info.is_available ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>
+              <i class="fas fa-download"></i>
+            </a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes) return 'N/A';
+      const kb = bytes / 1024;
+      const mb = kb / 1024;
+      if (mb >= 1) return `${mb.toFixed(2)} MB`;
+      return `${kb.toFixed(2)} KB`;
+    }
+
+    // Initialize
+    loadDownloads();
+  </script>
+</body>
+</html>

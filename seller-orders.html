@@ -232,6 +232,71 @@
       color: #e1bee7;
     }
 
+    .status-return_requested {
+      background: rgba(255, 87, 34, 0.2);
+      color: #ff5722;
+    }
+
+    .return-status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .return-status-pending {
+      background: rgba(255, 152, 0, 0.2);
+      color: #ff9800;
+    }
+
+    .return-status-seller_reviewing {
+      background: rgba(33, 150, 243, 0.2);
+      color: #2196F3;
+    }
+
+    .return-status-seller_approved {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+    }
+
+    .return-status-seller_rejected {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .return-status-admin_approved {
+      background: rgba(76, 175, 80, 0.25);
+      color: #66bb6a;
+    }
+
+    .return-status-admin_rejected {
+      background: rgba(244, 67, 54, 0.25);
+      color: #ef5350;
+    }
+
+    .return-status-processing {
+      background: rgba(0, 188, 212, 0.2);
+      color: #00bcd4;
+    }
+
+    .return-status-completed {
+      background: rgba(158, 158, 158, 0.2);
+      color: #bdbdbd;
+    }
+
+    .return-info {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 87, 34, 0.1);
+      border-radius: 4px;
+      border-left: 2px solid #ff5722;
+    }
+
     .status-select {
       background: transparent;
       border-radius: 999px;
@@ -478,6 +543,7 @@
                 <option value="processing">Processing</option>
                 <option value="shipped">Shipped</option>
                 <option value="delivered">Delivered</option>
+                <option value="return_requested">Return Requested</option>
                 <option value="cancelled">Cancelled</option>
                 <option value="refunded">Refunded</option>
               </select>
@@ -487,6 +553,39 @@
 
         <div id="orders-container"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Return Request Response Modal -->
+  <div id="return-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Respond to Return Request</h3>
+        <button class="modal-close" onclick="closeReturnModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="return-form" class="modal-form" onsubmit="submitReturnResponse(event)">
+        <input type="hidden" id="return-order-id">
+        <div style="background: rgba(255, 87, 34, 0.1); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 3px solid #ff5722;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Customer Return Reason:</div>
+          <div id="return-reason-display" style="font-size: 0.9rem; color: var(--text-primary);"></div>
+        </div>
+        <label>
+          Your Response <span style="color: var(--text-secondary); font-size: 0.8rem;">(required)</span>
+          <textarea id="return-response" placeholder="Enter your response to the customer's return request..." required minlength="10"></textarea>
+        </label>
+        <label>
+          Action
+          <select id="return-action" required>
+            <option value="">Select action...</option>
+            <option value="approve">Approve Return</option>
+            <option value="reject">Reject Return</option>
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeReturnModal()">Cancel</button>
+          <button type="submit" class="btn btn-save">Submit Response</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -619,7 +718,11 @@
 
         const status = (order.status || 'pending').toLowerCase();
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
-      const shipping = order.shipping != null ? order.shipping : (order.shipping_cost || 0);
+        const shipping = order.shipping != null ? order.shipping : (order.shipping_cost || 0);
+        const returnStatus = order.return_status || null;
+        const returnReason = order.return_reason || null;
+        const sellerResponse = order.seller_response || null;
+        const hasReturnRequest = status === 'return_requested' && returnReason;
 
         let paymentLabel = 'PENDING';
         let paymentClass = 'badge-pending';
@@ -653,13 +756,29 @@
             </td>
             <td>
               <span class="status-pill status-${status}">${status.toUpperCase()}</span>
+              ${hasReturnRequest ? `
+                <div class="return-status-badge return-status-${returnStatus || 'pending'}">
+                  ${(returnStatus || 'pending').replace(/_/g, ' ').toUpperCase()}
+                </div>
+                ${returnReason ? `
+                  <div class="return-info" title="${returnReason}">
+                    <i class="fas fa-info-circle"></i> Return: ${returnReason.substring(0, 50)}${returnReason.length > 50 ? '...' : ''}
+                  </div>
+                ` : ''}
+                ${sellerResponse ? `
+                  <div style="font-size: 0.7rem; color: var(--accent-color); margin-top: 4px;">
+                    <i class="fas fa-check-circle"></i> Response provided
+                  </div>
+                ` : ''}
+              ` : ''}
               <div style="margin-top: 4px;">
-                <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)" value="${status}">
+                <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)" value="${status}" ${hasReturnRequest ? 'disabled' : ''}>
                   <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
                   <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
                   <option value="processing" ${status === 'processing' ? 'selected' : ''}>Processing</option>
                   <option value="shipped" ${status === 'shipped' ? 'selected' : ''}>Shipped</option>
                   <option value="delivered" ${status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                  <option value="return_requested" ${status === 'return_requested' ? 'selected' : ''}>Return Requested</option>
                   <option value="cancelled" ${status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                   <option value="refunded" ${status === 'refunded' ? 'selected' : ''}>Refunded</option>
                 </select>
@@ -673,9 +792,21 @@
                 <button class="btn-xs" onclick="viewOrder('${order.id}')">
                   <i class="fas fa-eye"></i> View
                 </button>
-                <button class="btn-xs" onclick="openDriverModal('${order.id}')">
-                  <i class="fas fa-motorcycle"></i> Driver
-                </button>
+                ${hasReturnRequest && !sellerResponse ? `
+                  <button class="btn-xs primary" onclick="openReturnModal('${order.id}')" style="background: rgba(255, 87, 34, 0.2); color: #ff5722; border: 1px solid #ff5722;">
+                    <i class="fas fa-reply"></i> Respond
+                  </button>
+                ` : ''}
+                ${hasReturnRequest && sellerResponse ? `
+                  <button class="btn-xs" onclick="openReturnModal('${order.id}')" style="background: rgba(0, 242, 234, 0.2); color: var(--accent-color); border: 1px solid var(--accent-color);">
+                    <i class="fas fa-edit"></i> View Response
+                  </button>
+                ` : ''}
+                ${status !== 'return_requested' ? `
+                  <button class="btn-xs" onclick="openDriverModal('${order.id}')">
+                    <i class="fas fa-motorcycle"></i> Driver
+                  </button>
+                ` : ''}
               </div>
             </td>
           </tr>
@@ -837,6 +968,82 @@
       } catch (error) {
         console.error('Error updating driver info:', error);
         showToast(error.message || 'Failed to update driver information', 'error');
+      }
+    }
+
+    async function openReturnModal(orderId) {
+      document.getElementById('return-order-id').value = orderId;
+      document.getElementById('return-response').value = '';
+      document.getElementById('return-action').value = '';
+
+      try {
+        // Load order details to get return reason and existing response
+        const order = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/`);
+        
+        // Display return reason
+        const returnReasonDisplay = document.getElementById('return-reason-display');
+        if (order.return_reason) {
+          returnReasonDisplay.textContent = order.return_reason;
+        } else {
+          returnReasonDisplay.textContent = 'No reason provided';
+        }
+
+        // Pre-fill existing seller response if available
+        if (order.seller_response) {
+          document.getElementById('return-response').value = order.seller_response;
+        }
+
+        // Set action based on current return status
+        if (order.return_status === 'seller_approved') {
+          document.getElementById('return-action').value = 'approve';
+        } else if (order.return_status === 'seller_rejected') {
+          document.getElementById('return-action').value = 'reject';
+        }
+      } catch (error) {
+        console.error('Error loading order details:', error);
+        showToast('Failed to load order details', 'error');
+        return;
+      }
+
+      document.getElementById('return-modal').classList.add('active');
+    }
+
+    function closeReturnModal() {
+      document.getElementById('return-modal').classList.remove('active');
+    }
+
+    async function submitReturnResponse(event) {
+      event.preventDefault();
+      const orderId = document.getElementById('return-order-id').value;
+      const response = document.getElementById('return-response').value.trim();
+      const action = document.getElementById('return-action').value;
+
+      if (!response || response.length < 10) {
+        showToast('Please provide a response (at least 10 characters)', 'error');
+        return;
+      }
+
+      if (!action) {
+        showToast('Please select an action (Approve or Reject)', 'error');
+        return;
+      }
+
+      try {
+        await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/return/seller-response/`, {
+          method: 'POST',
+          body: JSON.stringify({
+            response: response,
+            action: action
+          }),
+        });
+
+        showToast(`Return request ${action === 'approve' ? 'approved' : 'rejected'} successfully`, 'success');
+        closeReturnModal();
+        // Refresh order list to reflect changes
+        loadOrders(currentPage, currentStatusFilter);
+      } catch (error) {
+        console.error('Error submitting return response:', error);
+        showToast(error.message || 'Failed to submit return response', 'error');
       }
     }
 

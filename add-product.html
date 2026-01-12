@@ -348,6 +348,74 @@
       font-size: 0.75rem;
     }
 
+    /* Product Type Selector */
+    .product-type-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .type-option {
+      display: block;
+      cursor: pointer;
+    }
+
+    .type-option input[type="radio"] {
+      display: none;
+    }
+
+    .type-card {
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .type-card i {
+      font-size: 2rem;
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .type-card span {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .type-card small {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .type-option input[type="radio"]:checked + .type-card {
+      border-color: var(--accent-color);
+      background: rgba(0, 242, 234, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 242, 234, 0.2);
+    }
+
+    .type-option input[type="radio"]:checked + .type-card i {
+      color: var(--accent-color);
+    }
+
+    .type-option:hover .type-card {
+      border-color: rgba(0, 242, 234, 0.5);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      .product-type-selector {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -411,6 +479,43 @@
 
     <div class="card">
       <form id="product-form" onsubmit="handleSubmit(event)">
+        <!-- Product Type -->
+        <div class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-tag"></i> Product Type
+          </h2>
+          
+          <div class="form-group">
+            <label class="form-label">Product Type <span class="required">*</span></label>
+            <div class="product-type-selector" id="product-type-selector">
+              <label class="type-option">
+                <input type="radio" name="product_type" value="physical" checked onchange="toggleDigitalFields()">
+                <div class="type-card">
+                  <i class="fas fa-box"></i>
+                  <span>Physical Product</span>
+                  <small>Requires shipping</small>
+                </div>
+              </label>
+              <label class="type-option">
+                <input type="radio" name="product_type" value="digital" onchange="toggleDigitalFields()">
+                <div class="type-card">
+                  <i class="fas fa-download"></i>
+                  <span>Digital Download</span>
+                  <small>Instant delivery</small>
+                </div>
+              </label>
+              <label class="type-option">
+                <input type="radio" name="product_type" value="hybrid" onchange="toggleDigitalFields()">
+                <div class="type-card">
+                  <i class="fas fa-box-open"></i>
+                  <span>Physical + Digital</span>
+                  <small>Both included</small>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- Basic Information -->
         <div class="form-section">
           <h2 class="section-title">
@@ -520,6 +625,49 @@
               <label for="dimensions">Dimensions (LxWxH cm)</label>
               <input type="text" id="dimensions" name="dimensions" placeholder="e.g. 20x15x10">
             </div>
+          </div>
+        </div>
+
+        <!-- Digital Product Fields -->
+        <div class="form-section" id="digital-fields-section" style="display: none;">
+          <h2 class="section-title">
+            <i class="fas fa-download"></i> Digital Product Settings
+          </h2>
+
+          <div class="form-group">
+            <label for="digital-file">Digital File <span class="required" id="digital-file-required" style="display: none;">*</span></label>
+            <div class="file-upload">
+              <input type="file" id="digital-file" name="digital_file" accept=".pdf,.zip,.mp3,.mp4,.doc,.docx,.txt,.epub,.mobi">
+              <label for="digital-file" class="file-upload-label">
+                <i class="fas fa-file-upload"></i>
+                <span>Click to upload digital file (PDF, ZIP, MP3, MP4, DOC, DOCX, etc.)</span>
+              </label>
+            </div>
+            <div class="form-help">Max 100MB. Supported: PDF, ZIP, MP3, MP4, DOC, DOCX, TXT, EPUB, MOBI</div>
+          </div>
+
+          <div class="form-group">
+            <label for="digital-file-url">OR External URL</label>
+            <input type="url" id="digital-file-url" name="digital_file_url" placeholder="https://example.com/file.pdf">
+            <div class="form-help">Alternative to file upload - provide a direct download URL</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="max-downloads">Max Downloads per Buyer</label>
+              <input type="number" id="max-downloads" name="max_downloads" value="5" min="0" placeholder="5">
+              <div class="form-help">Maximum number of times each buyer can download this file. 0 = unlimited downloads per buyer</div>
+            </div>
+            <div class="form-group">
+              <label for="download-expiry-days">Download Valid For (days)</label>
+              <input type="number" id="download-expiry-days" name="download_expiry_days" value="365" min="0" placeholder="365">
+              <div class="form-help">0 = never expires</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="digital-description">Digital Product Description</label>
+            <textarea id="digital-description" name="digital_description" placeholder="Additional details about the digital product (file contents, usage instructions, etc.)"></textarea>
           </div>
         </div>
 
@@ -664,6 +812,31 @@
       
       // Load categories regardless of approval status
       await loadCategories();
+      
+      // Initialize digital fields toggle
+      toggleDigitalFields();
+    }
+
+    // Toggle digital product fields based on product type
+    function toggleDigitalFields() {
+      const productType = document.querySelector('input[name="product_type"]:checked')?.value;
+      const digitalSection = document.getElementById('digital-fields-section');
+      const digitalFileRequired = document.getElementById('digital-file-required');
+      
+      if (productType === 'digital' || productType === 'hybrid') {
+        digitalSection.style.display = 'block';
+        if (productType === 'digital') {
+          digitalFileRequired.style.display = 'inline';
+          document.getElementById('digital-file').required = true;
+        } else {
+          digitalFileRequired.style.display = 'none';
+          document.getElementById('digital-file').required = false;
+        }
+      } else {
+        digitalSection.style.display = 'none';
+        digitalFileRequired.style.display = 'none';
+        document.getElementById('digital-file').required = false;
+      }
     }
 
     // Load categories (include empty categories for product creation)
@@ -747,6 +920,7 @@
         const formFields = [
           'name', 'description', 'category', 'price', 'original_price', 'currency',
           'stock_quantity', 'min_order_quantity', 'max_order_quantity', 'condition',
+          'product_type', 'digital_file_url', 'max_downloads', 'download_expiry_days', 'digital_description',
           'brand', 'model', 'weight', 'dimensions', 'status',
           'affiliate_commission_rate', 'min_affiliate_tier'
         ];
@@ -769,6 +943,12 @@
         selectedImages.forEach((file, index) => {
           formData.append(`images[${index}]`, file);
         });
+
+        // Add digital file if provided
+        const digitalFile = document.getElementById('digital-file').files[0];
+        if (digitalFile) {
+          formData.append('digital_file', digitalFile);
+        }
 
         // Submit to API
         const response = await SuperAffiliateAPI.apiRequest('/commerce/products/create/', {

@@ -402,6 +402,119 @@
       font-size: 0.9rem;
     }
 
+    /* Digital Product Badge */
+    .product-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, rgba(0, 242, 234, 0.2), rgba(0, 242, 234, 0.1));
+      border: 1px solid rgba(0, 242, 234, 0.3);
+      border-radius: 0.5rem;
+      color: #00f2ea;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .product-type-badge i {
+      font-size: 1rem;
+    }
+
+    /* Digital Product Info Card */
+    .digital-product-info {
+      background: rgba(0, 242, 234, 0.05);
+      border: 1px solid rgba(0, 242, 234, 0.2);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .digital-product-info .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .digital-product-info .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .digital-product-info .info-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .digital-product-info .info-label i {
+      color: #00f2ea;
+      width: 16px;
+    }
+
+    .digital-product-info .info-value {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* Download Button */
+    .btn-download {
+      background: linear-gradient(135deg, #00f2ea, #00d4c8);
+      color: #000;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.3s ease;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 242, 234, 0.4);
+    }
+
+    .btn-download i {
+      font-size: 1.2rem;
+    }
+
+    /* Download Status */
+    .download-status {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .download-status .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+
+    .download-status .status-item i {
+      color: #00ff88;
+    }
+
+    .download-status .status-item strong {
+      color: #00ff88;
+    }
+
     .product-meta {
       display: flex;
       flex-wrap: wrap;
@@ -726,23 +839,70 @@
         <div class="product-info">
           <h1 class="product-name" id="product-name"></h1>
           <div class="product-rating" id="product-rating"></div>
+          
+          <!-- Digital Product Badge -->
+          <div class="product-type-badge" id="product-type-badge" style="display: none;">
+            <i class="fas fa-download"></i>
+            <span>Instant Digital Download</span>
+          </div>
+          
           <div class="product-price" id="product-price"></div>
           <div class="product-meta" id="product-meta"></div>
 
-          <div class="quantity-selector">
+          <!-- Digital Product Info Card (Pre-Purchase) -->
+          <div class="digital-product-info" id="digital-product-info" style="display: none;">
+            <div class="info-row">
+              <span class="info-label"><i class="fas fa-file"></i> Format:</span>
+              <span class="info-value" id="digital-format">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fas fa-weight"></i> Size:</span>
+              <span class="info-value" id="digital-size">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fas fa-download"></i> Downloads per Buyer:</span>
+              <span class="info-value" id="digital-downloads">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fas fa-clock"></i> Access:</span>
+              <span class="info-value" id="digital-access">-</span>
+            </div>
+          </div>
+
+          <!-- Download Status (Post-Purchase) -->
+          <div class="download-status" id="download-status" style="display: none;">
+            <div class="status-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Download available</span>
+            </div>
+            <div class="status-item">
+              <span>Remaining downloads: <strong id="remaining-downloads">-</strong></span>
+            </div>
+            <div class="status-item">
+              <span>Expires: <strong id="download-expiry">-</strong></span>
+            </div>
+          </div>
+
+          <div class="quantity-selector" id="quantity-selector">
             <label>Quantity:</label>
             <input type="number" id="quantity" value="1" min="1" max="10">
           </div>
 
-          <button class="btn" id="favorite-btn" onclick="toggleFavorite()">
-            <i class="far fa-heart"></i> Add to Wishlist
-          </button>
-          <button class="btn" onclick="addToCart()">
-            <i class="fas fa-shopping-cart"></i> Add to Cart
-          </button>
-          <button class="btn btn-secondary" onclick="buyNow()">
-            <i class="fas fa-bolt"></i> Buy Now
-          </button>
+          <!-- Product Actions -->
+          <div class="product-actions" id="product-actions">
+            <button class="btn" id="favorite-btn" onclick="toggleFavorite()">
+              <i class="far fa-heart"></i> Add to Wishlist
+            </button>
+            <button class="btn-download" id="download-btn" style="display: none;" onclick="downloadProduct()">
+              <i class="fas fa-download"></i> Download Now
+            </button>
+            <button class="btn" id="add-to-cart-btn" onclick="addToCart()">
+              <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+            <button class="btn btn-secondary" id="buy-now-btn" onclick="buyNow()">
+              <i class="fas fa-bolt"></i> Buy Now
+            </button>
+          </div>
           
           <!-- Additional Product Information Section -->
           <div class="product-additional-info" id="product-additional-info" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);"></div>
@@ -824,6 +984,77 @@
 
       document.getElementById('product-name').textContent = data.name || 'Product';
       document.getElementById('product-price').textContent = formatCurrency(data.price);
+      
+      // Handle Digital Products
+      const isDigital = data.product_type === 'digital' || data.product_type === 'hybrid';
+      const hasDownloadLink = data.download_link && SuperAffiliateAPI.isAuthenticated();
+      
+      if (isDigital) {
+        // Show digital badge
+        document.getElementById('product-type-badge').style.display = 'inline-flex';
+        
+        // Show digital product info (pre-purchase)
+        if (!hasDownloadLink) {
+          document.getElementById('digital-product-info').style.display = 'block';
+          
+          // Format file size
+          const formatFileSize = (bytes) => {
+            if (!bytes) return 'N/A';
+            const kb = bytes / 1024;
+            const mb = kb / 1024;
+            if (mb >= 1) return `${mb.toFixed(2)} MB`;
+            return `${kb.toFixed(2)} KB`;
+          };
+          
+          // Format downloads
+          const formatDownloads = (max) => {
+            if (!max || max === 0) return 'Unlimited per buyer';
+            return `Up to ${max} times per buyer`;
+          };
+          
+          // Format access period
+          const formatAccess = (days) => {
+            if (!days || days === 0) return 'Never expires';
+            if (days === 365) return '1 year';
+            if (days > 365) return `${Math.floor(days / 365)} years`;
+            return `${days} days`;
+          };
+          
+          document.getElementById('digital-format').textContent = data.digital_file_format || 'N/A';
+          document.getElementById('digital-size').textContent = formatFileSize(data.digital_file_size);
+          document.getElementById('digital-downloads').textContent = formatDownloads(data.max_downloads);
+          document.getElementById('digital-access').textContent = formatAccess(data.download_expiry_days);
+        } else {
+          // Hide pre-purchase info if user has purchased
+          document.getElementById('digital-product-info').style.display = 'none';
+        }
+        
+        // Hide quantity selector for digital products (always 1)
+        document.getElementById('quantity-selector').style.display = 'none';
+      } else {
+        // Hide digital elements for physical products
+        document.getElementById('product-type-badge').style.display = 'none';
+        document.getElementById('digital-product-info').style.display = 'none';
+        document.getElementById('quantity-selector').style.display = 'flex';
+      }
+      
+      // Handle post-purchase download button
+      if (hasDownloadLink) {
+        document.getElementById('download-btn').style.display = 'block';
+        document.getElementById('add-to-cart-btn').style.display = 'none';
+        document.getElementById('buy-now-btn').style.display = 'none';
+        document.getElementById('download-status').style.display = 'block';
+        
+        // Try to get download status from order (if available)
+        // For now, show generic status
+        document.getElementById('remaining-downloads').textContent = 'Available';
+        document.getElementById('download-expiry').textContent = 'Check order details';
+      } else {
+        document.getElementById('download-btn').style.display = 'none';
+        document.getElementById('add-to-cart-btn').style.display = 'block';
+        document.getElementById('buy-now-btn').style.display = 'block';
+        document.getElementById('download-status').style.display = 'none';
+      }
       
       // Display description in separate card
       const description = data.description || 'No description available.';
@@ -1109,6 +1340,21 @@
         window.location.href = 'checkout.html';
       } catch (error) {
         showToast(error.message || 'Failed to add to cart', 'error');
+      }
+    }
+
+    async function downloadProduct() {
+      if (!productData || !productData.download_link) {
+        showToast('Download link not available', 'error');
+        return;
+      }
+
+      try {
+        // Open download link in new tab
+        window.open(productData.download_link, '_blank');
+        showToast('Download started!', 'success');
+      } catch (error) {
+        showToast(error.message || 'Failed to download', 'error');
       }
     }
 
