@@ -800,7 +800,7 @@
 </head>
 <body>
   <div class="header">
-    <h1 class="title">Products</h1>
+    <h1 class="title" id="page-title">Products</h1>
     <div class="nav" id="authNav">
       <!-- Marketplace button (similar to Flutter app) -->
       <a href="marketplace.html" class="nav-link-btn" title="External Marketplace" style="margin-right: 0.5rem;">
@@ -1321,24 +1321,39 @@
       emptySection.style.display = 'none';
 
       try {
-        let url = '/commerce/products/';
+        // Check if we should show only seller's products (from ?my=true query parameter)
+        const urlParams = new URLSearchParams(window.location.search);
+        const showMyProducts = urlParams.get('my') === 'true';
+        
+        // Use seller-specific endpoint if ?my=true is in the URL
+        let url = showMyProducts ? '/commerce/seller/products/' : '/commerce/products/';
         const params = new URLSearchParams();
+        
+        // For seller products endpoint, we can apply search (backend now supports it)
+        // Note: The seller endpoint filters by creator automatically, so we don't need to pass creator param
         if (search) params.append('search', search);
-        if (category) params.append('category', category);
-        if (sort) {
-          // Map frontend sort values to backend sort parameters
-          if (sort === 'price_asc') {
-            params.append('sort_by', 'price');
-            params.append('sort_order', 'asc');
-          } else if (sort === 'price_desc') {
-            params.append('sort_by', 'price');
-            params.append('sort_order', 'desc');
-          } else if (sort === 'newest') {
-            params.append('sort_by', 'created_at');
-            params.append('sort_order', 'desc');
-          } else {
-            params.append('sort_by', 'created_at');
-            params.append('sort_order', 'desc');
+        
+        if (showMyProducts) {
+          // For seller products, only support search and pagination
+          // Category and sort filtering not yet supported by seller endpoint
+        } else {
+          // For general products, support all filters
+          if (category) params.append('category', category);
+          if (sort) {
+            // Map frontend sort values to backend sort parameters
+            if (sort === 'price_asc') {
+              params.append('sort_by', 'price');
+              params.append('sort_order', 'asc');
+            } else if (sort === 'price_desc') {
+              params.append('sort_by', 'price');
+              params.append('sort_order', 'desc');
+            } else if (sort === 'newest') {
+              params.append('sort_by', 'created_at');
+              params.append('sort_order', 'desc');
+            } else {
+              params.append('sort_by', 'created_at');
+              params.append('sort_order', 'desc');
+            }
           }
         }
         if (params.toString()) url += '?' + params.toString();
@@ -1730,6 +1745,19 @@
     }
     
     function initializeProducts() {
+      // Check if we should show only seller's products (from ?my=true query parameter)
+      const urlParams = new URLSearchParams(window.location.search);
+      const showMyProducts = urlParams.get('my') === 'true';
+      
+      // Update page title and heading if viewing "My Products"
+      if (showMyProducts) {
+        document.title = 'My Products - Tanda Web';
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+          pageTitle.textContent = 'My Products';
+        }
+      }
+      
       // Add haptic feedback to interactions
       if (window.HapticFeedback) {
         setTimeout(() => {
