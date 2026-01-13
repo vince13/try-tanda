@@ -552,6 +552,122 @@
       </div>
     </div>
 
+    <!-- Subscription Management & History -->
+    <div class="quota-status" id="subscriptionHistory" style="display: none;">
+      <h2><i class="fas fa-history"></i> Payment History</h2>
+      <div id="subscriptionHistoryContent">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading payment history...
+        </div>
+      </div>
+    </div>
+
+    <!-- Affiliate Links Management Section -->
+    <div class="quota-status" id="affiliateLinksSection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h2><i class="fas fa-link"></i> Affiliate Links</h2>
+        <button onclick="showAddAffiliateLinkForm()"
+                style="padding: 0.75rem 1.5rem; background: var(--primary-gradient); border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-plus"></i> Add Affiliate Link
+        </button>
+      </div>
+      
+      <div style="padding: 1rem; background: rgba(0, 242, 234, 0.1); border: 1px solid rgba(0, 242, 234, 0.3); border-radius: 0.75rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-info-circle" style="color: #00f2ea; font-size: 1.2rem;"></i>
+          <div style="font-weight: 600; color: var(--accent-color);">How Affiliate Links Work</div>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-left: 2rem;">
+          Add your affiliate links for platforms like Jumia, Amazon, Konga, Temu, etc. When you tag external products in your videos, your affiliate links will be used automatically, allowing you to earn commissions on sales.
+        </div>
+      </div>
+
+      <div id="affiliateLinksContent">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading affiliate links...
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Affiliate Link Modal -->
+    <div id="affiliateLinkModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;">
+      <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 2rem; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.5rem; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            <i class="fas fa-link"></i> <span id="affiliateLinkModalTitle">Add Affiliate Link</span>
+          </h2>
+          <button onclick="closeAffiliateLinkModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0.5rem;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <form id="affiliateLinkForm" onsubmit="saveAffiliateLink(event); return false;">
+          <input type="hidden" id="affiliateLinkId" value="">
+          
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+              Platform <span style="color: #ff0050;">*</span>
+            </label>
+            <select id="affiliateLinkPlatform" required
+                    style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;">
+              <option value="">Select Platform</option>
+              <option value="jumia">Jumia Nigeria</option>
+              <option value="amazon">Amazon</option>
+              <option value="konga">Konga</option>
+              <option value="temu">Temu</option>
+              <option value="aliexpress">AliExpress</option>
+              <option value="shopify">Shopify Store</option>
+              <option value="custom">Custom URL</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+              Affiliate URL <span style="color: #ff0050;">*</span>
+            </label>
+            <input type="url" id="affiliateLinkUrl" required
+                   placeholder="https://jumia.com.ng/...?affcode=YOUR_ID or just YOUR_AFFILIATE_ID"
+                   style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+              Enter your full affiliate URL or just your affiliate ID/parameter
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+              Affiliate ID (Optional)
+            </label>
+            <input type="text" id="affiliateLinkIdField"
+                   placeholder="Just the affiliate ID (e.g., TANDA123)"
+                   style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+              Optional: Just the affiliate ID for reference
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+              Notes (Optional)
+            </label>
+            <textarea id="affiliateLinkNotes" rows="3"
+                      placeholder="Any notes about this affiliate link..."
+                      style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; resize: vertical; font-family: inherit;"></textarea>
+          </div>
+          
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" onclick="closeAffiliateLinkModal()"
+                    style="padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+              Cancel
+            </button>
+            <button type="submit"
+                    style="padding: 0.75rem 1.5rem; background: var(--primary-gradient); border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer;">
+              <i class="fas fa-save"></i> Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Subscription Plans -->
     <div id="plansSection">
       <h2 style="margin-bottom: 1rem; color: var(--accent-color);">
@@ -679,11 +795,60 @@
             `;
           }
 
+          // Subscription management section (only for paid plans)
+          const isPaidPlan = parseFloat(plan.price_per_month) > 0;
+          const autoRenew = response.auto_renew !== undefined ? response.auto_renew : true;
+          let subscriptionManagementHTML = '';
+          
+          if (isPaidPlan) {
+            subscriptionManagementHTML = `
+              <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                      <div style="font-weight: 600; margin-bottom: 0.25rem;">Auto-Renewal</div>
+                      <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        ${autoRenew ? 'Your subscription will automatically renew' : 'Auto-renewal is disabled. Your subscription will end on the expiration date.'}
+                      </div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 60px; height: 34px; cursor: pointer;">
+                      <input type="checkbox" id="autoRenewToggle" ${autoRenew ? 'checked' : ''} 
+                             onchange="toggleAutoRenew(this.checked)" 
+                             style="opacity: 0; width: 0; height: 0;">
+                      <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${autoRenew ? '#00f2ea' : '#ccc'}; transition: 0.3s; border-radius: 34px;">
+                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: 0.3s; border-radius: 50%; ${autoRenew ? 'transform: translateX(26px);' : ''}"></span>
+                      </span>
+                    </label>
+                  </div>
+                  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button onclick="cancelSubscription()" 
+                            style="padding: 0.75rem 1.5rem; background: rgba(255, 0, 80, 0.2); border: 1px solid rgba(255, 0, 80, 0.4); border-radius: 0.5rem; color: #ff6b6b; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                      <i class="fas fa-times-circle"></i> Cancel Subscription
+                    </button>
+                    <button onclick="loadSubscriptionHistory()" 
+                            style="padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.5rem; color: var(--text-primary); font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                      <i class="fas fa-history"></i> Payment History
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
           quotaStatusEl.innerHTML = `
             <h2><i class="fas fa-chart-line"></i> Your Current Plan: ${plan.name}</h2>
+            <div style="padding: 1rem; background: rgba(0, 242, 234, 0.1); border: 1px solid rgba(0, 242, 234, 0.3); border-radius: 0.75rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <i class="fas fa-info-circle" style="color: #00f2ea; font-size: 1.2rem;"></i>
+                <div style="font-weight: 600; color: var(--accent-color);">Free Tanda Products</div>
+              </div>
+              <div style="font-size: 0.9rem; color: var(--text-secondary); margin-left: 2rem;">
+                Tagging TandaShop products is <strong>always free and unlimited</strong> on all plans. Only external (affiliate) products count toward your quota.
+              </div>
+            </div>
             <div class="quota-info">
               <div class="quota-item">
-                <div class="quota-item-label">Products This Month</div>
+                <div class="quota-item-label">External Products This Month</div>
                 <div class="quota-item-value">${productsUsed}</div>
                 <div class="quota-item-limit">of ${productsLimit}${productsWarning}</div>
               </div>
@@ -700,11 +865,21 @@
               ${subscriptionEndHTML}
             </div>
             ${scheduledDowngradeHTML}
+            ${subscriptionManagementHTML}
           `;
         } else {
           quotaStatusEl.innerHTML = `
             <h2><i class="fas fa-chart-line"></i> No Active Plan</h2>
-            <p style="color: var(--text-secondary);">You don't have an active subscription plan. Choose a plan below to get started.</p>
+            <div style="padding: 1rem; background: rgba(0, 242, 234, 0.1); border: 1px solid rgba(0, 242, 234, 0.3); border-radius: 0.75rem; margin-bottom: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <i class="fas fa-info-circle" style="color: #00f2ea; font-size: 1.2rem;"></i>
+                <div style="font-weight: 600; color: var(--accent-color);">Good News: Tanda Products Are Free!</div>
+              </div>
+              <div style="font-size: 0.9rem; color: var(--text-secondary); margin-left: 2rem;">
+                You can tag <strong>unlimited TandaShop products for free</strong> on any plan, including the free plan. Subscriptions only apply to external (affiliate) product quotas.
+              </div>
+            </div>
+            <p style="color: var(--text-secondary);">Choose a plan below to get started with external product tagging.</p>
           `;
         }
       } catch (error) {
@@ -831,11 +1006,18 @@
               ${description ? `<div class="plan-description">${description}</div>` : ''}
               
               <ul class="plan-features">
-                <li><i class="fas fa-check"></i> ${productsLimit} products per month</li>
+                <li><i class="fas fa-check" style="color: #00f2ea;"></i> <strong>Unlimited Tanda products</strong> (always free)</li>
+                <li><i class="fas fa-check"></i> ${productsLimit === 'Unlimited' ? '<strong>Unlimited</strong>' : productsLimit} <strong>external products</strong> per month</li>
                 <li><i class="fas fa-check"></i> ${videosLimit} videos per month</li>
                 ${allowExternal ? '<li><i class="fas fa-check"></i> Custom affiliate links</li>' : ''}
                 ${allowTanda ? `<li><i class="fas fa-check"></i> Tanda affiliate (${revenueSplit}% commission)</li>` : ''}
-                ${features.length > 0 ? features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('') : ''}
+                ${features.length > 0 ? features.map(f => {
+                  // Skip features that are redundant (already shown above)
+                  if (f.includes('Unlimited videos') || f.includes('Unlimited Tanda') || f.includes('external product tags')) {
+                    return '';
+                  }
+                  return `<li><i class="fas fa-check"></i> ${f}</li>`;
+                }).filter(f => f).join('') : ''}
               </ul>
               
               <button 
@@ -990,6 +1172,12 @@
           // Check for payment URL (paid plan)
           const paymentUrl = response.authorization_url || response.payment_url;
           if (paymentUrl) {
+            // Store reference for cancellation tracking
+            if (response.reference) {
+              sessionStorage.setItem('pending_subscription_reference', response.reference);
+              sessionStorage.setItem('pending_subscription_plan_id', planId);
+            }
+            
             // Redirect to payment page
             window.location.href = paymentUrl;
             return;
@@ -1254,9 +1442,53 @@
         
         // Step 2: Load quota status (needed for current plan)
         await loadQuotaStatus();
-        
+
         // Step 3: Load plans (needs currentPlanId)
         await loadPlans();
+        
+        // Step 4: Load affiliate links
+        await loadAffiliateLinks();
+        
+        // Step 5: Check for payment callback parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment');
+        const planName = urlParams.get('plan');
+        const errorMsg = urlParams.get('error');
+        const cancelled = urlParams.get('cancelled');
+        
+        // Clear pending subscription tracking
+        const pendingRef = sessionStorage.getItem('pending_subscription_reference');
+        if (pendingRef && (paymentStatus === 'success' || paymentStatus === 'failed' || cancelled)) {
+          sessionStorage.removeItem('pending_subscription_reference');
+          sessionStorage.removeItem('pending_subscription_plan_id');
+        }
+        
+        if (paymentStatus === 'success') {
+          const message = urlParams.get('message') || `Successfully subscribed to ${planName || 'plan'}!`;
+          showAlert(message, 'success');
+          // Clean URL
+          window.history.replaceState({}, document.title, '/subscription.html');
+          // Reload quota to show updated status
+          await loadQuotaStatus();
+        } else if (paymentStatus === 'failed') {
+          const error = errorMsg ? decodeURIComponent(errorMsg) : 'Payment failed. Please try again.';
+          showAlert(error, 'error');
+          // Clean URL
+          window.history.replaceState({}, document.title, '/subscription.html');
+        } else if (cancelled === 'true') {
+          showAlert('Payment was cancelled. You can try again anytime.', 'warning');
+          // Clean URL
+          window.history.replaceState({}, document.title, '/subscription.html');
+        }
+        
+        // Check if user returned from Paystack without reference (likely cancelled)
+        // This handles the case where user closes Paystack window or navigates back
+        if (!paymentStatus && !cancelled && pendingRef && document.referrer.includes('paystack')) {
+          // User likely cancelled - show message
+          showAlert('Payment was cancelled. You can try subscribing again anytime.', 'info');
+          sessionStorage.removeItem('pending_subscription_reference');
+          sessionStorage.removeItem('pending_subscription_plan_id');
+        }
       } catch (error) {
         console.error('❌ Error in initializePage:', error);
         const plansGrid = document.getElementById('plansGrid');
@@ -1271,6 +1503,341 @@
             </div>
           `;
         }
+      }
+    }
+    
+    // Cancel subscription (disable auto-renew)
+    async function cancelSubscription() {
+      const confirmed = confirm(
+        'Are you sure you want to cancel your subscription?\n\n' +
+        'Your subscription will remain active until the end of your billing cycle, but it will not auto-renew. ' +
+        'You can re-enable auto-renewal at any time before your subscription expires.'
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        showAlert('Cancelling subscription...', 'info');
+        const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/cancel/', {
+          method: 'POST',
+        });
+
+        if (response.success) {
+          showAlert(response.message || 'Subscription auto-renewal has been cancelled.', 'success');
+          setTimeout(async () => {
+            await loadQuotaStatus();
+          }, 1000);
+        } else {
+          showAlert(response.error || 'Failed to cancel subscription', 'error');
+        }
+      } catch (error) {
+        console.error('Error cancelling subscription:', error);
+        showAlert(error.message || 'Failed to cancel subscription. Please try again.', 'error');
+      }
+    }
+
+    // Toggle auto-renewal
+    async function toggleAutoRenew(enabled) {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/toggle-auto-renew/', {
+          method: 'POST',
+          body: JSON.stringify({ auto_renew: enabled }),
+        });
+
+        if (response.success) {
+          showAlert(response.message || `Auto-renewal has been ${enabled ? 'enabled' : 'disabled'}.`, 'success');
+          setTimeout(async () => {
+            await loadQuotaStatus();
+          }, 1000);
+        } else {
+          showAlert(response.error || 'Failed to update auto-renewal setting', 'error');
+          // Revert checkbox state on error
+          const toggle = document.getElementById('autoRenewToggle');
+          if (toggle) toggle.checked = !enabled;
+        }
+      } catch (error) {
+        console.error('Error toggling auto-renew:', error);
+        showAlert(error.message || 'Failed to update auto-renewal setting. Please try again.', 'error');
+        // Revert checkbox state on error
+        const toggle = document.getElementById('autoRenewToggle');
+        if (toggle) toggle.checked = !enabled;
+      }
+    }
+
+    // Load subscription payment history
+    async function loadSubscriptionHistory() {
+      const historySection = document.getElementById('subscriptionHistory');
+      const historyContent = document.getElementById('subscriptionHistoryContent');
+      
+      // Toggle visibility
+      if (historySection.style.display === 'none') {
+        historySection.style.display = 'block';
+        historyContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading payment history...</div>';
+        
+        try {
+          const response = await SuperAffiliateAPI.apiRequest('/videos/subscription/history/');
+          const transactions = response.transactions || [];
+          
+          if (transactions.length === 0) {
+            historyContent.innerHTML = `
+              <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <i class="fas fa-receipt" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+                <p>No payment history found.</p>
+              </div>
+            `;
+          } else {
+            historyContent.innerHTML = `
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                      <th style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">Date</th>
+                      <th style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">Amount</th>
+                      <th style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">Status</th>
+                      <th style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${transactions.map(tx => {
+                      const date = new Date(tx.created_at);
+                      const amount = parseFloat(tx.amount);
+                      const amountNGN = Math.round(amount * 1000); // Convert USD to NGN
+                      const statusColor = tx.status === 'completed' ? '#00f2ea' : 
+                                        tx.status === 'pending' ? '#ffb703' : 
+                                        tx.status === 'failed' ? '#ff0050' : '#ccc';
+                      return `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                          <td style="padding: 1rem;">${date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                          <td style="padding: 1rem; font-weight: 600;">₦${formatNumber(amountNGN)}</td>
+                          <td style="padding: 1rem;">
+                            <span style="padding: 0.25rem 0.75rem; border-radius: 1rem; background: rgba(255,255,255,0.1); color: ${statusColor}; font-size: 0.85rem; text-transform: capitalize;">
+                              ${tx.status}
+                            </span>
+                          </td>
+                          <td style="padding: 1rem; font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);">
+                            ${tx.payment_reference || 'N/A'}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error('Error loading subscription history:', error);
+          historyContent.innerHTML = `
+            <div class="error-message">
+              Failed to load payment history. ${error.message || ''}
+            </div>
+          `;
+        }
+      } else {
+        // Hide section
+        historySection.style.display = 'none';
+      }
+    }
+
+    // ==================== AFFILIATE LINKS MANAGEMENT ====================
+    
+    // Load affiliate links
+    async function loadAffiliateLinks() {
+      const content = document.getElementById('affiliateLinksContent');
+      content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading affiliate links...</div>';
+      
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/affiliate-links/');
+        const links = response.links || [];
+        
+        if (links.length === 0) {
+          content.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+              <i class="fas fa-link" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+              <p style="margin-bottom: 1rem;">No affiliate links added yet.</p>
+              <button onclick="showAddAffiliateLinkForm()"
+                      style="padding: 0.75rem 1.5rem; background: var(--primary-gradient); border: none; border-radius: 0.5rem; color: white; font-weight: 600; cursor: pointer;">
+                <i class="fas fa-plus"></i> Add Your First Affiliate Link
+              </button>
+            </div>
+          `;
+        } else {
+          content.innerHTML = `
+            <div style="display: grid; gap: 1rem;">
+              ${links.map(link => {
+                const platformNames = {
+                  'jumia': 'Jumia Nigeria',
+                  'amazon': 'Amazon',
+                  'konga': 'Konga',
+                  'temu': 'Temu',
+                  'aliexpress': 'AliExpress',
+                  'shopify': 'Shopify Store',
+                  'custom': 'Custom URL'
+                };
+                const platformIcons = {
+                  'jumia': 'fa-shopping-bag',
+                  'amazon': 'fa-amazon',
+                  'konga': 'fa-store',
+                  'temu': 'fa-box',
+                  'aliexpress': 'fa-globe',
+                  'shopify': 'fa-shopping-cart',
+                  'custom': 'fa-link'
+                };
+                return `
+                  <div style="background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--border-radius); padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                      <div style="flex: 1; min-width: 200px;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                          <i class="fas ${platformIcons[link.platform] || 'fa-link'}" style="color: var(--accent-color); font-size: 1.5rem;"></i>
+                          <h3 style="font-size: 1.2rem; font-weight: 600;">${platformNames[link.platform] || link.platform}</h3>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Affiliate URL:</div>
+                          <div style="font-family: monospace; font-size: 0.9rem; color: var(--text-primary); word-break: break-all;">
+                            ${link.affiliate_url}
+                          </div>
+                        </div>
+                        ${link.affiliate_id ? `
+                          <div style="margin-bottom: 0.5rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Affiliate ID:</div>
+                            <div style="font-family: monospace; font-size: 0.9rem; color: var(--accent-color);">
+                              ${link.affiliate_id}
+                            </div>
+                          </div>
+                        ` : ''}
+                        ${link.notes ? `
+                          <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">${link.notes}</div>
+                          </div>
+                        ` : ''}
+                      </div>
+                      <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="editAffiliateLink('${link.id}', '${link.platform}', '${link.affiliate_url.replace(/'/g, "\\'")}', '${(link.affiliate_id || '').replace(/'/g, "\\'")}', '${(link.notes || '').replace(/'/g, "\\'")}')"
+                                style="padding: 0.5rem 1rem; background: rgba(0, 242, 234, 0.2); border: 1px solid rgba(0, 242, 234, 0.4); border-radius: 0.5rem; color: var(--accent-color); font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                          <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button onclick="deleteAffiliateLink('${link.id}')"
+                                style="padding: 0.5rem 1rem; background: rgba(255, 0, 80, 0.2); border: 1px solid rgba(255, 0, 80, 0.4); border-radius: 0.5rem; color: #ff6b6b; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                          <i class="fas fa-trash"></i> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading affiliate links:', error);
+        content.innerHTML = `
+          <div class="error-message">
+            Failed to load affiliate links. ${error.message || ''}
+          </div>
+        `;
+      }
+    }
+
+    // Show add affiliate link form
+    function showAddAffiliateLinkForm() {
+      document.getElementById('affiliateLinkModalTitle').textContent = 'Add Affiliate Link';
+      document.getElementById('affiliateLinkId').value = '';
+      document.getElementById('affiliateLinkForm').reset();
+      document.getElementById('affiliateLinkModal').style.display = 'flex';
+    }
+
+    // Edit affiliate link
+    function editAffiliateLink(id, platform, url, affiliateId, notes) {
+      document.getElementById('affiliateLinkModalTitle').textContent = 'Edit Affiliate Link';
+      document.getElementById('affiliateLinkId').value = id;
+      document.getElementById('affiliateLinkPlatform').value = platform;
+      document.getElementById('affiliateLinkUrl').value = url;
+      document.getElementById('affiliateLinkIdField').value = affiliateId || '';
+      document.getElementById('affiliateLinkNotes').value = notes || '';
+      document.getElementById('affiliateLinkModal').style.display = 'flex';
+    }
+
+    // Close modal
+    function closeAffiliateLinkModal() {
+      document.getElementById('affiliateLinkModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('affiliateLinkModal');
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            closeAffiliateLinkModal();
+          }
+        });
+      }
+    });
+
+    // Save affiliate link
+    async function saveAffiliateLink(event) {
+      event.preventDefault();
+      
+      const linkId = document.getElementById('affiliateLinkId').value;
+      const platform = document.getElementById('affiliateLinkPlatform').value;
+      const url = document.getElementById('affiliateLinkUrl').value.trim();
+      const affiliateId = document.getElementById('affiliateLinkIdField').value.trim();
+      const notes = document.getElementById('affiliateLinkNotes').value.trim();
+      
+      if (!platform || !url) {
+        showAlert('Platform and Affiliate URL are required', 'error');
+        return;
+      }
+      
+      try {
+        const payload = {
+          platform: platform,
+          affiliate_url: url,
+          affiliate_id: affiliateId,
+          notes: notes
+        };
+        
+        if (linkId) {
+          // Update existing
+          payload.id = linkId;
+        }
+        
+        await SuperAffiliateAPI.apiRequest('/videos/affiliate-links/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        
+        showAlert(linkId ? 'Affiliate link updated successfully!' : 'Affiliate link added successfully!', 'success');
+        closeAffiliateLinkModal();
+        loadAffiliateLinks();
+      } catch (error) {
+        console.error('Error saving affiliate link:', error);
+        showAlert(error.message || 'Failed to save affiliate link. Please try again.', 'error');
+      }
+    }
+
+    // Delete affiliate link
+    async function deleteAffiliateLink(linkId) {
+      if (!confirm('Are you sure you want to delete this affiliate link?')) {
+        return;
+      }
+      
+      try {
+        await SuperAffiliateAPI.apiRequest('/videos/affiliate-links/', {
+          method: 'POST',
+          body: JSON.stringify({
+            _method: 'DELETE',
+            id: linkId
+          })
+        });
+        
+        showAlert('Affiliate link deleted successfully!', 'success');
+        loadAffiliateLinks();
+      } catch (error) {
+        console.error('Error deleting affiliate link:', error);
+        showAlert(error.message || 'Failed to delete affiliate link. Please try again.', 'error');
       }
     }
     

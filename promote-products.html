@@ -774,16 +774,24 @@
       
       grid.innerHTML = videos.map(video => {
         const videoId = video.id || video.video_id;
+        const videoIdStr = String(videoId || '');
+        const isNumericId = /^\d+$/.test(videoIdStr); // Only numeric IDs are taggable (shared/imported videos have UUIDs)
         const thumbnail = video.thumbnail || video.thumbnail_url || '';
         const title = video.title || video.caption || 'Untitled Video';
         const hasTag = video.product_tags && video.product_tags.length > 0;
         const thumbnailUrl = thumbnail.startsWith('http') ? thumbnail : (thumbnail ? API_BASE_URL + (thumbnail.startsWith('/') ? thumbnail : '/' + thumbnail) : '');
 
+        // Escape videoId for onclick handler
+        const escapedVideoId = videoIdStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
         return `
-          <div class="product-item" style="cursor: pointer; position: relative;" onclick="selectVideoForTagging('${videoId}', '${productId}')">
+          <div class="product-item" style="cursor: ${isNumericId ? 'pointer' : 'not-allowed'}; position: relative; opacity: ${isNumericId ? '1' : '0.6'};" 
+               onclick="${isNumericId ? `selectVideoForTagging('${escapedVideoId}', '${productId}')` : `showAlert('Shared/imported videos (UUID format) cannot be tagged in the webapp. Please use the Flutter app to tag these videos.', 'error')`}">
             <div class="product-item-image" style="position: relative;">
               ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-video\\'></i>'">` : '<i class="fas fa-video"></i>'}
               ${hasTag ? '<div style="position: absolute; top: 4px; left: 4px; background: rgba(0,242,234,0.9); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;"><i class="fas fa-tag"></i></div>' : ''}
+              ${!isNumericId ? '<div style="position: absolute; top: 4px; right: 4px; background: rgba(255,0,0,0.8); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;" title="Shared/imported videos cannot be tagged in webapp"><i class="fas fa-lock"></i></div>' : ''}
             </div>
             <div class="product-item-name" style="font-size: 0.85rem; margin-top: 0.5rem;">${title.length > 30 ? title.substring(0, 30) + '...' : title}</div>
           </div>
@@ -808,6 +816,13 @@
     }
 
     async function selectVideoForTagging(videoId, productId) {
+      // Prevent tagging shared/imported videos (UUID format) in webapp
+      const videoIdStr = String(videoId || '');
+      if (!/^\d+$/.test(videoIdStr)) {
+        showAlert('Shared/imported videos (UUID format) cannot be tagged in the webapp. Please use the Flutter app to tag these videos.', 'error');
+        return;
+      }
+
       // Check if video already has a tag (single product per video)
       try {
         const existingTags = await SuperAffiliateAPI.getProductTagsForVideo(videoId);

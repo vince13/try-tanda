@@ -1131,6 +1131,10 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
             <i class="fas fa-user"></i>
             <span>Profile & Settings</span>
           </a>
+          <a href="subscription.html" class="user-menu-item">
+            <i class="fas fa-crown"></i>
+            <span>Subscription</span>
+          </a>
           <a href="wallet.html" class="user-menu-item">
             <i class="fas fa-wallet"></i>
             <span>Wallet & Transactions</span>

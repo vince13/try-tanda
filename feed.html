@@ -1980,8 +1980,27 @@
         const last = cards[cards.length - 1];
         if (last && hasNext) setupLoadMoreObserver(last);
 
-        page += 1;
-        showStatus(hasNext ? '' : (userFeedMode ? 'No more videos from this creator.' : 'You are all caught up.'));
+        // If user feed mode is active but no more user videos, transition to regular feed
+        if (userFeedMode && !hasNext) {
+          // User videos exhausted, transition to regular feed
+          console.log('User videos exhausted, transitioning to regular feed...');
+          userFeedMode = false;
+          userFeedUsername = null;
+          firstVideoIdInUserFeed = null;
+          page = 1;  // Reset to first page for regular feed
+          hasNext = true;  // Reset hasNext for regular feed
+          // Continue loading regular feed after a short delay
+          setTimeout(() => {
+            loadNextPage().catch(err => {
+              console.error('Error loading regular feed after user videos:', err);
+              showStatus('Failed to load more videos.');
+            });
+          }, 500);  // Small delay to ensure smooth transition
+        } else {
+          page += 1;
+        }
+        
+        showStatus(hasNext ? '' : 'You are all caught up.');
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Failed to load feed.';
         showStatus(msg);
@@ -3116,6 +3135,12 @@
       });
 
       // Monitor video playback time
+      // Track which tags have become visible (sticky behavior - once visible, stay visible)
+      // Store on video element to persist across function calls
+      if (!videoEl._visibleTags) {
+        videoEl._visibleTags = new Set();
+      }
+      const visibleTags = videoEl._visibleTags;
       let timeUpdateHandler = null;
       const updateOverlays = () => {
         // Don't hide overlays when paused - keep them visible
@@ -3182,74 +3207,20 @@
           if (!overlay) return;
 
           const startTime = parseFloat(tag.timestamp) || 0;
-          const tagDuration = parseFloat(tag.duration) || 0;
-          const endTimestamp = tag.end_timestamp !== null && tag.end_timestamp !== undefined ? parseFloat(tag.end_timestamp) : null;
+          const tagId = String(tag.id || index);
           
-          // Debug logging for tags that should span full video (only log once per tag)
-          if (index === 0 && currentTime < 1) {
-            console.log('Product tag visibility check:', {
-              tagId: tag.id,
-              startTime,
-              tagDuration,
-              endTimestamp,
-              videoDuration,
-              currentTime
-            });
+          // STICKY BEHAVIOR: Once a tag becomes visible, it stays visible permanently
+          // This prevents flickering and matches shopping video UX expectations
+          const isAlreadyVisible = visibleTags.has(tagId);
+          const shouldBecomeVisible = currentTime >= startTime;
+          
+          // If tag is already visible, keep it visible (sticky)
+          // If tag should become visible for the first time, mark it and show it
+          const isVisible = isAlreadyVisible || shouldBecomeVisible;
+          
+          if (shouldBecomeVisible && !isAlreadyVisible) {
+            visibleTags.add(tagId);
           }
-          
-          // Calculate the tag's end time
-          let endTime;
-          
-          // Priority 1: Use end_timestamp if available (most reliable)
-          if (endTimestamp !== null && endTimestamp !== undefined && !isNaN(endTimestamp)) {
-            const endTimeValue = endTimestamp;
-            // If end_timestamp is close to or exceeds video duration (within 1 second),
-            // treat it as "show for the rest of the video" (like Flutter app)
-            if (endTimeValue >= videoDuration - 1.0 || endTimeValue >= videoDuration) {
-              endTime = videoDuration;
-            } else {
-              endTime = endTimeValue;
-            }
-          } 
-          // Priority 2: If duration is 0 or very small (< 0.5s), show for the rest of the video
-          else if (tagDuration < 0.5) {
-            endTime = videoDuration;
-          } 
-          // Priority 3: Calculate end time based on start + duration
-          else {
-            const calculatedEndTime = startTime + tagDuration;
-            
-            // Detect tags that should span the entire video:
-            // - Starts at the beginning (startTime === 0 or very close)
-            // - Duration is significantly less than video duration (likely a default/short duration)
-            // - This matches Flutter behavior where tags from beginning to end stay visible
-            // Example: startTime=0, duration=2, videoDuration=8.8 → should show for full video
-            const isLikelyFullVideoTag = (startTime === 0 || startTime < 0.5) && 
-                                         tagDuration < videoDuration * 0.5; // Duration is less than 50% of video
-            
-            // If the calculated end time is close to or exceeds the video duration (within 1 second),
-            // OR if duration is very close to video duration (within 1 second), treat as full video
-            // OR if it's likely a full video tag (starts at 0, short duration), treat as full video
-            if (calculatedEndTime >= videoDuration - 1.0 || 
-                calculatedEndTime >= videoDuration ||
-                tagDuration >= videoDuration - 1.0 ||
-                isLikelyFullVideoTag) {
-              endTime = videoDuration;
-            } else {
-              endTime = calculatedEndTime;
-            }
-          }
-          
-          // Ensure endTime is valid
-          if (!isFinite(endTime) || endTime < startTime) {
-            endTime = videoDuration; // Fallback to full video
-          }
-          
-          // For tags that should span the entire video, always show if we're past the start time
-          const isFullVideoSpan = endTime >= videoDuration - 0.5; // Within 0.5s of video end
-          const isVisible = isFullVideoSpan 
-            ? (currentTime >= startTime) // For full video tags, just check if we're past start
-            : (currentTime >= startTime && currentTime <= endTime); // For timed tags, check both bounds
 
           if (isVisible) {
             overlay.classList.remove('hidden');
@@ -3278,6 +3249,7 @@
             overlay.style.transform = 'none';
             overlay.style.marginRight = '0';
           } else {
+            // Only hide if not already visible (shouldn't happen with sticky behavior, but safety check)
             overlay.classList.add('hidden');
           }
         });

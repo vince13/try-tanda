@@ -1147,7 +1147,22 @@
     const params = new URLSearchParams(window.location.search);
     const initialVideoId = params.get('video_id');
     if (initialVideoId) {
-      document.getElementById('videoId').value = initialVideoId;
+      // Validate that video_id is numeric (not UUID/shared video)
+      if (!/^\d+$/.test(initialVideoId)) {
+        // Show error message and disable the form
+        setTimeout(() => {
+          showToast('Shared/imported videos (UUID format) cannot be tagged in the webapp. Please use the Flutter app to tag these videos.', 'error');
+          const videoIdInput = document.getElementById('videoId');
+          if (videoIdInput) {
+            videoIdInput.value = '';
+            videoIdInput.disabled = true;
+          }
+          const createBtn = document.getElementById('createBtn');
+          if (createBtn) createBtn.disabled = true;
+        }, 100);
+      } else {
+        document.getElementById('videoId').value = initialVideoId;
+      }
     }
 
     // Product selector state
@@ -1161,41 +1176,41 @@
       try {
         // Check if user is an approved seller
         try {
-          const sellerProfile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
+        const sellerProfile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
           if (sellerProfile && !sellerProfile.error && sellerProfile.status === 'approved') {
-            userRole = 'seller';
+          userRole = 'seller';
             isApprovedRole = true;
             console.log('✅ User is an approved seller');
-            return;
+          return;
           } else if (sellerProfile && sellerProfile.status) {
             console.log('ℹ️ User is a seller but status is:', sellerProfile.status);
-          }
-        } catch (e) {
+        }
+      } catch (e) {
           // Not a seller or endpoint doesn't exist (404 is expected for non-sellers)
           if (e.message && !e.message.includes('404') && !e.message.includes('Not Found')) {
             console.log('Error checking seller status:', e);
           }
-        }
+      }
 
         // Check if user is an approved affiliate
-        try {
-          const affiliateProfile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
+      try {
+        const affiliateProfile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
           if (affiliateProfile && !affiliateProfile.error && affiliateProfile.status === 'approved') {
-            userRole = 'affiliate';
+          userRole = 'affiliate';
             isApprovedRole = true;
             console.log('✅ User is an approved affiliate');
-            return;
+          return;
           } else if (affiliateProfile && affiliateProfile.status) {
             console.log('ℹ️ User is an affiliate but status is:', affiliateProfile.status);
-          }
-        } catch (e) {
+        }
+      } catch (e) {
           // Not an affiliate or endpoint doesn't exist (404 is expected for non-affiliates)
           if (e.message && !e.message.includes('404') && !e.message.includes('Not Found')) {
             console.log('Error checking affiliate status:', e);
           }
-        }
+      }
 
-        userRole = null;
+      userRole = null;
         isApprovedRole = false;
         console.log('❌ User is not an approved seller or affiliate');
       } catch (error) {
@@ -3198,7 +3213,7 @@
             const currentHTML = statusDiv.innerHTML;
             SecurityUtils.setInnerHTML(statusDiv, currentHTML + `<div style="margin-top: 0.5rem;">${urls}</div>`, true);
           } else {
-            statusDiv.innerHTML += `<div style="margin-top: 0.5rem;">${urls}</div>`;
+          statusDiv.innerHTML += `<div style="margin-top: 0.5rem;">${urls}</div>`;
           }
         }
 

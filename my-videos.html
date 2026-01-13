@@ -426,7 +426,7 @@
 
           return `
             <div class="card">
-              <div class="thumb" id="${thumbId}" data-video-id="${videoId}" data-video-url="${escapedVideoUrl}">
+              <div class="thumb" id="${thumbId}" data-video-id="${videoId}" data-actual-video-id="${idStr}" data-video-url="${escapedVideoUrl}">
                 ${thumbUrl ? `<img src="${escapedThumbUrl}" alt="Thumbnail" id="img-${thumbId}">` : `<div>No Thumbnail</div>`}
                 ${videoUrl ? `<video id="${videoId}" muted loop playsinline preload="metadata">
                   <source src="${escapedVideoUrl}" type="video/mp4">
@@ -502,38 +502,17 @@
           let isPlaying = false;
           let hoverTimeout = null;
 
-          // Click to play/pause
+          // Click to open in feed (like user-profile.html behavior)
           thumbEl.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            if (isPlaying) {
-              videoEl.pause();
-              thumbEl.classList.remove('playing');
-              isPlaying = false;
+            // Navigate to feed with this video ID - feed will show user's videos first, then others
+            const actualVideoId = thumbEl.dataset.actualVideoId;
+            if (actualVideoId) {
+              window.location.href = `feed.html?video=${encodeURIComponent(actualVideoId)}`;
             } else {
-              // Ensure video source is set correctly
-              if (!videoEl.src || videoEl.src !== videoUrl) {
-                videoEl.src = videoUrl;
-              }
-              
-              const playPromise = videoEl.play();
-              if (playPromise !== undefined) {
-                playPromise
-                  .then(() => {
-                    thumbEl.classList.add('playing');
-                    isPlaying = true;
-                  })
-                  .catch(err => {
-                    console.error('Error playing video:', err, 'URL:', videoUrl);
-                    // Show error to user
-                    const imgEl = thumbEl.querySelector('img');
-                    if (imgEl) {
-                      imgEl.style.opacity = '0.5';
-                      imgEl.title = 'Video playback failed. Click to retry.';
-                    }
-                  });
-              }
+              console.error('Video ID not found');
             }
           });
 
