@@ -116,6 +116,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
+      flex-wrap: nowrap;
+      overflow: visible;
     }
 
     /* Style for auth nav buttons */
@@ -124,6 +126,11 @@
       align-items: center;
       gap: 0.5rem;
       flex-wrap: wrap;
+    }
+
+    /* Horizontal scroll container for nav */
+    .tanda-nav-container {
+      flex-shrink: 0;
     }
     
     .nav-link-btn {
@@ -413,6 +420,42 @@
       .contact-btn {
         width: 100%;
         justify-content: center;
+      }
+
+      /* Mobile navigation improvements */
+      .nav {
+        overflow-x: visible;
+        overflow-y: visible;
+        min-width: 0;
+      }
+
+      .logo {
+        margin-right: 1rem;
+        flex-shrink: 0;
+      }
+
+      .tanda-nav-container {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .tanda-nav-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .auth-nav-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        min-width: max-content;
+        width: max-content;
       }
     }
   </style>
