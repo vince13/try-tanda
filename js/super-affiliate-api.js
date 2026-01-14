@@ -662,6 +662,18 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Search users by username, name, or bio
+   * @param {string} query - Search query
+   * @returns {Promise<Object>} - Search results with users array
+   */
+  static async searchUsers(query) {
+    if (!query || !query.trim()) {
+      return { results: [], count: 0 };
+    }
+    return await this.apiRequest(`/users/search/?query=${encodeURIComponent(query.trim())}`);
+  }
+
+  /**
    * Blog API Methods
    */
   
