@@ -502,6 +502,28 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Send signup verification code to email BEFORE registration (web app only).
+   * Backend endpoint: POST /api/users/send-signup-verification/
+   */
+  static async sendSignupVerification(email) {
+    return await this.apiRequest('/users/send-signup-verification/', {
+      method: 'POST',
+      body: { email },
+    });
+  }
+
+  /**
+   * Verify signup email code BEFORE registration (web app only).
+   * Backend endpoint: POST /api/users/verify-signup-email/
+   */
+  static async verifySignupEmail(email, code) {
+    return await this.apiRequest('/users/verify-signup-email/', {
+      method: 'POST',
+      body: { email, code },
+    });
+  }
+
+  /**
    * Logout user
    */
   static logout() {

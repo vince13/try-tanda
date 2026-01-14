@@ -1078,6 +1078,28 @@
     </div>
   </div>
 
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="product-modal">
+    <div class="product-modal-content" style="max-width: 500px;">
+      <div class="product-modal-header">
+        <h2 id="confirmModalTitle">Confirm Action</h2>
+        <button class="product-modal-close" onclick="closeConfirmModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div id="confirmModalBody" style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--text-primary);">
+      </div>
+      <div class="product-modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button class="btn secondary" id="confirmModalCancel">
+          Cancel
+        </button>
+        <button class="btn" id="confirmModalConfirm" style="background: var(--primary-gradient);">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Marketplace Selector Modal -->
   <div id="marketplaceModal" class="product-modal">
     <div class="product-modal-content" style="max-height: 90vh; overflow-y: auto;">
@@ -1219,6 +1241,150 @@
         isApprovedRole = false;
       }
     }
+
+    // Confirmation Modal Functions
+    let confirmModalResolve = null;
+    let confirmModalBackdropHandler = null;
+    let confirmModalConfirmHandler = null;
+    let confirmModalCancelHandler = null;
+    
+    function showTandaConfirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel', isDanger = false) {
+      return new Promise((resolve) => {
+        // Clear any existing resolve
+        if (confirmModalResolve) {
+          confirmModalResolve(false);
+        }
+        confirmModalResolve = resolve;
+        
+        const modal = document.getElementById('confirmModal');
+        const titleEl = document.getElementById('confirmModalTitle');
+        const bodyEl = document.getElementById('confirmModalBody');
+        const confirmBtn = document.getElementById('confirmModalConfirm');
+        const cancelBtn = document.getElementById('confirmModalCancel');
+        
+        // Remove old event listeners if they exist
+        if (confirmModalConfirmHandler) {
+          confirmBtn.removeEventListener('click', confirmModalConfirmHandler);
+        }
+        if (confirmModalCancelHandler) {
+          cancelBtn.removeEventListener('click', confirmModalCancelHandler);
+        }
+        if (confirmModalBackdropHandler) {
+          modal.removeEventListener('click', confirmModalBackdropHandler);
+        }
+        
+        // Update content
+        titleEl.textContent = title;
+        bodyEl.innerHTML = message.replace(/\n/g, '<br>');
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+        
+        if (isDanger) {
+          confirmBtn.style.background = 'linear-gradient(135deg, rgba(255, 0, 80, 0.8), rgba(255, 0, 80, 0.6))';
+        } else {
+          confirmBtn.style.background = 'var(--primary-gradient)';
+        }
+        
+        // Create new handlers
+        confirmModalConfirmHandler = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Get the resolve function and clear it immediately
+          const currentResolve = confirmModalResolve;
+          if (!currentResolve) {
+            return;
+          }
+          
+          // IMPORTANT: Clear resolve BEFORE doing anything else
+          confirmModalResolve = null;
+          
+          // Clean up event listeners
+          try {
+            if (confirmModalBackdropHandler) {
+              modal.removeEventListener('click', confirmModalBackdropHandler);
+            }
+            if (confirmModalConfirmHandler) {
+              confirmBtn.removeEventListener('click', confirmModalConfirmHandler);
+            }
+            if (confirmModalCancelHandler) {
+              cancelBtn.removeEventListener('click', confirmModalCancelHandler);
+            }
+          } catch (err) {
+            // Silently handle cleanup errors
+          }
+          
+          // Close modal
+          modal.classList.remove('active');
+          
+          // Resolve with true
+          currentResolve(true);
+        };
+        
+        confirmModalCancelHandler = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeConfirmModal();
+        };
+        
+        confirmModalBackdropHandler = (e) => {
+          if (e.target === modal) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeConfirmModal();
+          }
+        };
+        
+        // Add event listeners
+        confirmBtn.addEventListener('click', confirmModalConfirmHandler);
+        cancelBtn.addEventListener('click', confirmModalCancelHandler);
+        modal.addEventListener('click', confirmModalBackdropHandler);
+        
+        // Show modal
+        modal.classList.add('active');
+      });
+    }
+    
+    function closeConfirmModal() {
+      const modal = document.getElementById('confirmModal');
+      modal.classList.remove('active');
+      
+      // Remove event listeners
+      if (confirmModalBackdropHandler) {
+        modal.removeEventListener('click', confirmModalBackdropHandler);
+        confirmModalBackdropHandler = null;
+      }
+      if (confirmModalConfirmHandler) {
+        const confirmBtn = document.getElementById('confirmModalConfirm');
+        if (confirmBtn) {
+          confirmBtn.removeEventListener('click', confirmModalConfirmHandler);
+        }
+        confirmModalConfirmHandler = null;
+      }
+      if (confirmModalCancelHandler) {
+        const cancelBtn = document.getElementById('confirmModalCancel');
+        if (cancelBtn) {
+          cancelBtn.removeEventListener('click', confirmModalCancelHandler);
+        }
+        confirmModalCancelHandler = null;
+      }
+      
+      // Resolve with false if still pending (for cancel/backdrop close)
+      if (confirmModalResolve) {
+        confirmModalResolve(false);
+        confirmModalResolve = null;
+      }
+    }
+    
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('confirmModal');
+        if (modal && modal.classList.contains('active')) {
+          closeConfirmModal();
+        }
+      }
+    });
 
     // Initialize page - check role first, then load quota if approved
     async function initializePage() {
@@ -2256,9 +2422,23 @@
       // First check if user has required role
       if (!isApprovedRole) {
         showToast('You must be an approved seller or affiliate to tag products. Please complete role onboarding first.', 'error');
-        setTimeout(() => {
-          if (confirm('Would you like to become a seller or affiliate now?')) {
-            const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+        setTimeout(async () => {
+          const wantsRole = await showTandaConfirm(
+            'Role Required',
+            'Would you like to become a seller or affiliate now?',
+            'Yes',
+            'No',
+            false
+          );
+          
+          if (wantsRole) {
+            const choice = await showTandaConfirm(
+              'Choose Role',
+              'Click Confirm for Seller, Cancel for Affiliate',
+              'Seller',
+              'Affiliate',
+              false
+            );
             if (choice) {
               window.location.href = 'become-seller.html';
             } else {
@@ -2346,9 +2526,12 @@
         if (existingTags && existingTags.length > 0) {
           const existingTag = existingTags[0];
           const existingProductName = existingTag.product_name || existingTag.name || 'a product';
-          const shouldProceed = confirm(
-            `This video already has a product tag for "${existingProductName}".\n\n` +
-            `Only one product can be tagged per video. Would you like to delete the existing tag and create a new one?`
+          const shouldProceed = await showTandaConfirm(
+            'Replace Existing Tag?',
+            `This video already has a product tag for "${existingProductName}".<br><br>Only one product can be tagged per video. Would you like to delete the existing tag and create a new one?`,
+            'Replace Tag',
+            'Cancel',
+            false
           );
           
           if (!shouldProceed) {
@@ -2800,9 +2983,23 @@
       // Check if user has required role
       if (!isApprovedRole) {
         showToast('You must be an approved seller or affiliate to publish videos. Please complete role onboarding first.', 'error');
-        setTimeout(() => {
-          if (confirm('Would you like to become a seller or affiliate now?')) {
-            const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+        setTimeout(async () => {
+          const wantsRole = await showTandaConfirm(
+            'Role Required',
+            'Would you like to become a seller or affiliate now?',
+            'Yes',
+            'No',
+            false
+          );
+          
+          if (wantsRole) {
+            const choice = await showTandaConfirm(
+              'Choose Role',
+              'Click Confirm for Seller, Cancel for Affiliate',
+              'Seller',
+              'Affiliate',
+              false
+            );
             if (choice) {
               window.location.href = 'become-seller.html';
             } else {
@@ -2867,7 +3064,15 @@
     }
 
     async function deleteTag(videoId, tagId, tagName) {
-      if (!confirm(`Are you sure you want to delete the tag "${tagName}"?\n\nThis action cannot be undone.`)) {
+      const confirmed = await showTandaConfirm(
+        'Delete Tag?',
+        `Are you sure you want to delete the tag "${tagName}"?<br><br>This action cannot be undone.`,
+        'Delete',
+        'Cancel',
+        true
+      );
+      
+      if (!confirmed) {
         return;
       }
 
@@ -3120,9 +3325,23 @@
       // Check if user has required role
       if (!isApprovedRole) {
         showToast('You must be an approved seller or affiliate to publish videos. Please complete role onboarding first.', 'error');
-        setTimeout(() => {
-          if (confirm('Would you like to become a seller or affiliate now?')) {
-            const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+        setTimeout(async () => {
+          const wantsRole = await showTandaConfirm(
+            'Role Required',
+            'Would you like to become a seller or affiliate now?',
+            'Yes',
+            'No',
+            false
+          );
+          
+          if (wantsRole) {
+            const choice = await showTandaConfirm(
+              'Choose Role',
+              'Click Confirm for Seller, Cancel for Affiliate',
+              'Seller',
+              'Affiliate',
+              false
+            );
             if (choice) {
               window.location.href = 'become-seller.html';
             } else {

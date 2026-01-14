@@ -72,17 +72,7 @@
       font-size: 16px !important;
     }
 
-    input[type="number"] {
-      inputmode: "numeric";
-    }
-
-    input[type="tel"] {
-      inputmode: "tel";
-    }
-
-    input[type="email"] {
-      inputmode: "email";
-    }
+    /* NOTE: inputmode must be set as an HTML attribute (not CSS). */
 
     html {
       scroll-behavior: smooth;
@@ -432,6 +422,92 @@
       cursor: not-allowed;
     }
 
+    /* Email verification UI (signup) */
+    .email-verify-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .email-verify-row input {
+      flex: 1 1 0;
+      min-width: 0; /* prevents input collapsing in flex rows */
+    }
+
+    .email-verify-row button {
+      flex: 0 0 auto;
+    }
+
+    .btn-inline {
+      width: auto;
+      margin-top: 0;
+      padding: 0.85rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn-inline.btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-primary);
+    }
+
+    .btn-inline.btn-ghost:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.10);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .verify-status {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .verify-status .verified {
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    .verification-panel {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: none;
+    }
+
+    .verification-panel.show {
+      display: block;
+    }
+
+    .helper-text {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Mobile: stack input + button for clean sizing */
+    @media (max-width: 520px) {
+      .email-verify-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .btn-inline {
+        width: 100%;
+        padding: 0.9rem 1rem;
+      }
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -658,7 +734,39 @@
             </div>
             <div class="form-group">
               <label for="signup-email">Email</label>
-              <input type="email" id="signup-email" name="email" placeholder="you@email.com" required disabled>
+              <div class="email-verify-row">
+                <input type="email" id="signup-email" name="email" placeholder="you@email.com" required disabled>
+                <button type="button" class="btn btn-inline btn-ghost" id="signup-email-verify-btn" disabled onclick="startSignupEmailVerification()">
+                  Verify
+                </button>
+              </div>
+              <div id="signup-email-verify-status" class="verify-status" style="display:none;">
+                <i class="fas fa-check-circle"></i>
+                <span class="verified">Email verified</span>
+              </div>
+              <div id="signup-email-verification-panel" class="verification-panel">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="signup-email-code">Verification Code</label>
+                  <div class="email-verify-row">
+                    <input
+                      type="text"
+                      id="signup-email-code"
+                      name="signup_email_code"
+                      placeholder="Enter 6-digit code"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      maxlength="6"
+                      disabled
+                    >
+                    <button type="button" class="btn btn-inline" id="signup-email-confirm-btn" disabled onclick="confirmSignupEmailCode()">
+                      Confirm
+                    </button>
+                  </div>
+                  <div class="helper-text" id="signup-email-helper-text">
+                    We’ll send a 6-digit code to your email. Enter it here to verify and continue.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -740,6 +848,15 @@
     const invitationToken = urlParams.get('token');
 
     let invitationData = null;
+    let signupEmailVerification = {
+      sent: false,
+      verified: false,
+      email: '',
+    };
+
+    function normalizeEmail(value) {
+      return (value || '').trim().toLowerCase();
+    }
 
     // Validate invitation on page load
     async function init() {
@@ -799,11 +916,42 @@
         signupEmailInput.style.cursor = 'not-allowed';
       }
 
+      // Reset verification state whenever a new invitation is loaded
+      resetSignupEmailVerification(invitedEmail);
+
       // Initialize form states
       updateActionButtons();
 
       // Check if user is already authenticated
       checkAuthenticationStatus();
+    }
+
+    function resetSignupEmailVerification(invitedEmail) {
+      signupEmailVerification = {
+        sent: false,
+        verified: false,
+        email: normalizeEmail(invitedEmail),
+      };
+
+      const verifyBtn = document.getElementById('signup-email-verify-btn');
+      const panel = document.getElementById('signup-email-verification-panel');
+      const codeInput = document.getElementById('signup-email-code');
+      const confirmBtn = document.getElementById('signup-email-confirm-btn');
+      const status = document.getElementById('signup-email-verify-status');
+      const helper = document.getElementById('signup-email-helper-text');
+
+      if (verifyBtn) {
+        verifyBtn.textContent = 'Verify';
+      }
+      if (panel) panel.classList.remove('show');
+      if (status) status.style.display = 'none';
+      if (helper) helper.textContent = 'We’ll send a 6-digit code to your email. Enter it here to verify and continue.';
+      if (codeInput) {
+        codeInput.value = '';
+      }
+      if (confirmBtn) {
+        confirmBtn.innerHTML = 'Confirm';
+      }
     }
 
     function showError(message) {
@@ -864,6 +1012,34 @@
       signupInputs.forEach(input => {
         input.disabled = !enabled;
       });
+
+      // Keep invited email read-only (even when enabled)
+      const signupEmailInput = document.getElementById('signup-email');
+      if (signupEmailInput && enabled) {
+        signupEmailInput.setAttribute('readonly', 'readonly');
+      }
+
+      // Email verification controls (signup)
+      const verifyBtn = document.getElementById('signup-email-verify-btn');
+      const codeInput = document.getElementById('signup-email-code');
+      const confirmBtn = document.getElementById('signup-email-confirm-btn');
+
+      if (verifyBtn) {
+        verifyBtn.disabled = !enabled || signupEmailVerification.verified;
+        verifyBtn.textContent = signupEmailVerification.verified ? 'Verified' : (signupEmailVerification.sent ? 'Resend' : 'Verify');
+      }
+      if (codeInput) {
+        codeInput.disabled = !enabled || !signupEmailVerification.sent || signupEmailVerification.verified;
+      }
+      if (confirmBtn) {
+        confirmBtn.disabled = !enabled || !signupEmailVerification.sent || signupEmailVerification.verified;
+      }
+
+      // Gate signup submit until email is verified (prevents inactive account + redirect to login)
+      const signupSubmitBtn = document.getElementById('embedded-signup-btn');
+      if (signupSubmitBtn) {
+        signupSubmitBtn.disabled = !enabled || !signupEmailVerification.verified;
+      }
     }
 
     function switchAuthTab(tab) {
@@ -979,6 +1155,109 @@
       }
     }
 
+    // Email verification (signup) - verify BEFORE registration to avoid post-signup verification + login redirect
+    async function startSignupEmailVerification() {
+      const errorDiv = document.getElementById('signup-error');
+      const successDiv = document.getElementById('signup-success');
+      const verifyBtn = document.getElementById('signup-email-verify-btn');
+      const panel = document.getElementById('signup-email-verification-panel');
+      const codeInput = document.getElementById('signup-email-code');
+      const confirmBtn = document.getElementById('signup-email-confirm-btn');
+
+      // Clear previous messages
+      errorDiv.classList.remove('show');
+      successDiv.classList.remove('show');
+
+      const email = normalizeEmail(document.getElementById('signup-email')?.value);
+      const invitedEmail = normalizeEmail(invitationData?.email || invitationData?.user_email || '');
+      if (!email || !invitedEmail || email !== invitedEmail) {
+        errorDiv.textContent = 'Email must match the invitation email address';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      if (signupEmailVerification.verified) return;
+
+      signupEmailVerification.email = email;
+
+      if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Sending...';
+      }
+
+      try {
+        await SuperAffiliateAPI.sendSignupVerification(email);
+        signupEmailVerification.sent = true;
+
+        if (panel) panel.classList.add('show');
+        if (codeInput) {
+          codeInput.disabled = false;
+          codeInput.focus();
+        }
+        if (confirmBtn) confirmBtn.disabled = false;
+
+        successDiv.textContent = '✅ Verification code sent. Check your email.';
+        successDiv.classList.add('show');
+      } catch (error) {
+        signupEmailVerification.sent = false;
+        errorDiv.textContent = error.message || 'Failed to send verification code. Please try again.';
+        errorDiv.classList.add('show');
+      } finally {
+        updateActionButtons();
+      }
+    }
+
+    async function confirmSignupEmailCode() {
+      const errorDiv = document.getElementById('signup-error');
+      const successDiv = document.getElementById('signup-success');
+      const email = normalizeEmail(document.getElementById('signup-email')?.value);
+      const codeInput = document.getElementById('signup-email-code');
+      const confirmBtn = document.getElementById('signup-email-confirm-btn');
+      const status = document.getElementById('signup-email-verify-status');
+      const panel = document.getElementById('signup-email-verification-panel');
+
+      // Clear previous messages
+      errorDiv.classList.remove('show');
+      successDiv.classList.remove('show');
+
+      const code = (codeInput?.value || '').trim();
+      if (!/^\d{6}$/.test(code)) {
+        errorDiv.textContent = 'Enter the 6-digit verification code.';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Verifying...';
+      }
+
+      try {
+        await SuperAffiliateAPI.verifySignupEmail(email, code);
+        signupEmailVerification.verified = true;
+
+        if (panel) panel.classList.remove('show');
+        if (status) status.style.display = 'flex';
+
+        // Lock inputs
+        if (codeInput) {
+          codeInput.value = '';
+          codeInput.disabled = true;
+        }
+
+        successDiv.textContent = '✅ Email verified. You can now create your account.';
+        successDiv.classList.add('show');
+      } catch (error) {
+        errorDiv.textContent = error.message || 'Verification failed. Please try again.';
+        errorDiv.classList.add('show');
+      } finally {
+        if (confirmBtn) {
+          confirmBtn.textContent = 'Confirm';
+        }
+        updateActionButtons();
+      }
+    }
+
     // Handle embedded signup
     async function handleEmbeddedSignup(event) {
       event.preventDefault();
@@ -1014,6 +1293,15 @@
       if (invitedEmail && payload.email.toLowerCase() !== invitedEmail.toLowerCase()) {
         errorDiv.textContent = 'Email must match the invitation email address';
         errorDiv.classList.add('show');
+        return;
+      }
+
+      // Require email pre-verification for best UX (avoids post-signup verification email + login redirect)
+      if (!signupEmailVerification.verified || normalizeEmail(payload.email) !== normalizeEmail(signupEmailVerification.email)) {
+        errorDiv.textContent = 'Please verify your email to continue.';
+        errorDiv.classList.add('show');
+        const panel = document.getElementById('signup-email-verification-panel');
+        if (panel) panel.classList.add('show');
         return;
       }
 

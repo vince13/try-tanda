@@ -528,7 +528,7 @@
   <div class="container">
     <div id="alert-container"></div>
 
-    <!-- Confirmation Modal -->
+    <!-- Confirmation Modal (for plan changes) -->
     <div id="confirmationModal" class="modal-overlay">
       <div class="modal-content">
         <h3 id="modalTitle"></h3>
@@ -538,6 +538,22 @@
             <i class="fas fa-times"></i> Cancel
           </button>
           <button id="modalConfirmBtn" class="btn" style="background: var(--primary-gradient);">
+            <i class="fas fa-check"></i> Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tanda Confirm Modal (for general confirmations) -->
+    <div id="tandaConfirmModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="tandaConfirmTitle">Confirm Action</h3>
+        <div id="tandaConfirmBody" style="margin-bottom: 1.5rem; line-height: 1.6; color: var(--text-primary);"></div>
+        <div class="modal-actions">
+          <button class="btn" id="tandaConfirmCancel" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-primary);">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button id="tandaConfirmBtn" class="btn" style="background: var(--primary-gradient);">
             <i class="fas fa-check"></i> Confirm
           </button>
         </div>
@@ -860,7 +876,7 @@
               <div class="quota-item">
                 <div class="quota-item-label">Plan Price</div>
                 <div class="quota-item-value">₦${formatPrice(plan.price_per_month)}</div>
-                <div class="quota-item-limit">per month</div>
+                <div class="quota-item-limit">/mo</div>
               </div>
               ${subscriptionEndHTML}
             </div>
@@ -1000,15 +1016,15 @@
               
               <div class="plan-price">
                 <span class="currency">₦</span>${formatPrice(pricePerMonth)}
-                <span class="period">/month</span>
+                <span class="period">/mo</span>
               </div>
               
               ${description ? `<div class="plan-description">${description}</div>` : ''}
               
               <ul class="plan-features">
-                <li><i class="fas fa-check" style="color: #00f2ea;"></i> <strong>Unlimited Tanda products</strong> (always free)</li>
-                <li><i class="fas fa-check"></i> ${productsLimit === 'Unlimited' ? '<strong>Unlimited</strong>' : productsLimit} <strong>external products</strong> per month</li>
-                <li><i class="fas fa-check"></i> ${videosLimit} videos per month</li>
+                <li><i class="fas fa-check" style="color: #00f2ea;"></i> <strong>Unlimited Tanda products</strong></li>
+                <li><i class="fas fa-check"></i> ${productsLimit === 'Unlimited' ? '<strong>Unlimited</strong>' : productsLimit} <strong>external products</strong> /mo</li>
+                <li><i class="fas fa-check"></i> ${videosLimit} videos /mo</li>
                 ${allowExternal ? '<li><i class="fas fa-check"></i> Custom affiliate links</li>' : ''}
                 ${allowTanda ? `<li><i class="fas fa-check"></i> Tanda affiliate (${revenueSplit}% commission)</li>` : ''}
                 ${features.length > 0 ? features.map(f => {
@@ -1115,16 +1131,79 @@
       document.getElementById('confirmationModal').classList.remove('show');
     }
 
+    // Tanda Confirm Modal Functions
+    let tandaConfirmResolve = null;
+    
+    function showTandaConfirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel', isDanger = false) {
+      return new Promise((resolve) => {
+        tandaConfirmResolve = resolve;
+        const modal = document.getElementById('tandaConfirmModal');
+        const titleEl = document.getElementById('tandaConfirmTitle');
+        const bodyEl = document.getElementById('tandaConfirmBody');
+        const confirmBtn = document.getElementById('tandaConfirmBtn');
+        const cancelBtn = document.getElementById('tandaConfirmCancel');
+        
+        titleEl.textContent = title;
+        bodyEl.innerHTML = message.replace(/\n/g, '<br>');
+        confirmBtn.innerHTML = `<i class="fas fa-check"></i> ${confirmText}`;
+        cancelBtn.innerHTML = `<i class="fas fa-times"></i> ${cancelText}`;
+        
+        if (isDanger) {
+          confirmBtn.style.background = 'linear-gradient(135deg, rgba(255, 0, 80, 0.8), rgba(255, 0, 80, 0.6))';
+        } else {
+          confirmBtn.style.background = 'var(--primary-gradient)';
+        }
+        
+        modal.classList.add('show');
+        
+        // Handle confirm
+        confirmBtn.onclick = () => {
+          closeTandaConfirm();
+          resolve(true);
+        };
+        
+        // Handle cancel
+        cancelBtn.onclick = () => {
+          closeTandaConfirm();
+          resolve(false);
+        };
+        
+        // Close on backdrop click
+        modal.onclick = (e) => {
+          if (e.target === modal) {
+            closeTandaConfirm();
+            resolve(false);
+          }
+        };
+      });
+    }
+    
+    function closeTandaConfirm() {
+      const modal = document.getElementById('tandaConfirmModal');
+      modal.classList.remove('show');
+      if (tandaConfirmResolve) {
+        tandaConfirmResolve(false);
+        tandaConfirmResolve = null;
+      }
+    }
+
     // Close modal on ESC key or clicking outside
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeConfirmationModal();
+        closeTandaConfirm();
       }
     });
 
     document.getElementById('confirmationModal')?.addEventListener('click', (e) => {
       if (e.target.id === 'confirmationModal') {
         closeConfirmationModal();
+      }
+    });
+    
+    document.getElementById('tandaConfirmModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'tandaConfirmModal') {
+        closeTandaConfirm();
       }
     });
 
@@ -1209,10 +1288,23 @@
           if (response.requires_role || response.redirect_to === 'role_onboarding') {
             showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
             // Redirect to role selection after 2 seconds
-            setTimeout(() => {
-              if (confirm('Would you like to become a seller or affiliate now?')) {
-                // Show options
-                const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+            setTimeout(async () => {
+              const wantsRole = await showTandaConfirm(
+                'Role Required',
+                'Would you like to become a seller or affiliate now?',
+                'Yes',
+                'No',
+                false
+              );
+              
+              if (wantsRole) {
+                const choice = await showTandaConfirm(
+                  'Choose Role',
+                  'Click Confirm for Seller, Cancel for Affiliate',
+                  'Seller',
+                  'Affiliate',
+                  false
+                );
                 if (choice) {
                   window.location.href = 'become-seller.html';
                 } else {
@@ -1232,9 +1324,23 @@
         if (error.responseData) {
           if (error.responseData.requires_role || error.responseData.redirect_to === 'role_onboarding') {
             showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
-            setTimeout(() => {
-              if (confirm('Would you like to become a seller or affiliate now?')) {
-                const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+            setTimeout(async () => {
+              const wantsRole = await showTandaConfirm(
+                'Role Required',
+                'Would you like to become a seller or affiliate now?',
+                'Yes',
+                'No',
+                false
+              );
+              
+              if (wantsRole) {
+                const choice = await showTandaConfirm(
+                  'Choose Role',
+                  'Click Confirm for Seller, Cancel for Affiliate',
+                  'Seller',
+                  'Affiliate',
+                  false
+                );
                 if (choice) {
                   window.location.href = 'become-seller.html';
                 } else {
@@ -1250,9 +1356,23 @@
         const errorMsg = error.message || 'Failed to process subscription. Please try again.';
         if (errorMsg.includes('approved seller') || errorMsg.includes('approved affiliate') || errorMsg.includes('role onboarding')) {
           showAlert('You must be an approved seller or affiliate to subscribe. Please complete role onboarding first.', 'error');
-          setTimeout(() => {
-            if (confirm('Would you like to become a seller or affiliate now?')) {
-              const choice = confirm('Click OK for Seller, Cancel for Affiliate');
+          setTimeout(async () => {
+            const wantsRole = await showTandaConfirm(
+              'Role Required',
+              'Would you like to become a seller or affiliate now?',
+              'Yes',
+              'No',
+              false
+            );
+            
+            if (wantsRole) {
+              const choice = await showTandaConfirm(
+                'Choose Role',
+                'Click Confirm for Seller, Cancel for Affiliate',
+                'Seller',
+                'Affiliate',
+                false
+              );
               if (choice) {
                 window.location.href = 'become-seller.html';
               } else {
@@ -1508,10 +1628,12 @@
     
     // Cancel subscription (disable auto-renew)
     async function cancelSubscription() {
-      const confirmed = confirm(
-        'Are you sure you want to cancel your subscription?\n\n' +
-        'Your subscription will remain active until the end of your billing cycle, but it will not auto-renew. ' +
-        'You can re-enable auto-renewal at any time before your subscription expires.'
+      const confirmed = await showTandaConfirm(
+        'Cancel Subscription?',
+        'Are you sure you want to cancel your subscription?<br><br>Your subscription will remain active until the end of your billing cycle, but it will not auto-renew. You can re-enable auto-renewal at any time before your subscription expires.',
+        'Cancel Subscription',
+        'Keep Subscription',
+        false
       );
       
       if (!confirmed) {
@@ -1820,7 +1942,15 @@
 
     // Delete affiliate link
     async function deleteAffiliateLink(linkId) {
-      if (!confirm('Are you sure you want to delete this affiliate link?')) {
+      const confirmed = await showTandaConfirm(
+        'Delete Affiliate Link?',
+        'Are you sure you want to delete this affiliate link?',
+        'Delete',
+        'Cancel',
+        true
+      );
+      
+      if (!confirmed) {
         return;
       }
       
