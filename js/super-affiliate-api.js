@@ -1161,6 +1161,10 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
           <i class="fas fa-chevron-down"></i>
         </button>
         <div class="user-menu" id="userMenu">
+          <a href="search.html" class="user-menu-item">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+          </a>
           <a href="profile.html" class="user-menu-item">
             <i class="fas fa-user"></i>
             <span>Profile & Settings</span>
