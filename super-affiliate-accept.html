@@ -843,9 +843,15 @@
         };
       }
     }
-    // Get token from URL
+    // Get token and ref code from URL
     const urlParams = new URLSearchParams(window.location.search);
     const invitationToken = urlParams.get('token');
+    const refCode = urlParams.get('ref'); // Super Affiliate referral code (TANDA-SA-XXX)
+
+    // Store referral code in localStorage for later use during registration
+    if (refCode) {
+      localStorage.setItem('signup_ref_code', refCode);
+    }
 
     let invitationData = null;
     let signupEmailVerification = {
@@ -1270,6 +1276,9 @@
       errorDiv.classList.remove('show');
       successDiv.classList.remove('show');
 
+      // Get referral code from URL param or localStorage
+      const referralCode = refCode || localStorage.getItem('signup_ref_code');
+
       const payload = {
         username: document.getElementById('signup-username').value.trim(),
         email: document.getElementById('signup-email').value.trim(),
@@ -1280,6 +1289,11 @@
         password: document.getElementById('signup-password').value,
         password_confirm: document.getElementById('signup-password-confirm').value,
       };
+
+      // Add referral code to payload if present (Super Affiliate code like TANDA-SA-331)
+      if (referralCode) {
+        payload.ref = referralCode;
+      }
 
       // Validate passwords match
       if (payload.password !== payload.password_confirm) {
