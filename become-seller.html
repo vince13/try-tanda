@@ -571,7 +571,7 @@
           </h2>
 
           <div class="form-group">
-            <label for="id_document">ID Document <span class="required">*</span></label>
+            <label for="id_document">ID Document <span class="required" id="id-doc-required">*</span></label>
             <div class="file-upload">
               <input type="file" id="id_document" name="id_document" accept=".pdf,.jpg,.jpeg,.png" required>
               <label for="id_document" class="file-upload-label">
@@ -614,22 +614,106 @@
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
 
+    // Check if we're in edit mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const isEditMode = urlParams.get('edit') === 'true';
+    let currentProfile = null;
+
     // Check if user already has seller profile
     async function checkExistingProfile() {
       try {
         const profile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
         if (profile && profile.id) {
-          showAlert('You already have a seller profile. Redirecting to your seller dashboard...', 'info');
-          setTimeout(() => {
-            window.location.href = 'seller-dashboard.html';
-          }, 2000);
-          return true;
+          if (isEditMode) {
+            // Load profile for editing
+            currentProfile = profile;
+            loadProfileForEdit(profile);
+            return true;
+          } else {
+            // Redirect if not in edit mode
+            showAlert('You already have a seller profile. Redirecting to your seller dashboard...', 'info');
+            setTimeout(() => {
+              window.location.href = 'seller-dashboard.html';
+            }, 2000);
+            return true;
+          }
         }
       } catch (error) {
-        // No profile exists, continue with form
+        // No profile exists
+        if (isEditMode) {
+          showAlert('No seller profile found. Redirecting to create one...', 'error');
+          setTimeout(() => {
+            window.location.href = 'become-seller.html';
+          }, 2000);
+        }
         return false;
       }
       return false;
+    }
+
+    // Load profile data for editing
+    function loadProfileForEdit(profile) {
+      document.title = 'Edit Shop Information - Tanda Web';
+      const titleEl = document.querySelector('.title');
+      if (titleEl) titleEl.textContent = 'Edit Shop Information';
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Shop Information';
+
+      // Make ID document and business license optional in edit mode
+      const idDocInput = document.getElementById('id_document');
+      const idDocRequired = document.getElementById('id-doc-required');
+      if (idDocInput && idDocRequired) {
+        idDocInput.removeAttribute('required');
+        idDocRequired.style.display = 'none';
+        idDocInput.parentElement.querySelector('label').innerHTML = `
+          <i class="fas fa-file-upload"></i>
+          <span>Upload new ID document to replace existing (optional)</span>
+        `;
+      }
+      const licenseInput = document.getElementById('business_license');
+      if (licenseInput) {
+        licenseInput.parentElement.querySelector('label').innerHTML = `
+          <i class="fas fa-file-upload"></i>
+          <span>Upload new business license to replace existing (optional)</span>
+        `;
+      }
+
+      // Populate form fields
+      if (profile.shop_name) document.getElementById('shop_name').value = profile.shop_name;
+      if (profile.shop_description) document.getElementById('shop_description').value = profile.shop_description;
+      if (profile.business_type) document.getElementById('business_type').value = profile.business_type;
+      if (profile.business_phone) document.getElementById('business_phone').value = profile.business_phone;
+      if (profile.business_email) document.getElementById('business_email').value = profile.business_email;
+      if (profile.website) document.getElementById('website').value = profile.website;
+      if (profile.country) document.getElementById('country').value = profile.country;
+      if (profile.state) document.getElementById('state').value = profile.state;
+      if (profile.city) document.getElementById('city').value = profile.city;
+      if (profile.local_government) document.getElementById('local_government').value = profile.local_government;
+      if (profile.street_address) document.getElementById('street_address').value = profile.street_address;
+      if (profile.bank_name) {
+        document.getElementById('bank_name').value = profile.bank_name;
+        document.getElementById('bank_search').value = profile.bank_name;
+        document.getElementById('selected-bank-name').textContent = profile.bank_name;
+        document.getElementById('selected-bank-display').style.display = 'block';
+      }
+      if (profile.account_number) document.getElementById('account_number').value = profile.account_number;
+      if (profile.account_name) document.getElementById('account_name').value = profile.account_name;
+      if (profile.nin) document.getElementById('nin').value = profile.nin;
+
+      // Show existing logo if available
+      if (profile.shop_logo) {
+        const apiBase = typeof SuperAffiliateAPI !== 'undefined' && SuperAffiliateAPI.getApiBase ? SuperAffiliateAPI.getApiBase() : 'http://127.0.0.1:8000/api';
+        const logoUrl = profile.shop_logo.startsWith('http') ? profile.shop_logo : apiBase.replace('/api', '') + (profile.shop_logo.startsWith('/') ? profile.shop_logo : '/' + profile.shop_logo);
+        const logoPreview = document.createElement('div');
+        logoPreview.style.cssText = 'margin-top: 0.5rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem;';
+        logoPreview.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <img src="${logoUrl}" alt="Current logo" style="width: 48px; height: 48px; border-radius: 0.5rem; object-fit: cover;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Current logo (upload new to replace)</span>
+          </div>
+        `;
+        document.getElementById('logo-file-name').parentElement.appendChild(logoPreview);
+      }
     }
 
     // Check on load
@@ -959,20 +1043,20 @@
         return;
       }
 
-      // Validate ID Document (always required)
+      // Validate ID Document (only required for new applications, optional for edits)
       const idDocument = document.getElementById('id_document').files[0];
-      if (!idDocument) {
+      if (!isEditMode && !idDocument) {
         showAlert('ID Document is required. Please upload your ID document.', 'error');
         document.getElementById('id_document').focus();
         return;
       }
 
-      // Validate Business License based on Business Type
+      // Validate Business License based on Business Type (only required for new applications)
       const businessType = document.getElementById('business_type').value;
       const businessLicense = document.getElementById('business_license').files[0];
       
-      if (businessType && businessType !== 'Individual') {
-        // Business License is required for non-Individual business types
+      if (!isEditMode && businessType && businessType !== 'Individual') {
+        // Business License is required for non-Individual business types (only on create)
         if (!businessLicense) {
           showAlert('Business License is required for ' + businessType + ' business type. Please upload your business license.', 'error');
           document.getElementById('business_license').focus();
@@ -980,9 +1064,11 @@
         }
       }
 
-      const btn = document.getElementById('submit-btn');
+        const btn = document.getElementById('submit-btn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+      btn.innerHTML = isEditMode 
+        ? '<i class="fas fa-spinner fa-spin"></i> Updating...'
+        : '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
       try {
         const formData = new FormData();
@@ -1028,13 +1114,22 @@
         }
 
         // Submit to API
-        const response = await SuperAffiliateAPI.apiRequest('/commerce/seller/create/', {
-          method: 'POST',
-          body: formData,
-          // Don't set Content-Type header, let browser set it with boundary for FormData
-        });
-
-        showAlert('Seller application submitted successfully! Your application is pending review.', 'success');
+        let response;
+        if (isEditMode) {
+          // Update existing seller profile
+          response = await SuperAffiliateAPI.apiRequest('/commerce/seller/update/', {
+            method: 'PUT',
+            body: formData,
+          });
+          showAlert('Shop information updated successfully!', 'success');
+        } else {
+          // Create new seller profile
+          response = await SuperAffiliateAPI.apiRequest('/commerce/seller/create/', {
+            method: 'POST',
+            body: formData,
+          });
+          showAlert('Seller application submitted successfully! Your application is pending review.', 'success');
+        }
         
         setTimeout(() => {
           window.location.href = 'seller-dashboard.html';
@@ -1055,7 +1150,9 @@
         
         showAlert(errorMessage, 'error');
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check"></i> Submit Application';
+        btn.innerHTML = isEditMode
+          ? '<i class="fas fa-save"></i> Update Shop Information'
+          : '<i class="fas fa-check"></i> Submit Application';
       }
     }
 

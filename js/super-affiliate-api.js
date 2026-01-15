@@ -947,20 +947,21 @@ class SuperAffiliateAPI {
     return await this.apiRequest(`/commerce/cart/?_t=${cacheBuster}`);
   }
 
-  static async addToCart(productId, quantity = 1) {
+  static async addToCart(productId, quantity = 1, options = {}) {
     return await this.apiRequest('/commerce/cart/add/', {
       method: 'POST',
       body: JSON.stringify({
         product: productId,
         quantity: quantity,
+        ...(options || {}),
       }),
     });
   }
 
-  static async updateCartItem(itemId, quantity) {
+  static async updateCartItem(itemId, quantity, options = {}) {
     return await this.apiRequest(`/commerce/cart/items/${itemId}/update/`, {
       method: 'PUT',
-      body: JSON.stringify({ quantity }),
+      body: JSON.stringify({ quantity, ...(options || {}) }),
     });
   }
 

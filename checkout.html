@@ -4,10 +4,517 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
   <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tanda">
   <title>Checkout - Tanda Web</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: #cccccc;
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-radius: 1rem;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: 1.25rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .muted { color: var(--text-secondary); }
+
+    .cart-item {
+      display: flex;
+      gap: 0.9rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .cart-item:last-child { border-bottom: 0; }
+
+    .item-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .item-main { flex: 1; min-width: 0; }
+    .item-name {
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-meta { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+    .item-price { font-weight: 800; color: var(--accent-color); }
+
+    .qty-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .qty-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+      padding: 0.35rem 0.6rem;
+      border-radius: 0.6rem;
+      cursor: pointer;
+    }
+    .qty-pill {
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.6rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 700;
+      min-width: 2.5rem;
+      text-align: center;
+    }
+
+    .promo-row {
+      margin-top: 0.6rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .promo-row input {
+      flex: 1;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      outline: none;
+      font-size: 0.85rem;
+    }
+    .promo-row input::placeholder { color: rgba(255,255,255,0.45); }
+    .promo-apply {
+      padding: 0.5rem 0.7rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(0,242,234,0.35);
+      background: rgba(0,242,234,0.12);
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 0.4rem;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    select, button, input { font-family: inherit; }
+    select {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+    }
+    .summary-row strong { color: var(--text-primary); }
+    .divider { height: 1px; background: rgba(255,255,255,0.10); margin: 0.75rem 0; }
+
+    .btn-primary {
+      width: 100%;
+      border: none;
+      border-radius: 0.85rem;
+      padding: 0.95rem 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: transform 0.2s ease;
+    }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-primary:hover { transform: translateY(-1px); }
+
+    .toast {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      padding: 0.9rem 1.1rem;
+      border-radius: 0.9rem;
+      color: white;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      max-width: min(420px, calc(100vw - 3rem));
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Checkout</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-shopping-cart"></i> Cart Items</div>
+      <div id="cartItems"></div>
+      <div id="emptyState" class="muted" style="display:none; padding: 0.5rem 0;">
+        Your cart is empty. <a href="products.html" style="color: var(--accent-color);">Browse products</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-receipt"></i> Summary</div>
+
+      <div id="addressBlock" style="display:none;">
+        <div class="muted" style="margin-bottom:0.5rem;">Shipping/Billing Address</div>
+        <select id="addressSelect"></select>
+        <div class="muted" style="margin-top:0.5rem; font-size:0.9rem;">
+          Physical products require an address. Digital-only carts can checkout without one.
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="summary-row"><span>Subtotal</span><strong id="subtotal">₦0</strong></div>
+      <div class="summary-row"><span>Shipping</span><strong id="shipping">Calculated</strong></div>
+      <div class="divider"></div>
+      <div class="summary-row"><span>Total</span><strong id="total">₦0</strong></div>
+
+      <div style="margin-top: 1rem;">
+        <button class="btn-primary" id="payBtn">
+          <i class="fas fa-credit-card"></i> Pay with Paystack
+        </button>
+      </div>
+      <div class="muted" style="margin-top:0.75rem; font-size:0.9rem;">
+        Promo codes are saved per item and applied at checkout automatically.
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script>
+    // Auth
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    let cartData = null;
+    let addresses = [];
+
+    function showToast(message) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2800);
+    }
+
+    function formatNGN(amount) {
+      const n = Number(amount || 0);
+      return `₦${n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    }
+
+    function getImageUrl(product) {
+      const img = product?.images?.[0]?.image || product?.image || product?.thumbnail;
+      if (!img) return '';
+      if (img.startsWith('http')) return img;
+      return SuperAffiliateAPI.getApiBase().replace('/api', '') + (img.startsWith('/') ? img : '/' + img);
+    }
+
+    function isDigitalOnlyCart(items) {
+      return (items || []).every(it => {
+        const p = it.product || {};
+        const t = (p.product_type || 'physical').toString();
+        return t === 'digital';
+      });
+    }
+
+    async function loadAddressesIfNeeded(items) {
+      const needsAddress = (items || []).some(it => {
+        const p = it.product || {};
+        const t = (p.product_type || 'physical').toString();
+        return t !== 'digital';
+      });
+      const block = document.getElementById('addressBlock');
+      const select = document.getElementById('addressSelect');
+      if (!needsAddress) {
+        block.style.display = 'none';
+        return;
+      }
+      block.style.display = 'block';
+      try {
+        // Uses DRF ViewSet: /commerce/shipping/user-addresses/
+        const resp = await SuperAffiliateAPI.apiRequest('/commerce/shipping/user-addresses/');
+        const list = Array.isArray(resp) ? resp : (resp.results || resp.addresses || resp.data || []);
+        addresses = Array.isArray(list) ? list : [];
+
+        if (!addresses.length) {
+          select.innerHTML = `<option value="">No saved addresses found</option>`;
+          return;
+        }
+        select.innerHTML = addresses.map(a => {
+          const label = `${a.full_name || 'Address'} • ${a.city || ''} ${a.state || ''} • ${a.street_address || ''}`.trim();
+          return `<option value="${a.id}">${label}</option>`;
+        }).join('');
+      } catch (e) {
+        select.innerHTML = `<option value="">Failed to load addresses</option>`;
+      }
+    }
+
+    async function renderCart() {
+      const container = document.getElementById('cartItems');
+      const empty = document.getElementById('emptyState');
+      container.innerHTML = '';
+
+      const items = cartData?.items || [];
+      if (!items.length) {
+        empty.style.display = 'block';
+        document.getElementById('subtotal').textContent = formatNGN(0);
+        document.getElementById('total').textContent = formatNGN(0);
+        document.getElementById('payBtn').disabled = true;
+        return;
+      }
+      empty.style.display = 'none';
+      document.getElementById('payBtn').disabled = false;
+
+      let subtotal = 0;
+      container.innerHTML = items.map((it) => {
+        const p = it.product || {};
+        const qty = Number(it.quantity || 1);
+        const unit = Number(p.price || 0);
+        subtotal += unit * qty;
+        const imgUrl = getImageUrl(p);
+
+        const variations = (it.selected_variations && typeof it.selected_variations === 'object')
+          ? Object.entries(it.selected_variations)
+              .filter(([k, v]) => v !== null && v !== undefined && String(v).trim().length > 0)
+              .map(([k, v]) => `${k}: ${v}`)
+          : [];
+
+        return `
+          <div class="cart-item" data-item-id="${it.id}">
+            <div class="item-img">
+              ${imgUrl ? `<img src="${imgUrl}" alt="">` : `<i class="fas fa-image" style="opacity:.35;"></i>`}
+            </div>
+            <div class="item-main">
+              <div class="item-name">${p.name || 'Product'}</div>
+              <div class="item-meta">${variations.length ? `Options: ${variations.join(' · ')}` : ''}</div>
+              <div class="item-price">${formatNGN(unit)} <span class="muted" style="font-weight:600;">× ${qty}</span></div>
+
+              <div class="qty-row">
+                <button class="qty-btn" onclick="changeQty('${it.id}', ${qty - 1})"><i class="fas fa-minus"></i></button>
+                <div class="qty-pill">${qty}</div>
+                <button class="qty-btn" onclick="changeQty('${it.id}', ${qty + 1})"><i class="fas fa-plus"></i></button>
+                <button class="qty-btn" style="margin-left:auto; color:#ff6b6b;" onclick="removeItem('${it.id}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+
+              <div class="promo-row" style="margin-top:0.5rem;">
+                <input type="text"
+                  data-qty="${qty}"
+                  value="${(it.applied_promo_code || '').toString().replaceAll('"','&quot;')}"
+                  placeholder="Promo code (optional)"
+                  oninput="queuePromoSave('${it.id}', ${qty}, this)"
+                  onblur="applyPromo('${it.id}', ${qty}, this.value, true)"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); applyPromo('${it.id}', ${qty}, this.value, true);}">
+                <button class="promo-apply" onclick="applyPromo('${it.id}', ${qty}, this.previousElementSibling.value, true)">
+                  <i class="fas fa-tag"></i> Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('subtotal').textContent = formatNGN(subtotal);
+      document.getElementById('total').textContent = formatNGN(subtotal); // shipping calculated by backend / seller settings
+
+      await loadAddressesIfNeeded(items);
+    }
+
+    async function refreshCart() {
+      cartData = await SuperAffiliateAPI.getCart();
+      await renderCart();
+    }
+
+    async function changeQty(itemId, qty) {
+      if (qty <= 0) return removeItem(itemId);
+      await SuperAffiliateAPI.updateCartItem(itemId, qty);
+      await refreshCart();
+    }
+
+    async function removeItem(itemId) {
+      await SuperAffiliateAPI.removeCartItem(itemId);
+      await refreshCart();
+    }
+
+    const promoTimers = {};
+
+    function queuePromoSave(itemId, qty, inputEl) {
+      clearTimeout(promoTimers[itemId]);
+      promoTimers[itemId] = setTimeout(() => {
+        applyPromo(itemId, qty, inputEl.value, false);
+      }, 650);
+    }
+
+    async function applyPromo(itemId, qty, code, showToastNow) {
+      // IMPORTANT: preserve quantity (do not accidentally reset to 1)
+      await SuperAffiliateAPI.updateCartItem(itemId, qty, { applied_promo_code: (code || '').trim() });
+      if (showToastNow) showToast('Promo code saved for this item.');
+      await refreshCart();
+    }
+
+    async function payNow() {
+      const items = cartData?.items || [];
+      if (!items.length) return;
+
+      const needsAddress = !isDigitalOnlyCart(items);
+      const addressId = document.getElementById('addressSelect')?.value || '';
+      if (needsAddress && !addressId) {
+        showToast('Select an address to checkout physical products.');
+        return;
+      }
+
+      const btn = document.getElementById('payBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        // Backend will apply per-item promo codes and compute shipping per seller (if configured).
+        const payload = {
+          shipping_address: needsAddress ? addressId : null,
+          billing_address: needsAddress ? addressId : null,
+          payment_method: 'paystack',
+        };
+
+        const res = await SuperAffiliateAPI.apiRequest('/commerce/orders/create/', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+
+        // Multi-seller: { orders: [...], payments: [...] }
+        const payments = res?.payments || (res?.payment ? [res.payment] : []);
+        const p = Array.isArray(payments) ? payments.find(x => x?.authorization_url) : null;
+        const url = p?.authorization_url || res?.authorization_url;
+        if (url) {
+          window.location.href = url;
+          return;
+        }
+        throw new Error(res?.error || 'Payment initialization failed');
+      } catch (e) {
+        showToast(e.message || 'Checkout failed');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay with Paystack';
+      }
+    }
+
+    document.getElementById('payBtn').addEventListener('click', payNow);
+
+    refreshCart().catch(() => {
+      document.getElementById('emptyState').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
 
   <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">

@@ -869,6 +869,18 @@
           const isDigital = item.product?.product_type === 'digital' || item.product?.product_type === 'hybrid';
           const hasDownloadLink = item.download_link && order.payment_status === 'paid';
 
+          const variations = item.selected_variations && typeof item.selected_variations === 'object'
+            ? Object.entries(item.selected_variations)
+                .filter(([k, v]) => v !== null && v !== undefined && String(v).trim().length > 0)
+                .map(([k, v]) => `${k}: ${v}`)
+            : [];
+
+          const originalUnit = item.original_unit_price != null ? parseFloat(item.original_unit_price) : null;
+          const unit = item.unit_price != null ? parseFloat(item.unit_price) : parseFloat(item.product?.price || 0);
+          const discount = item.discount_amount != null ? parseFloat(item.discount_amount) : 0;
+          const showDiscount = discount > 0 && originalUnit != null && originalUnit > unit;
+          const promoCode = (item.applied_promo_code || '').trim();
+
           return `
             <div class="order-item">
               ${imageUrl ? `<img src="${imageUrl}" alt="${item.product?.name || 'Product'}" class="item-image" onerror="this.style.display='none';">` : '<div class="item-image" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
@@ -877,8 +889,17 @@
                   ${item.product?.name || 'Product'}
                   ${isDigital ? '<span class="digital-badge"><i class="fas fa-download"></i> Digital</span>' : ''}
                 </div>
-                <div class="item-price">${formatCurrency(item.product?.price || 0)}</div>
+                <div class="item-price">
+                  ${formatCurrency(unit)}
+                  ${showDiscount ? `
+                    <span style="opacity:0.75; text-decoration: line-through; margin-left: 0.5rem; font-weight: 500;">
+                      ${formatCurrency(originalUnit)}
+                    </span>
+                  ` : ''}
+                </div>
                 <div class="item-quantity">Quantity: ${item.quantity}</div>
+                ${variations.length ? `<div class="item-quantity" style="margin-top: 0.25rem; color: var(--text-secondary);">Options: ${variations.join(' · ')}</div>` : ''}
+                ${promoCode && showDiscount ? `<div class="item-quantity" style="margin-top: 0.25rem; color: var(--accent-color);">Promo applied: <strong>${promoCode}</strong> (${formatCurrency(discount)} off)</div>` : ''}
                 
                 ${hasDownloadLink ? `
                   <div class="item-actions">

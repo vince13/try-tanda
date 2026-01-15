@@ -401,6 +401,31 @@
       box-shadow: 0 0 0 3px rgba(0, 242, 234, 0.2);
     }
 
+    /* Collapsible optional sections */
+    details.form-section > summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+    }
+    details.form-section > summary::-webkit-details-marker {
+      display: none;
+    }
+    details.form-section > summary.section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    details.form-section > summary.section-title::after {
+      content: '▾';
+      margin-left: auto;
+      opacity: 0.8;
+      font-size: 0.95rem;
+      transition: transform 0.2s ease;
+    }
+    details.form-section[open] > summary.section-title::after {
+      transform: rotate(180deg);
+    }
+
     .type-option input[type="radio"]:checked + .type-card i {
       color: var(--accent-color);
     }
@@ -647,29 +672,149 @@
           </div>
 
           <div class="form-group">
-            <label for="digital-file-url">OR External URL</label>
-            <input type="url" id="digital-file-url" name="digital_file_url" placeholder="https://example.com/file.pdf">
+            <label for="digital_file_url">OR External URL</label>
+            <input type="url" id="digital_file_url" name="digital_file_url" placeholder="https://example.com/file.pdf">
             <div class="form-help">Alternative to file upload - provide a direct download URL</div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="max-downloads">Max Downloads per Buyer</label>
-              <input type="number" id="max-downloads" name="max_downloads" value="5" min="0" placeholder="5">
+              <label for="max_downloads">Max Downloads per Buyer</label>
+              <input type="number" id="max_downloads" name="max_downloads" value="5" min="0" placeholder="5">
               <div class="form-help">Maximum number of times each buyer can download this file. 0 = unlimited downloads per buyer</div>
             </div>
             <div class="form-group">
-              <label for="download-expiry-days">Download Valid For (days)</label>
-              <input type="number" id="download-expiry-days" name="download_expiry_days" value="365" min="0" placeholder="365">
+              <label for="download_expiry_days">Download Valid For (days)</label>
+              <input type="number" id="download_expiry_days" name="download_expiry_days" value="365" min="0" placeholder="365">
               <div class="form-help">0 = never expires</div>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="digital-description">Digital Product Description</label>
-            <textarea id="digital-description" name="digital_description" placeholder="Additional details about the digital product (file contents, usage instructions, etc.)"></textarea>
+            <label for="digital_description">Digital Product Description</label>
+            <textarea id="digital_description" name="digital_description" placeholder="Additional details about the digital product (file contents, usage instructions, etc.)"></textarea>
           </div>
         </div>
+
+        <!-- Selling Options (Optional) -->
+        <details class="form-section" id="selling-options-section">
+          <summary class="section-title">
+            <i class="fas fa-sliders-h"></i> Selling Options (Optional)
+          </summary>
+
+          <div class="form-help" style="margin: 0.5rem 0 1rem;">
+            Optional fields to reduce returns & misunderstandings: size/color variants, returns, warranty, promo code.
+          </div>
+
+          <!-- Variations -->
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="has_variations" style="width:auto;">
+              This product has variants (e.g. size/color)
+            </label>
+            <div class="form-help">If enabled, customers will be asked to choose options before adding to cart.</div>
+          </div>
+
+          <div id="variation-fields" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="variation_size_options">Size options</label>
+                <input type="text" id="variation_size_options" placeholder="e.g. S, M, L, XL">
+                <div class="form-help">Comma-separated</div>
+              </div>
+              <div class="form-group">
+                <label for="variation_color_options">Color options</label>
+                <input type="text" id="variation_color_options" placeholder="e.g. Black, White, Red">
+                <div class="form-help">Comma-separated</div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="variation_custom_name">Extra option name (optional)</label>
+                <input type="text" id="variation_custom_name" placeholder="e.g. Material">
+              </div>
+              <div class="form-group">
+                <label for="variation_custom_values">Extra option values</label>
+                <input type="text" id="variation_custom_values" placeholder="e.g. Cotton, Silk">
+                <div class="form-help">Comma-separated</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Returns -->
+          <div class="form-section" style="padding: 0; border: 0; background: transparent;">
+            <h2 class="section-title" style="margin-top: 0.5rem;">
+              <i class="fas fa-undo"></i> Returns
+            </h2>
+
+            <div class="alert alert-info" id="digital-nonrefundable-note" style="display:none; margin: 0.75rem 0;">
+              <i class="fas fa-info-circle"></i>
+              <span>Digital products are <strong>not refundable</strong>.</span>
+            </div>
+
+            <div class="form-group" id="return-policy-controls">
+              <label class="form-label">Return policy</label>
+              <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.25rem;">
+                <label style="display:flex; align-items:center; gap:0.4rem;">
+                  <input type="radio" name="is_returnable" value="true" checked style="width:auto;">
+                  Returnable
+                </label>
+                <label style="display:flex; align-items:center; gap:0.4rem;">
+                  <input type="radio" name="is_returnable" value="false" style="width:auto;">
+                  Not returnable
+                </label>
+              </div>
+              <div class="form-help">If returnable, specify the window below.</div>
+            </div>
+
+            <div class="form-row" id="return-window-row">
+              <div class="form-group">
+                <label for="return_period_days">Return window (days)</label>
+                <input type="number" id="return_period_days" min="1" placeholder="e.g. 7">
+                <div class="form-help">Leave empty if not returnable.</div>
+              </div>
+              <div class="form-group"></div>
+            </div>
+          </div>
+
+          <!-- Warranty -->
+          <div class="form-section" style="padding: 0; border: 0; background: transparent;">
+            <h2 class="section-title" style="margin-top: 0.5rem;">
+              <i class="fas fa-shield-alt"></i> Warranty (Physical/Hybrid)
+            </h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="warranty_period_months">Warranty duration (months)</label>
+                <input type="number" id="warranty_period_months" min="0" placeholder="e.g. 12">
+                <div class="form-help">Optional</div>
+              </div>
+              <div class="form-group"></div>
+            </div>
+          </div>
+
+          <!-- Promo -->
+          <div class="form-section" style="padding: 0; border: 0; background: transparent;">
+            <h2 class="section-title" style="margin-top: 0.5rem;">
+              <i class="fas fa-ticket-alt"></i> Promo Code (Optional)
+            </h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="promo_code">Promo code</label>
+                <input type="text" id="promo_code" placeholder="e.g. MIKE10">
+              </div>
+              <div class="form-group">
+                <label for="promo_discount_percent">Discount (%)</label>
+                <input type="number" id="promo_discount_percent" min="0" max="100" step="0.01" placeholder="e.g. 10">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="promo_expires_at">Expires at</label>
+              <input type="datetime-local" id="promo_expires_at">
+              <div class="form-help">Optional expiry date/time.</div>
+            </div>
+          </div>
+        </details>
 
         <!-- Images -->
         <div class="form-section">
@@ -815,6 +960,9 @@
       
       // Initialize digital fields toggle
       toggleDigitalFields();
+
+      // Initialize optional selling options UI
+      setupSellingOptionsUI();
     }
 
     // Toggle digital product fields based on product type
@@ -837,6 +985,119 @@
         digitalFileRequired.style.display = 'none';
         document.getElementById('digital-file').required = false;
       }
+
+      toggleSellingOptionsForProductType(productType);
+    }
+
+    function toggleSellingOptionsForProductType(productType) {
+      const nonRefundableNote = document.getElementById('digital-nonrefundable-note');
+      const returnControls = document.getElementById('return-policy-controls');
+      const returnWindowRow = document.getElementById('return-window-row');
+      const warrantyField = document.getElementById('warranty_period_months');
+      const returnDays = document.getElementById('return_period_days');
+      const radios = document.querySelectorAll('input[name="is_returnable"]');
+
+      const isDigital = productType === 'digital';
+      if (nonRefundableNote) nonRefundableNote.style.display = isDigital ? 'flex' : 'none';
+
+      // Digital: force not returnable and disable inputs
+      if (isDigital) {
+        radios.forEach(r => {
+          r.checked = (r.value === 'false');
+          r.disabled = true;
+        });
+        if (returnControls) returnControls.style.opacity = '0.65';
+        if (returnDays) {
+          returnDays.value = '';
+          returnDays.disabled = true;
+        }
+        if (returnWindowRow) returnWindowRow.style.opacity = '0.65';
+        if (warrantyField) {
+          warrantyField.value = '';
+          warrantyField.disabled = true;
+        }
+      } else {
+        radios.forEach(r => (r.disabled = false));
+        if (returnControls) returnControls.style.opacity = '1';
+        if (returnDays) returnDays.disabled = false;
+        if (returnWindowRow) returnWindowRow.style.opacity = '1';
+        if (warrantyField) warrantyField.disabled = false;
+      }
+    }
+
+    function parseCommaList(value) {
+      return (value || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function buildVariationOptions() {
+      const has = document.getElementById('has_variations')?.checked;
+      if (!has) return {};
+      const options = {};
+      const sizes = parseCommaList(document.getElementById('variation_size_options')?.value);
+      const colors = parseCommaList(document.getElementById('variation_color_options')?.value);
+      if (sizes.length) options.size = sizes;
+      if (colors.length) options.color = colors;
+
+      const customName = (document.getElementById('variation_custom_name')?.value || '').trim();
+      const customValues = parseCommaList(document.getElementById('variation_custom_values')?.value);
+      if (customName && customValues.length) options[customName] = customValues;
+      return options;
+    }
+
+    function setupSellingOptionsUI() {
+      const sellingDetails = document.getElementById('selling-options-section');
+      const openSellingOptions = () => {
+        if (sellingDetails && !sellingDetails.open) sellingDetails.open = true;
+      };
+
+      const hasVar = document.getElementById('has_variations');
+      const varFields = document.getElementById('variation-fields');
+      if (hasVar && varFields) {
+        const sync = () => {
+          varFields.style.display = hasVar.checked ? 'block' : 'none';
+          if (hasVar.checked) openSellingOptions();
+        };
+        hasVar.addEventListener('change', sync);
+        sync();
+      }
+
+      // If user interacts with any optional selling input, auto-expand the section
+      [
+        'variation_size_options',
+        'variation_color_options',
+        'variation_custom_name',
+        'variation_custom_values',
+        'return_period_days',
+        'warranty_period_months',
+        'promo_code',
+        'promo_discount_percent',
+        'promo_expires_at',
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('focus', openSellingOptions);
+        el.addEventListener('input', openSellingOptions);
+      });
+
+      // Same for return policy radio taps
+      document.querySelectorAll('input[name="is_returnable"]').forEach(r => {
+        r.addEventListener('change', openSellingOptions);
+      });
+
+      // Show/hide return window input based on radio
+      const returnDays = document.getElementById('return_period_days');
+      const syncReturnWindow = () => {
+        const isReturnable = document.querySelector('input[name="is_returnable"]:checked')?.value === 'true';
+        if (returnDays && !returnDays.disabled) {
+          returnDays.disabled = !isReturnable;
+          if (!isReturnable) returnDays.value = '';
+        }
+      };
+      document.querySelectorAll('input[name="is_returnable"]').forEach(r => r.addEventListener('change', syncReturnWindow));
+      syncReturnWindow();
     }
 
     // Load categories (include empty categories for product creation)
@@ -989,8 +1250,308 @@
       }
     }
 
-    // Initialize page - check seller status and disable button if not approved
-    initializePage();
+    // Check if we're in edit mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const editProductId = urlParams.get('edit');
+    let isEditMode = false;
+    let currentProduct = null;
+
+    // Load product for editing
+    async function loadProductForEdit(productId) {
+      try {
+        const product = await SuperAffiliateAPI.apiRequest(`/commerce/products/${productId}/`);
+        currentProduct = product;
+        isEditMode = true;
+
+        // Update page title
+        document.title = 'Edit Product - Tanda Web';
+        const titleEl = document.querySelector('.title');
+        if (titleEl) titleEl.textContent = 'Edit Product';
+
+        // Update submit button
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
+
+        // Populate form fields
+        if (product.name) document.getElementById('name').value = product.name;
+        if (product.description) document.getElementById('description').value = product.description;
+        if (product.category) {
+          const catSelect = document.getElementById('category');
+          const catId = product.category.id || product.category;
+          if (catId) catSelect.value = catId;
+        }
+        if (product.price) document.getElementById('price').value = product.price;
+        if (product.original_price) document.getElementById('original_price').value = product.original_price;
+        if (product.currency) document.getElementById('currency').value = product.currency;
+        if (product.stock_quantity !== undefined) document.getElementById('stock_quantity').value = product.stock_quantity;
+        if (product.min_order_quantity !== undefined) document.getElementById('min_order_quantity').value = product.min_order_quantity;
+        if (product.max_order_quantity !== undefined) document.getElementById('max_order_quantity').value = product.max_order_quantity;
+        if (product.condition) document.getElementById('condition').value = product.condition;
+        if (product.brand) document.getElementById('brand').value = product.brand;
+        if (product.model) document.getElementById('model').value = product.model;
+        if (product.weight) document.getElementById('weight').value = product.weight;
+        if (product.dimensions) document.getElementById('dimensions').value = product.dimensions;
+        if (product.status) document.getElementById('status').value = product.status;
+        if (product.product_type) {
+          document.querySelector(`input[name="product_type"][value="${product.product_type}"]`).checked = true;
+          toggleDigitalFields();
+        }
+        if (product.digital_file_url) document.getElementById('digital_file_url').value = product.digital_file_url;
+        if (product.max_downloads !== undefined) document.getElementById('max_downloads').value = product.max_downloads;
+        if (product.download_expiry_days !== undefined) document.getElementById('download_expiry_days').value = product.download_expiry_days;
+        if (product.digital_description) document.getElementById('digital_description').value = product.digital_description;
+
+        // Optional selling options
+        let hasAnySellingOptions = false;
+        const variationOptions = product.variation_options || {};
+        if (variationOptions && typeof variationOptions === 'object' && Object.keys(variationOptions).length > 0) {
+          hasAnySellingOptions = true;
+          const hasVar = document.getElementById('has_variations');
+          if (hasVar) hasVar.checked = true;
+          const varFields = document.getElementById('variation-fields');
+          if (varFields) varFields.style.display = 'block';
+
+          if (Array.isArray(variationOptions.size)) document.getElementById('variation_size_options').value = variationOptions.size.join(', ');
+          if (Array.isArray(variationOptions.color)) document.getElementById('variation_color_options').value = variationOptions.color.join(', ');
+
+          const customKey = Object.keys(variationOptions).find(k => !['size', 'color'].includes(k));
+          if (customKey) {
+            document.getElementById('variation_custom_name').value = customKey;
+            const vals = variationOptions[customKey];
+            if (Array.isArray(vals)) document.getElementById('variation_custom_values').value = vals.join(', ');
+          }
+        }
+
+        // Return policy
+        const isReturnable = product.product_type === 'digital' ? false : (product.is_returnable !== false);
+        document.querySelectorAll('input[name="is_returnable"]').forEach(r => {
+          r.checked = (r.value === (isReturnable ? 'true' : 'false'));
+        });
+        if (product.return_period_days !== undefined && product.return_period_days !== null) {
+          hasAnySellingOptions = true;
+          document.getElementById('return_period_days').value = product.return_period_days;
+        }
+
+        // Warranty
+        if (product.warranty_period_months !== undefined && product.warranty_period_months !== null) {
+          hasAnySellingOptions = true;
+          document.getElementById('warranty_period_months').value = product.warranty_period_months;
+        }
+
+        // Promo
+        if (product.promo_code) {
+          hasAnySellingOptions = true;
+          document.getElementById('promo_code').value = product.promo_code;
+        }
+        if (product.promo_discount_percent !== undefined && product.promo_discount_percent !== null) {
+          hasAnySellingOptions = true;
+          document.getElementById('promo_discount_percent').value = product.promo_discount_percent;
+        }
+        if (product.promo_expires_at) {
+          hasAnySellingOptions = true;
+          try {
+            const dt = new Date(product.promo_expires_at);
+            if (!isNaN(dt.getTime())) {
+              document.getElementById('promo_expires_at').value = dt.toISOString().slice(0, 16);
+            }
+          } catch (_) {}
+        }
+
+        // If any optional selling fields exist on the product, auto-expand the section so sellers can see/edit them.
+        const sellingDetails = document.getElementById('selling-options-section');
+        if (sellingDetails && hasAnySellingOptions) {
+          sellingDetails.open = true;
+        }
+        if (product.allow_affiliate_promotion !== undefined) {
+          document.getElementById('allow_affiliate_promotion').checked = product.allow_affiliate_promotion;
+        }
+        if (product.affiliate_commission_rate !== undefined) {
+          document.getElementById('affiliate_commission_rate').value = product.affiliate_commission_rate;
+        }
+        if (product.min_affiliate_tier) {
+          document.getElementById('min_affiliate_tier').value = product.min_affiliate_tier;
+        }
+
+        // Load existing images
+        if (product.images && product.images.length > 0) {
+          const preview = document.getElementById('image-preview');
+          preview.innerHTML = '';
+          product.images.forEach((img, idx) => {
+            const imgUrl = img.image_url || img.image || '';
+            if (imgUrl) {
+              const item = document.createElement('div');
+              item.className = 'file-preview-item';
+              item.setAttribute('data-image-id', img.id);
+              item.innerHTML = `
+                <img src="${imgUrl.startsWith('http') ? imgUrl : getApiBaseUrl() + (imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl)}" alt="Product image ${idx + 1}">
+                <button type="button" class="remove-btn" onclick="removeExistingImage('${img.id}')" title="Remove image">
+                  <i class="fas fa-times"></i>
+                </button>
+              `;
+              preview.appendChild(item);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+        showAlert('Failed to load product. Redirecting...', 'error');
+        setTimeout(() => {
+          window.location.href = 'products.html?my=true';
+        }, 2000);
+      }
+    }
+
+    let imagesToDelete = [];
+
+    function removeExistingImage(imageId) {
+      imagesToDelete.push(imageId);
+      const item = document.querySelector(`[data-image-id="${imageId}"]`);
+      if (item) item.remove();
+    }
+
+    // Modify handleSubmit to support both create and update
+    const originalHandleSubmit = handleSubmit;
+    handleSubmit = async function(event) {
+      event.preventDefault();
+      
+      const sellerStatus = await checkSellerStatus();
+      if (!sellerStatus.isApproved) {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = isEditMode 
+        ? '<i class="fas fa-spinner fa-spin"></i> Updating Product...'
+        : '<i class="fas fa-spinner fa-spin"></i> Creating Product...';
+
+      try {
+        const formData = new FormData();
+        
+        // Collect form data
+        const formFields = [
+          'name', 'description', 'category', 'price', 'original_price', 'currency',
+          'stock_quantity', 'min_order_quantity', 'max_order_quantity', 'condition',
+          'digital_file_url', 'max_downloads', 'download_expiry_days', 'digital_description',
+          'brand', 'model', 'weight', 'dimensions', 'status',
+          'affiliate_commission_rate', 'min_affiliate_tier'
+        ];
+
+        formFields.forEach(field => {
+          const element = document.getElementById(field);
+          if (element) {
+            const value = element.type === 'checkbox' ? element.checked : element.value;
+            if (value !== '' && value !== null && value !== undefined) {
+              formData.append(field, value);
+            }
+          }
+        });
+
+        // Add affiliate promotion checkbox
+        const allowAffiliate = document.getElementById('allow_affiliate_promotion').checked;
+        formData.append('allow_affiliate_promotion', allowAffiliate);
+
+        // Product type (radio)
+        const productType = document.querySelector('input[name="product_type"]:checked')?.value || 'physical';
+        formData.append('product_type', productType);
+
+        // Optional selling options
+        const variationOptions = buildVariationOptions();
+        if (variationOptions && Object.keys(variationOptions).length > 0) {
+          formData.append('variation_options', JSON.stringify(variationOptions));
+        } else {
+          formData.append('variation_options', JSON.stringify({}));
+        }
+
+        const isReturnable = document.querySelector('input[name="is_returnable"]:checked')?.value;
+        if (productType === 'digital') {
+          formData.append('is_returnable', false);
+        } else if (isReturnable !== undefined) {
+          formData.append('is_returnable', isReturnable === 'true');
+        }
+
+        const returnDays = document.getElementById('return_period_days')?.value;
+        if (productType !== 'digital' && returnDays) {
+          formData.append('return_period_days', returnDays);
+        }
+
+        const warrantyMonths = document.getElementById('warranty_period_months')?.value;
+        if (productType !== 'digital' && warrantyMonths) {
+          formData.append('warranty_period_months', warrantyMonths);
+        }
+
+        const promoCode = (document.getElementById('promo_code')?.value || '').trim();
+        const promoPct = document.getElementById('promo_discount_percent')?.value;
+        const promoExp = document.getElementById('promo_expires_at')?.value;
+        if (promoCode) formData.append('promo_code', promoCode);
+        if (promoPct) formData.append('promo_discount_percent', promoPct);
+        if (promoExp) {
+          // Send as ISO string
+          try {
+            const iso = new Date(promoExp).toISOString();
+            formData.append('promo_expires_at', iso);
+          } catch (_) {}
+        }
+
+        // For updates: add delete_image_ids
+        if (isEditMode && imagesToDelete.length > 0) {
+          formData.append('delete_image_ids', JSON.stringify(imagesToDelete));
+        }
+
+        // Add new images (indexed for multipart)
+        selectedImages.forEach((file, index) => {
+          formData.append(`new_images[${index}]`, file);
+        });
+
+        // Add digital file if provided
+        const digitalFile = document.getElementById('digital-file').files[0];
+        if (digitalFile) {
+          formData.append('digital_file', digitalFile);
+        }
+
+        let response;
+        if (isEditMode) {
+          // Update existing product
+          response = await SuperAffiliateAPI.apiRequest(`/commerce/products/${editProductId}/update/`, {
+            method: 'PUT',
+            body: formData,
+          });
+          showAlert('Product updated successfully!', 'success');
+          setTimeout(() => {
+            window.location.href = `product-detail.html?id=${editProductId}`;
+          }, 1500);
+        } else {
+          // Create new product
+          response = await SuperAffiliateAPI.apiRequest('/commerce/products/create/', {
+            method: 'POST',
+            body: formData,
+          });
+          showAlert('Product created successfully!', 'success');
+          setTimeout(() => {
+            window.location.href = `product-detail.html?id=${response.id}`;
+          }, 1500);
+        }
+
+      } catch (error) {
+        console.error(`Error ${isEditMode ? 'updating' : 'creating'} product:`, error);
+        const errorMessage = error.message || `Failed to ${isEditMode ? 'update' : 'create'} product. Please try again.`;
+        showAlert(errorMessage, 'error');
+        btn.disabled = false;
+        btn.innerHTML = isEditMode 
+          ? '<i class="fas fa-save"></i> Update Product'
+          : '<i class="fas fa-check"></i> Create Product';
+      }
+    };
+
+    // Initialize page
+    (async () => {
+      await initializePage();
+      if (editProductId) {
+        await loadProductForEdit(editProductId);
+      }
+    })();
   </script>
 </body>
 </html>

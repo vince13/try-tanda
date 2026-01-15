@@ -1451,6 +1451,10 @@
       console.log('productsList type:', typeof productsList);
       console.log('productsList length:', productsList ? productsList.length : 'null');
       
+      // Check if we're viewing seller's own products
+      const urlParams = new URLSearchParams(window.location.search);
+      const showMyProducts = urlParams.get('my') === 'true';
+      
       const loadingSection = document.getElementById('loading-section');
       const productsSection = document.getElementById('products-section');
       const emptySection = document.getElementById('empty-section');
@@ -1608,6 +1612,11 @@
             </div>
           </a>
           <div class="product-actions">
+            ${showMyProducts ? `
+              <button class="btn-edit" onclick="event.preventDefault(); event.stopPropagation(); window.location.href='add-product.html?edit=${productId}'" title="Edit Product" style="background: rgba(0, 242, 234, 0.2); border: 1px solid rgba(0, 242, 234, 0.4); color: var(--accent-color); padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <i class="fas fa-edit"></i> <span>Edit</span>
+              </button>
+            ` : ''}
             <button class="btn-buy" onclick="event.preventDefault(); event.stopPropagation(); window.buyNow('${productId}')">
               <i class="fas fa-bolt"></i> <span class="btn-buy-text">Buy Now</span>
             </button>

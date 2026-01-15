@@ -331,6 +331,52 @@
       return (v === null || v === undefined) ? '' : String(v);
     }
 
+    async function copyTextToClipboard(text) {
+      try {
+        if (!text) throw new Error('Nothing to copy');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (_) {}
+      // Fallback
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function buildSharableLink(videoId, hasTaggedProducts, directVideoUrl) {
+      // If tagged products exist, share the feed deep-link so viewers can shop from the link.
+      if (hasTaggedProducts && videoId) {
+        return `${window.location.origin}/feed.html?video=${encodeURIComponent(videoId)}`;
+      }
+      // Otherwise, share the raw video URL (video-only).
+      if (directVideoUrl) return directVideoUrl;
+      // Fallback: still provide a feed link
+      return `${window.location.origin}/feed.html?video=${encodeURIComponent(videoId)}`;
+    }
+
+    async function copySharableLink(videoId, hasTaggedProducts, directVideoUrl) {
+      try {
+        const link = buildSharableLink(videoId, hasTaggedProducts, directVideoUrl);
+        const ok = await copyTextToClipboard(link);
+        showToast(ok ? 'Link copied!' : 'Failed to copy link', ok ? 'success' : 'error');
+      } catch (e) {
+        showToast(e.message || 'Failed to copy link', 'error');
+      }
+    }
+
     async function load() {
       const loading = document.getElementById('loading');
       const grid = document.getElementById('grid');
@@ -408,6 +454,7 @@
           const idStr = String(v.id ?? '');
           const isNumericId = /^\d+$/.test(idStr);
           const productTags = v.product_tags || [];
+          const hasTaggedProducts = Array.isArray(productTags) && productTags.length > 0;
           const videoId = `video-${index}-${idStr}`;
           const thumbId = `thumb-${index}-${idStr}`;
           const isImported = v.is_imported || false;
@@ -449,7 +496,17 @@
                 ` : ''}
               </div>
               <div class="body">
-                <div style="font-weight:800;">${safeText(title)}</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                  <div style="font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safeText(title)}</div>
+                  <button
+                    class="btn"
+                    style="flex:0 0 auto; padding:0.45rem 0.6rem; border-radius:0.6rem;"
+                    title="Copy shareable link"
+                    onclick="copySharableLink('${idStr}', ${hasTaggedProducts ? 'true' : 'false'}, '${escapedVideoUrl}')"
+                  >
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
                 <div class="meta">
                   <span><i class="fas fa-eye"></i> ${safeText(views)}</span>
                   ${createdAt ? `<span><i class="fas fa-clock"></i> ${safeText(createdAt)}</span>` : ``}
@@ -464,6 +521,15 @@
                       : `<a class="btn primary" href="#" onclick="return false;" title="Imported/shared videos (UUID) are not taggable yet in web." style="opacity:0.55; cursor:not-allowed;">
                            <i class="fas fa-tag"></i> Tag Products
                          </a>`
+                  }
+                  ${
+                    isNumericId
+                      ? `<button class="btn" onclick="downloadTaggedVideo('${idStr}')">
+                           <i class="fas fa-download"></i> Download Tagged
+                         </button>`
+                      : `<button class="btn" disabled title="Tagged download is only available for native videos right now." style="opacity:0.55; cursor:not-allowed;">
+                           <i class="fas fa-download"></i> Download Tagged
+                         </button>`
                   }
                   <a class="btn" href="super-affiliate-dashboard.html">
                     <i class="fas fa-chart-line"></i> Dashboard
@@ -604,6 +670,60 @@
       } catch (error) {
         console.error('Error deleting video:', error);
         showToast(error.message || 'Failed to delete video', 'error');
+      }
+    }
+
+    async function downloadTaggedVideo(videoId) {
+      try {
+        if (!SuperAffiliateAPI.isAuthenticated()) {
+          window.location.href = 'super-affiliate-login.html';
+          return;
+        }
+
+        if (!/^\d+$/.test(String(videoId))) {
+          showToast('Tagged download is only available for native videos right now.', 'error');
+          return;
+        }
+
+        showToast('Preparing tagged download...', 'info');
+
+        const token = SuperAffiliateAPI.getToken();
+        const apiBase = SuperAffiliateAPI.getApiBase(); // includes /api
+        const url = `${apiBase}/videos/${encodeURIComponent(videoId)}/download-tagged/`;
+
+        const resp = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!resp.ok) {
+          let detail = '';
+          try { detail = await resp.text(); } catch (_) {}
+          throw new Error(detail || `Download failed (HTTP ${resp.status})`);
+        }
+
+        // Try to use server-provided filename
+        let filename = `tanda_tagged_${videoId}.mp4`;
+        const cd = resp.headers.get('content-disposition') || '';
+        const m = cd.match(/filename="?([^"]+)"?/i);
+        if (m && m[1]) filename = m[1];
+
+        const blob = await resp.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+
+        showToast('Tagged video downloaded', 'success');
+      } catch (error) {
+        console.error('Error downloading tagged video:', error);
+        showToast(error.message || 'Failed to download tagged video', 'error');
       }
     }
 

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Shop - Tanda</title>
+  <meta name="description" content="Shop from creators on Tanda." />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../Tanda logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent-color: #00f2ea;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.75);
+      --bg-primary: #000000;
+      --bg-secondary: #111111;
+      --bg-card: rgba(255, 255, 255, 0.06);
+      --border-radius: 1rem;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem;
+      }
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 100;
+    }
+    .title {
+      font-size: 1.8rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .title img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+    @media (max-width: 640px) {
+      .title {
+        font-size: 1.5rem;
+      }
+      .title img {
+        width: 32px;
+        height: 32px;
+      }
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      max-width: 100%;
+      padding-right: 0.5rem;
+    }
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+    .nav > * {
+      flex-shrink: 0;
+    }
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      background: transparent;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .btn i {
+      font-size: 0.9rem;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+    }
+    .shop-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      margin: 0.75rem 0 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .shop-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(255, 0, 80, 0.08) 0%, transparent 60%),
+                  radial-gradient(circle at 50% 100%, rgba(0, 242, 234, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .shop-hero > * {
+      position: relative;
+      z-index: 1;
+    }
+    .shop-logo-container {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3),
+                  0 0 0 1px rgba(255,255,255,0.05) inset;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .shop-logo-container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4),
+                  0 0 0 1px rgba(255,255,255,0.08) inset;
+    }
+    .shop-logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .shop-logo-container .logo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255,0,80,0.2), rgba(0,242,234,0.2));
+    }
+    .shop-logo-container .logo-placeholder i {
+      font-size: 3rem;
+      opacity: 0.6;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .shop-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    @media (max-width: 640px) {
+      .shop-title {
+        font-size: 2rem;
+      }
+      .shop-logo-container {
+        width: 100px;
+        height: 100px;
+        border-radius: 24px;
+      }
+      .shop-hero {
+        padding: 2rem 1rem;
+      }
+    }
+    .shop-sub {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    .shop-sub .username {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .shop-description {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 0.5rem;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    @media (max-width: 640px) {
+      .shop-description {
+        font-size: 0.9rem;
+        line-height: 1.65;
+        padding: 0 0.25rem;
+      }
+    }
+    .grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 980px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+    .product {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 1rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 300px;
+    }
+    .product img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: rgba(255,255,255,0.06);
+    }
+    .product-body { padding: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+    .product-name {
+      font-weight: 800;
+      font-size: 0.98rem;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      min-height: 2.6em;
+      max-height: 2.6em;
+    }
+    .product-meta { color: var(--text-secondary); font-size: 0.85rem; }
+    .price { font-weight: 900; font-size: 1.05rem; }
+    .price del { font-weight: 600; color: rgba(255,255,255,0.55); margin-left: 0.5rem; }
+    .product-footer { padding: 0.85rem; padding-top: 0; }
+    .primary {
+      width: 100%;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255,0,80,0.92), rgba(0,242,234,0.92));
+      border: none;
+    }
+    .empty {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-secondary);
+    }
+    .toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 0.75rem 1rem;
+      border-radius: 0.9rem;
+      z-index: 9999;
+      max-width: min(420px, calc(100vw - 2rem));
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">
+      <img src="../Tanda logo.png" alt="Tanda" />
+      <span>Shop</span>
+    </h1>
+    <div class="nav" id="authNav">
+      <button class="btn" id="copyShopBtn" title="Copy storefront link" style="white-space: nowrap;">
+        <i class="fas fa-copy"></i> <span>Copy link</span>
+      </button>
+      <a class="btn" href="../cart.html" title="Cart" style="white-space: nowrap;">
+        <i class="fas fa-shopping-cart"></i> <span>Cart</span>
+        <span id="cart-badge" style="margin-left:6px; background:#ff0050; border-radius:999px; padding:2px 8px; display:none; font-size:0.8rem;"></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div id="shopCard" class="card">
+      <div class="shop-hero">
+        <div class="shop-logo-container" id="shopLogoContainer">
+          <div class="logo-placeholder">
+            <i class="fas fa-store"></i>
+          </div>
+        </div>
+        <div class="shop-title" id="shopTitle">Loading shop…</div>
+        <div class="shop-sub" id="shopSub">Please wait</div>
+        <div class="shop-description" id="shopDescription" style="display:none;"></div>
+      </div>
+
+      <div id="grid" class="grid" style="display:none;"></div>
+      <div id="empty" class="empty" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script src="../js/super-affiliate-api.js?v=3"></script>
+  <script>
+    function showToast(message) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    }
+
+    function getShopSlug() {
+      const qp = new URLSearchParams(window.location.search);
+      const fromQuery = qp.get('slug');
+      if (fromQuery) return fromQuery;
+
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const shopsIdx = parts.indexOf('shops');
+      if (shopsIdx >= 0 && parts.length > shopsIdx + 1) {
+        return parts[shopsIdx + 1];
+      }
+      return '';
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    async function loadShop() {
+      const slug = getShopSlug();
+      if (!slug) {
+        document.getElementById('shopTitle').textContent = 'Shop not found';
+        document.getElementById('shopSub').textContent = 'Invalid shop link';
+        document.getElementById('empty').style.display = 'block';
+        document.getElementById('empty').innerHTML = 'This shop link is missing a slug.';
+        return;
+      }
+
+      try {
+        if (typeof SuperAffiliateAPI !== 'undefined') {
+          SuperAffiliateAPI.renderAuthNav('authNav');
+          SuperAffiliateAPI.updateCartBadge();
+        }
+      } catch (_) {}
+
+      const shopUrl = `${window.location.origin}/shops/${encodeURIComponent(slug)}`;
+      const copyBtn = document.getElementById('copyShopBtn');
+      if (copyBtn) {
+        copyBtn.onclick = async () => {
+          const ok = await copyText(shopUrl);
+          showToast(ok ? 'Storefront link copied' : 'Failed to copy link');
+        };
+      }
+
+      try {
+        const resp = await SuperAffiliateAPI.apiRequest(`/commerce/shops/${encodeURIComponent(slug)}/?page=1&per_page=50`);
+        const seller = resp && resp.seller ? resp.seller : null;
+        const products = resp && Array.isArray(resp.products) ? resp.products : [];
+
+        if (!seller) throw new Error('Seller not found');
+
+        // SEO-ish: update title/description + canonical
+        document.title = `${seller.shop_name || 'Shop'} - Tanda`;
+        const meta = document.querySelector('meta[name="description"]');
+        if (meta) meta.setAttribute('content', (seller.shop_description || `Shop ${seller.shop_name || ''} on Tanda`).slice(0, 155));
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonical);
+        }
+        // Canonical should prefer the SEO route
+        canonical.setAttribute('href', `${window.location.origin}/shops/${encodeURIComponent(slug)}`);
+
+        // Render seller card
+        const shopTitleEl = document.getElementById('shopTitle');
+        const shopSubEl = document.getElementById('shopSub');
+        const shopDescEl = document.getElementById('shopDescription');
+        const shopLogoContainer = document.getElementById('shopLogoContainer');
+
+        // Shop name
+        shopTitleEl.textContent = seller.shop_name || 'Shop';
+
+        // Username/subtitle
+        const username = seller.user && seller.user.username ? seller.user.username : '';
+        if (username) {
+          shopSubEl.innerHTML = `<span class="username">@${username}</span>`;
+        } else {
+          shopSubEl.textContent = '';
+        }
+
+        // Shop logo
+        if (seller.shop_logo) {
+          const apiBase = typeof SuperAffiliateAPI !== 'undefined' && SuperAffiliateAPI.getApiBase ? SuperAffiliateAPI.getApiBase() : 'http://127.0.0.1:8000/api';
+          const logoUrl = seller.shop_logo.startsWith('http') 
+            ? seller.shop_logo 
+            : apiBase.replace('/api', '') + (seller.shop_logo.startsWith('/') ? seller.shop_logo : '/' + seller.shop_logo);
+          
+          shopLogoContainer.innerHTML = `<img src="${logoUrl}" alt="${(seller.shop_name || 'Shop').replaceAll('"', '&quot;')}" onerror="this.parentElement.innerHTML='<div class=\\'logo-placeholder\\'><i class=\\'fas fa-store\\'></i></div>'">`;
+        } else {
+          shopLogoContainer.innerHTML = '<div class="logo-placeholder"><i class="fas fa-store"></i></div>';
+        }
+
+        // Shop description (truncated to 200 chars)
+        if (seller.shop_description) {
+          const maxLength = 200;
+          let description = seller.shop_description.trim();
+          if (description.length > maxLength) {
+            description = description.substring(0, maxLength).trim() + '...';
+          }
+          shopDescEl.textContent = description;
+          shopDescEl.style.display = 'block';
+        } else {
+          shopDescEl.style.display = 'none';
+        }
+
+        const grid = document.getElementById('grid');
+        const empty = document.getElementById('empty');
+        if (products.length === 0) {
+          empty.style.display = 'block';
+          empty.textContent = 'No products available right now.';
+          grid.style.display = 'none';
+          return;
+        }
+
+        grid.style.display = 'grid';
+        empty.style.display = 'none';
+
+        grid.innerHTML = products.map(p => {
+          const img = (p.images && p.images.length && (p.images[0].image_url || p.images[0].image)) || '';
+          const name = (p.name || 'Product').toString();
+          const price = p.price != null ? Number(p.price).toLocaleString('en-NG') : '';
+          const original = p.original_price != null ? Number(p.original_price).toLocaleString('en-NG') : '';
+          const currency = (p.currency || 'NGN').toString();
+          const productUrl = `/product-detail.html?id=${encodeURIComponent(p.id)}`;
+
+          return `
+            <div class="product">
+              ${img ? `<img src="${img}" alt="${name.replaceAll('"','&quot;')}" />` : `<div style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.06);"><i class="fas fa-image" style="opacity:0.5; font-size:2rem;"></i></div>`}
+              <div class="product-body">
+                <div class="product-name">${name}</div>
+                <div class="product-meta">${seller.shop_name || ''}</div>
+                <div class="price">${currency === 'NGN' ? '₦' : ''}${price}${original ? ` <del>${currency === 'NGN' ? '₦' : ''}${original}</del>` : ''}</div>
+              </div>
+              <div class="product-footer">
+                <a class="btn primary" href="${productUrl}">
+                  <i class="fas fa-shopping-bag"></i> View product
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        document.getElementById('shopTitle').textContent = 'Shop unavailable';
+        document.getElementById('shopSub').textContent = 'Please try again later';
+        const empty = document.getElementById('empty');
+        empty.style.display = 'block';
+        empty.textContent = (e && e.message) ? e.message : 'Failed to load shop';
+      }
+    }
+
+    loadShop();
+  </script>
+</body>
+</html>
+
