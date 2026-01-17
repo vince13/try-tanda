@@ -37,7 +37,14 @@
                   radial-gradient(900px 700px at 70% 20%, rgba(0,242,234,0.08), transparent 55%),
                   var(--bg);
       color: var(--text-primary);
-      overflow: hidden; /* the feed container scrolls */
+      /* IMPORTANT for iPhone Safari/Chrome UI collapse:
+         The page (body) must scroll. Inner overflow scroll containers do NOT
+         trigger the browser bar hide/show behavior reliably. */
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
     }
 
     /* Safe area insets for iPhone notches and home indicator */
@@ -122,16 +129,9 @@
       gap: 8px;
     }
 
-    /* Feed container uses scroll-snap to keep TikTok effect */
+    /* Feed container holds items; the page (body) scrolls */
     .feed {
-      /* Use dvh (dynamic viewport height) to account for browser UI, fallback to vh */
-      height: 100dvh;
-      height: 100vh; /* Fallback for browsers that don't support dvh */
-      overflow-y: auto;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y; /* Allow vertical scrolling, prevent horizontal */
+      min-height: 100vh;
     }
 
     .item {
@@ -143,7 +143,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 64px 12px calc(14px + 60px); /* Extra bottom padding for browser bar */
+      padding: 64px 12px 14px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
     }
 
     /* Desktop: mimic TikTok web — phone stage centered with side actions */
@@ -1245,6 +1246,7 @@
     let hasNext = true;
     let observer = null;
     let activeVideoEl = null;
+    let audioUnlocked = false; // iOS: audio requires a user gesture before unmuting
     let userFeedMode = false;  // Track if we're showing a specific user's videos
     let userFeedUsername = null;  // Username for user feed mode
     let firstVideoIdInUserFeed = null;  // Track the first video ID to avoid duplicates
@@ -1584,6 +1586,7 @@
         
         // Mark that user has interacted
         hasUserInteracted = true;
+        audioUnlocked = true; // user gesture occurred; we can attempt unmuted playback
         
         try {
           if (videoEl.paused) {
@@ -1595,6 +1598,15 @@
             // Indicator will show via 'play' event listener
           } else {
             triggerHapticFeedback('selection');
+            // If the video is currently playing but muted, treat tap as "unmute"
+            // so the user doesn't have to pause -> play again just to get audio.
+            if (videoEl.muted) {
+              videoEl.muted = false;
+              videoEl.volume = 1.0;
+              videoEl.play().catch(() => {});
+              return;
+            }
+
             isUserPaused = true; // User wants to pause
             videoEl.dataset.userPaused = 'true'; // Mark as user-paused
             videoEl.pause();
@@ -1832,9 +1844,9 @@
       // Try to play with audio (browsers may still mute until user interaction)
       // Set volume to 1.0 to ensure audio is enabled
       videoEl.volume = 1.0;
-      // Start muted for autoplay (iOS requirement), will unmute on user interaction
-      // Note: iOS requires muted autoplay, but we'll try to unmute after first interaction
-      videoEl.muted = true;
+      // iOS requires muted autoplay until a user gesture "unlocks" audio.
+      // Once unlocked, we try unmuted; if blocked, fall back to muted.
+      videoEl.muted = !audioUnlocked;
       
       try {
         await videoEl.play();
@@ -1844,19 +1856,10 @@
       } catch (error) {
         // Handle iOS-specific video errors
         if (error.name === 'NotAllowedError') {
-          // Autoplay blocked - try muted first, then unmute on interaction
-          console.log('Autoplay blocked, trying muted playback');
+          // Autoplay blocked - fall back to muted playback
           videoEl.muted = true;
           try {
             await videoEl.play();
-            // Once playing, try to unmute on next user interaction
-            const tryUnmuteOnInteraction = () => {
-              videoEl.muted = false;
-              document.removeEventListener('click', tryUnmuteOnInteraction, { once: true });
-              document.removeEventListener('touchstart', tryUnmuteOnInteraction, { once: true });
-            };
-            document.addEventListener('click', tryUnmuteOnInteraction, { once: true });
-            document.addEventListener('touchstart', tryUnmuteOnInteraction, { once: true });
           } catch (mutedError) {
             // Even muted autoplay blocked - wait for user interaction
             const tryPlayOnInteraction = () => {
@@ -1934,7 +1937,7 @@
           }
         }
       }, { 
-        root: feedEl, 
+        root: null, 
         rootMargin: '-10% 0px -10% 0px', // Trigger slightly before fully in view for smoother autoplay
         threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0] // More granular thresholds for better detection
       });
@@ -1950,8 +1953,7 @@
       if (items.length > 0) {
         const firstItem = items[0];
         const rect = firstItem.getBoundingClientRect();
-        const feedRect = feedEl.getBoundingClientRect();
-        if (rect.top < feedRect.bottom && rect.bottom > feedRect.top) {
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
           // First item is visible, try to play it immediately
           // Use a small delay to ensure DOM is ready
           setTimeout(() => {
@@ -1966,7 +1968,7 @@
                 firstObserver.disconnect();
               }
             });
-          }, { root: feedEl, threshold: 0.1 });
+          }, { root: null, threshold: 0.1 });
           firstObserver.observe(firstItem);
         }
       }
@@ -1980,7 +1982,7 @@
             loadNextPage();
           }
         });
-      }, { root: feedEl, threshold: 0.1 });
+      }, { root: null, threshold: 0.1 });
       loadMoreObs.observe(lastEl);
     }
 
@@ -2144,19 +2146,30 @@
       SuperAffiliateAPI.renderAuthNav('authNav');
       loginGateEl.style.display = SuperAffiliateAPI.isAuthenticated() ? 'none' : 'flex';
       
-      // Enable autoplay after first user interaction (required for iOS)
-      let autoplayEnabled = false;
-      const enableAutoplay = () => {
-        if (autoplayEnabled) return;
-        autoplayEnabled = true;
-        
-        // Try to play all visible videos
+      // First user gesture:
+      // - unlocks audio on iOS
+      // - kickstarts autoplay for the currently visible item
+      let firstGestureHandled = false;
+      const handleFirstUserGesture = () => {
+        if (firstGestureHandled) return;
+        firstGestureHandled = true;
+        audioUnlocked = true;
+
+        // If there is an active muted video playing, unmute it (no pause->play needed)
+        if (activeVideoEl && !activeVideoEl.paused && activeVideoEl.muted) {
+          try {
+            activeVideoEl.muted = false;
+            activeVideoEl.volume = 1.0;
+            activeVideoEl.play().catch(() => {});
+          } catch (_) {}
+        }
+
+        // Try to play all visible videos (viewport-based; body scroll)
         const visibleItems = Array.from(document.querySelectorAll('.item')).filter(item => {
           const rect = item.getBoundingClientRect();
-          const feedRect = feedEl.getBoundingClientRect();
-          return rect.top < feedRect.bottom && rect.bottom > feedRect.top;
+          return rect.top < window.innerHeight && rect.bottom > 0;
         });
-        
+
         visibleItems.forEach(item => {
           const videoEl = item.querySelector('video');
           if (videoEl && videoEl.paused && videoEl.dataset.userPaused !== 'true') {
@@ -2165,10 +2178,8 @@
         });
       };
       
-      // Enable autoplay on first user interaction
-      document.addEventListener('touchstart', enableAutoplay, { once: true, passive: true });
-      document.addEventListener('click', enableAutoplay, { once: true, passive: true });
-      document.addEventListener('scroll', enableAutoplay, { once: true, passive: true });
+      document.addEventListener('touchstart', handleFirstUserGesture, { once: true, passive: true });
+      document.addEventListener('click', handleFirstUserGesture, { once: true, passive: true });
 
       // Add touch gesture listeners for swipe back
       document.addEventListener('touchstart', (e) => {
@@ -2185,7 +2196,7 @@
       // Pull to Refresh
       if (SuperAffiliateAPI.isAuthenticated()) {
         new PullToRefresh({
-          container: feedEl,
+          container: document.body,
           onRefresh: async (done) => {
             page = 1;
             hasNext = true;
@@ -2244,7 +2255,7 @@
             setupVisibilityObserver();
             
             // Auto-scroll to the top to show the requested video
-            feedEl.scrollTop = 0;
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
             
             // Play the video after a short delay to ensure it's in view
             setTimeout(() => {
