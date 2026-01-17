@@ -30,6 +30,15 @@
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
+    /* iOS scroll-snap + browser UI collapse work best when the PAGE scrolls.
+       On Safari/Chrome iOS, the actual scrolling element is the document root. */
+    html {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -41,10 +50,7 @@
          The page (body) must scroll. Inner overflow scroll containers do NOT
          trigger the browser bar hide/show behavior reliably. */
       overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
+      min-height: 100%;
     }
 
     /* Safe area insets for iPhone notches and home indicator */
@@ -1909,9 +1915,15 @@
         let bestRatio = 0;
         
         for (const e of entries) {
-          // Don't auto-pause when scrolling out of view - only pause on user tap
-          // Videos will continue playing even when slightly out of view
-          // This creates a smoother scrolling experience
+          // TikTok behavior: only ONE video should be playing.
+          // Pause videos that leave the viewport so audio doesn't "spill" while scrolling.
+          const v = e.target.querySelector('video');
+          if (!e.isIntersecting) {
+            if (v && !v.paused) {
+              try { v.pause(); } catch (_) {}
+            }
+            continue;
+          }
           
           if (e.isIntersecting && e.intersectionRatio > bestRatio) {
             best = e;
@@ -1922,7 +1934,7 @@
         // Auto-play the most visible video when it comes into view
         // Only play if user hasn't manually paused it
         // Lower threshold (0.2) to trigger autoplay earlier
-        if (best && best.target && bestRatio > 0.2) {
+        if (best && best.target && bestRatio > 0.55) {
           const videoEl = best.target.querySelector('video');
           if (videoEl) {
             // Check if this video was manually paused by user
@@ -1938,7 +1950,7 @@
         }
       }, { 
         root: null, 
-        rootMargin: '-10% 0px -10% 0px', // Trigger slightly before fully in view for smoother autoplay
+        rootMargin: '0px',
         threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0] // More granular thresholds for better detection
       });
 
@@ -2191,6 +2203,53 @@
         touchEndX = e.changedTouches[0].screenX;
         touchEndY = e.changedTouches[0].screenY;
         handleSwipeGesture();
+      }, { passive: true });
+
+      // TikTok-style snap for iOS (page scrolling):
+      // CSS scroll-snap can be flaky on iOS depending on momentum scrolling,
+      // so we also "snap" to the nearest item when scrolling stops.
+      let snapTimer = null;
+      let isProgrammaticSnap = false;
+
+      function getNearestItemToTop() {
+        const items = Array.from(document.querySelectorAll('.item'));
+        if (items.length === 0) return null;
+
+        let bestItem = null;
+        let bestDist = Infinity;
+        for (const el of items) {
+          const r = el.getBoundingClientRect();
+          const dist = Math.abs(r.top); // distance from top of viewport
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestItem = el;
+          }
+        }
+        return bestItem;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (isProgrammaticSnap) return;
+
+        // Prevent audio from continuing across videos while user scrolls
+        if (activeVideoEl && !activeVideoEl.paused && activeVideoEl.dataset.userPaused !== 'true') {
+          try { activeVideoEl.pause(); } catch (_) {}
+        }
+
+        if (snapTimer) clearTimeout(snapTimer);
+        snapTimer = setTimeout(() => {
+          const target = getNearestItemToTop();
+          if (!target) return;
+
+          isProgrammaticSnap = true;
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+          // After snap settles, play the snapped video (if user didn't manually pause it)
+          setTimeout(() => {
+            isProgrammaticSnap = false;
+            playVideoInCard(target);
+          }, 250);
+        }, 140);
       }, { passive: true });
 
       // Pull to Refresh
