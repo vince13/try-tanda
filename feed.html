@@ -50,19 +50,19 @@
 
       .feed {
         padding-top: calc(64px + env(safe-area-inset-top));
-        padding-bottom: calc(env(safe-area-inset-bottom) + 100px); /* Extra space for browser bar */
+        padding-bottom: env(safe-area-inset-bottom); /* Only safe area, no extra space */
       }
       
       .item {
-        padding-bottom: calc(14px + env(safe-area-inset-bottom) + 100px); /* Account for browser bar */
+        padding-bottom: env(safe-area-inset-bottom); /* Only safe area, no extra space */
       }
       
       .meta {
-        bottom: calc(14px + env(safe-area-inset-bottom) + 100px); /* Position above browser bar */
+        bottom: calc(14px + env(safe-area-inset-bottom)); /* Only safe area, browser hides naturally */
       }
       
       .actions {
-        bottom: calc(92px + env(safe-area-inset-bottom) + 100px); /* Position above browser bar */
+        bottom: calc(92px + env(safe-area-inset-bottom)); /* Only safe area, browser hides naturally */
       }
     }
 
@@ -314,28 +314,8 @@
     }
     
     /* Use CSS variable for dynamic adjustment via JavaScript */
-    :root {
-      --browser-bar-height: 0px;
-    }
-    
-    /* On mobile devices, increase bottom spacing to avoid browser bar */
-    @media (max-width: 768px) {
-      .meta {
-        bottom: calc(14px + var(--browser-bar-height, 100px)); /* Increased default to 100px for better visibility */
-        padding-bottom: 15px; /* Extra padding inside meta for better spacing */
-        min-height: 60px; /* Ensure minimum height for username/caption */
-      }
-      
-      .actions {
-        bottom: calc(92px + var(--browser-bar-height, 100px)); /* Increased default to 100px */
-        transition: bottom 0.2s ease; /* Smooth transition when browser bar appears/disappears */
-      }
-      
-      /* Ensure items have enough bottom padding */
-      .item {
-        padding-bottom: calc(14px + var(--browser-bar-height, 100px) + 30px); /* Extra space for content */
-      }
-    }
+    /* Let browser UI hide/show naturally during scroll (like product page) */
+    /* No extra padding for browser bar - use only safe area insets */
     .username {
       font-weight: 800;
       font-size: 15px;
@@ -2160,95 +2140,9 @@
     }
 
     // Boot
-    // Function to adjust layout for browser UI on mobile
-    function adjustForBrowserUI() {
-      // Detect if we're on a mobile device
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) {
-        document.documentElement.style.setProperty('--browser-bar-height', '0px');
-        return;
-      }
-      
-      let browserBarHeight = 0;
-      
-      // Use Visual Viewport API if available (better detection)
-      if (window.visualViewport) {
-        const visualHeight = window.visualViewport.height;
-        const windowHeight = window.innerHeight;
-        const screenHeight = window.screen.height;
-        
-        // Calculate the difference - this accounts for browser UI
-        // When browser UI is visible, visualViewport.height < window.innerHeight
-        const heightDiff = Math.max(0, screenHeight - visualHeight);
-        
-        // On iOS, browser bottom bar is typically 60-100px
-        // On Android Chrome, it can vary
-        if (heightDiff > 20) {
-          browserBarHeight = Math.min(heightDiff, 100); // Cap at 100px
-        } else {
-          // Fallback: use fixed value for iOS (most common case)
-          const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-          browserBarHeight = isIOS ? 100 : 0; // Use 100px for iOS to ensure content is visible
-        }
-      } else {
-        // Fallback for browsers without Visual Viewport API
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const vh = window.innerHeight;
-        const screenHeight = window.screen.height;
-        
-        if (isIOS) {
-          // On iOS, browser bar is typically 60-100px when visible
-          // Use 100px to be safe and ensure content is always visible
-          browserBarHeight = 100;
-        } else {
-          // For Android, estimate based on viewport difference
-          const estimatedBarHeight = Math.max(0, screenHeight - vh);
-          browserBarHeight = Math.min(estimatedBarHeight, 100); // Cap at 100px
-        }
-      }
-      
-      // Set CSS variable for dynamic adjustment
-      document.documentElement.style.setProperty('--browser-bar-height', `${browserBarHeight}px`);
-    }
-    
-    // Adjust on load, resize, and scroll (browser UI can hide/show on scroll)
-    let resizeTimeout;
-    let scrollTimeout;
-    function handleResize() {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        adjustForBrowserUI();
-      }, 100);
-    }
-    
-    function handleScroll() {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        adjustForBrowserUI();
-      }, 150);
-    }
-    
     document.addEventListener('DOMContentLoaded', async () => {
       SuperAffiliateAPI.renderAuthNav('authNav');
       loginGateEl.style.display = SuperAffiliateAPI.isAuthenticated() ? 'none' : 'flex';
-      
-      // Adjust for browser UI
-      adjustForBrowserUI();
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', () => {
-        setTimeout(adjustForBrowserUI, 200);
-      });
-      
-      // Use Visual Viewport API for better browser UI detection
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', adjustForBrowserUI);
-        window.visualViewport.addEventListener('scroll', handleScroll);
-      }
-      
-      // Adjust on scroll (browser UI can hide/show during scroll)
-      if (feedEl) {
-        feedEl.addEventListener('scroll', handleScroll, { passive: true });
-      }
       
       // Enable autoplay after first user interaction (required for iOS)
       let autoplayEnabled = false;
