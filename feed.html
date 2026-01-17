@@ -1348,13 +1348,15 @@
 
       // Use autoplay with inline playback to keep the "scrolling feed" feel.
       // We only actively play the video that's currently in view (via IntersectionObserver).
-      // Note: Browsers may still mute autoplay videos until user interaction due to autoplay policies.
+      // Start muted to allow autoplay, then unmute after first user interaction.
       wrapper.innerHTML = `
         <div class="stage">
           <video class="video"
                  playsinline
                  webkit-playsinline
                  preload="auto"
+                 autoplay
+                 muted
                  x-webkit-airplay="allow"
                  ${thumbUrl ? `poster="${thumbUrl.replaceAll('"', '&quot;')}"` : ''}
                  ${videoUrl ? `src="${videoUrl.replaceAll('"', '&quot;')}"` : ''}>
@@ -1442,6 +1444,7 @@
       // Track if video has been user-interacted with
       let hasUserInteracted = false;
       let pauseIndicatorTimeout = null;
+      let hasUnmuted = false; // Track if user has unmuted the video
 
       // Function to show pause indicator briefly (only on user interaction)
       const showPauseIndicatorBriefly = () => {
@@ -1595,6 +1598,13 @@
         // Mark that user has interacted
         hasUserInteracted = true;
         
+        // Unmute on first interaction (autoplay requires muted, but we can unmute after user interaction)
+        if (!hasUnmuted && videoEl.muted) {
+          videoEl.muted = false;
+          hasUnmuted = true;
+          videoEl.dataset.hasUnmuted = 'true'; // Store state for future plays
+        }
+        
         try {
           if (videoEl.paused) {
             triggerHapticFeedback('selection');
@@ -1724,6 +1734,21 @@
         })();
       }
 
+      // After video card is created, if it's already visible, try to play it immediately
+      // This ensures videos autoplay on initial load without waiting for scroll
+      setTimeout(() => {
+        const rect = wrapper.getBoundingClientRect();
+        const feedRect = feedEl ? feedEl.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+        const itemHeight = rect.height;
+        const visibleHeight = Math.min(rect.bottom, feedRect.bottom) - Math.max(rect.top, feedRect.top);
+        const visibilityRatio = itemHeight > 0 ? visibleHeight / itemHeight : 0;
+        
+        // If card is at least 30% visible and no other video is playing, try to play it
+        if (visibilityRatio > 0.3 && (!activeVideoEl || activeVideoEl.paused)) {
+          playVideoInCard(wrapper);
+        }
+      }, 100);
+      
       return wrapper;
     }
 
@@ -1825,14 +1850,21 @@
 
       activeVideoEl = videoEl;
       
-      // Try to play with audio (browsers may still mute until user interaction)
-      // Set volume to 1.0 to ensure audio is enabled
+      // For autoplay: start muted (required by browser policies), then unmute after user interaction
+      // Set volume to 1.0, but keep muted initially to allow autoplay
       videoEl.volume = 1.0;
-      videoEl.muted = false;
+      // Keep muted for autoplay - will be unmuted on first user interaction
+      // Check if this video has been interacted with before (stored in dataset)
+      if (!videoEl.dataset.hasUnmuted) {
+        videoEl.muted = true; // Start muted for autoplay
+      } else {
+        // If user has previously unmuted this video, keep it unmuted
+        videoEl.muted = false;
+      }
       
       try {
         await videoEl.play();
-        console.log('Video playing:', cardEl.dataset.itemId);
+        console.log('Video playing (autoplay):', cardEl.dataset.itemId);
       } catch (error) {
         // Handle iOS-specific video errors
         if (error.name === 'NotAllowedError') {
@@ -1900,13 +1932,14 @@
           }
         }
         
-        if (best && best.target && bestRatio > 0.5) {
+        // Play video when it's at least 30% visible (lower threshold for faster autoplay)
+        if (best && best.target && bestRatio > 0.3) {
           playVideoInCard(best.target);
         }
       }, { 
         root: feedEl, 
         rootMargin: '0px',
-        threshold: [0, 0.25, 0.5, 0.75, 1.0] // More granular thresholds
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1.0] // More granular thresholds, lower for faster autoplay
       });
 
       // Observe all video items
@@ -1916,16 +1949,46 @@
         observer.observe(el);
       });
       
-      // Also try to play the first visible video immediately
+      // Also try to play the first visible video immediately (lower threshold for faster autoplay)
       if (items.length > 0) {
         const firstItem = items[0];
         const rect = firstItem.getBoundingClientRect();
         const feedRect = feedEl.getBoundingClientRect();
-        if (rect.top < feedRect.bottom && rect.bottom > feedRect.top) {
-          // First item is visible, try to play it
-          setTimeout(() => playVideoInCard(firstItem), 100);
+        // Check if first item is at least 30% visible
+        const itemHeight = rect.height;
+        const visibleHeight = Math.min(rect.bottom, feedRect.bottom) - Math.max(rect.top, feedRect.top);
+        const visibilityRatio = itemHeight > 0 ? visibleHeight / itemHeight : 0;
+        
+        if (visibilityRatio > 0.3) {
+          // First item is visible enough, try to play it immediately
+          // Use a shorter delay to start playing faster
+          setTimeout(() => playVideoInCard(firstItem), 50);
         }
       }
+      
+      // Also check all items and play the most visible one
+      // This ensures videos autoplay even if they're not the first item
+      setTimeout(() => {
+        let bestItem = null;
+        let bestRatio = 0;
+        
+        items.forEach((item) => {
+          const rect = item.getBoundingClientRect();
+          const feedRect = feedEl.getBoundingClientRect();
+          const itemHeight = rect.height;
+          const visibleHeight = Math.min(rect.bottom, feedRect.bottom) - Math.max(rect.top, feedRect.top);
+          const visibilityRatio = itemHeight > 0 ? visibleHeight / itemHeight : 0;
+          
+          if (visibilityRatio > bestRatio && visibilityRatio > 0.3) {
+            bestRatio = visibilityRatio;
+            bestItem = item;
+          }
+        });
+        
+        if (bestItem && (!activeVideoEl || activeVideoEl.paused)) {
+          playVideoInCard(bestItem);
+        }
+      }, 150);
     }
 
     function setupLoadMoreObserver(lastEl) {
@@ -2008,6 +2071,25 @@
         }
 
         cards.forEach((c) => feedEl.appendChild(c));
+        
+        // Check if any newly added cards are already visible and should autoplay
+        cards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const feedRect = feedEl.getBoundingClientRect();
+          const itemHeight = rect.height;
+          const visibleHeight = Math.min(rect.bottom, feedRect.bottom) - Math.max(rect.top, feedRect.top);
+          const visibilityRatio = itemHeight > 0 ? visibleHeight / itemHeight : 0;
+          
+          // If card is at least 30% visible, try to play it immediately
+          if (visibilityRatio > 0.3) {
+            const videoEl = card.querySelector('video');
+            if (videoEl && videoEl.paused) {
+              // Small delay to ensure video element is ready
+              setTimeout(() => playVideoInCard(card), 50);
+            }
+          }
+        });
+        
         setupVisibilityObserver();
 
         // Infinite scroll trigger: observe the last appended item.
