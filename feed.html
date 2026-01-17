@@ -30,15 +30,6 @@
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
-    /* iOS scroll-snap + browser UI collapse work best when the PAGE scrolls.
-       On Safari/Chrome iOS, the actual scrolling element is the document root. */
-    html {
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-    }
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -46,11 +37,7 @@
                   radial-gradient(900px 700px at 70% 20%, rgba(0,242,234,0.08), transparent 55%),
                   var(--bg);
       color: var(--text-primary);
-      /* IMPORTANT for iPhone Safari/Chrome UI collapse:
-         The page (body) must scroll. Inner overflow scroll containers do NOT
-         trigger the browser bar hide/show behavior reliably. */
-      overflow-x: hidden;
-      min-height: 100%;
+      overflow: hidden; /* the feed container scrolls */
     }
 
     /* Safe area insets for iPhone notches and home indicator */
@@ -63,19 +50,19 @@
 
       .feed {
         padding-top: calc(64px + env(safe-area-inset-top));
-        padding-bottom: env(safe-area-inset-bottom); /* Only safe area, no extra space */
+        padding-bottom: calc(env(safe-area-inset-bottom) + 60px); /* Extra space for browser bar */
       }
       
       .item {
-        padding-bottom: env(safe-area-inset-bottom); /* Only safe area, no extra space */
+        padding-bottom: calc(14px + env(safe-area-inset-bottom) + 60px); /* Account for browser bar */
       }
       
       .meta {
-        bottom: calc(14px + env(safe-area-inset-bottom)); /* Only safe area, browser hides naturally */
+        bottom: calc(14px + env(safe-area-inset-bottom) + 60px); /* Position above browser bar */
       }
       
       .actions {
-        bottom: calc(92px + env(safe-area-inset-bottom)); /* Only safe area, browser hides naturally */
+        bottom: calc(92px + env(safe-area-inset-bottom) + 60px); /* Position above browser bar */
       }
     }
 
@@ -135,9 +122,16 @@
       gap: 8px;
     }
 
-    /* Feed container holds items; the page (body) scrolls */
+    /* Feed container uses scroll-snap to keep TikTok effect */
     .feed {
-      min-height: 100vh;
+      /* Use dvh (dynamic viewport height) to account for browser UI, fallback to vh */
+      height: 100dvh;
+      height: 100vh; /* Fallback for browsers that don't support dvh */
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y; /* Allow vertical scrolling, prevent horizontal */
     }
 
     .item {
@@ -149,8 +143,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 64px 12px 14px;
-      padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      padding: 64px 12px calc(14px + 60px); /* Extra bottom padding for browser bar */
     }
 
     /* Desktop: mimic TikTok web — phone stage centered with side actions */
@@ -321,8 +314,21 @@
     }
     
     /* Use CSS variable for dynamic adjustment via JavaScript */
-    /* Let browser UI hide/show naturally during scroll (like product page) */
-    /* No extra padding for browser bar - use only safe area insets */
+    :root {
+      --browser-bar-height: 0px;
+    }
+    
+    /* On mobile devices, increase bottom spacing to avoid browser bar */
+    @media (max-width: 768px) {
+      .meta {
+        bottom: calc(14px + var(--browser-bar-height, 60px));
+      }
+      
+      .actions {
+        bottom: calc(92px + var(--browser-bar-height, 60px));
+        transition: bottom 0.2s ease; /* Smooth transition when browser bar appears/disappears */
+      }
+    }
     .username {
       font-weight: 800;
       font-size: 15px;
@@ -1252,7 +1258,6 @@
     let hasNext = true;
     let observer = null;
     let activeVideoEl = null;
-    let audioUnlocked = false; // iOS: audio requires a user gesture before unmuting
     let userFeedMode = false;  // Track if we're showing a specific user's videos
     let userFeedUsername = null;  // Username for user feed mode
     let firstVideoIdInUserFeed = null;  // Track the first video ID to avoid duplicates
@@ -1342,16 +1347,14 @@
       }
 
       // Use autoplay with inline playback to keep the "scrolling feed" feel.
-      // Videos will autoplay when scrolled into view and only pause on user tap.
+      // We only actively play the video that's currently in view (via IntersectionObserver).
       // Note: Browsers may still mute autoplay videos until user interaction due to autoplay policies.
       wrapper.innerHTML = `
         <div class="stage">
           <video class="video"
-                 autoplay
                  playsinline
                  webkit-playsinline
                  preload="auto"
-                 muted
                  x-webkit-airplay="allow"
                  ${thumbUrl ? `poster="${thumbUrl.replaceAll('"', '&quot;')}"` : ''}
                  ${videoUrl ? `src="${videoUrl.replaceAll('"', '&quot;')}"` : ''}>
@@ -1439,7 +1442,6 @@
       // Track if video has been user-interacted with
       let hasUserInteracted = false;
       let pauseIndicatorTimeout = null;
-      let isUserPaused = false; // Track if user manually paused the video
 
       // Function to show pause indicator briefly (only on user interaction)
       const showPauseIndicatorBriefly = () => {
@@ -1583,7 +1585,7 @@
         });
       }
 
-      // Tap/click toggles play/pause on the focused video (only way to pause)
+      // Tap/click toggles play/pause on the focused video.
       stageEl.addEventListener('click', async (e) => {
         // Don't toggle if clicking on action buttons, product tags, or progress bar
         if (e.target.closest('.actions') || e.target.closest('.meta') || e.target.closest('.product-tag-overlay') || e.target.closest('.video-progress-container')) return;
@@ -1592,29 +1594,14 @@
         
         // Mark that user has interacted
         hasUserInteracted = true;
-        audioUnlocked = true; // user gesture occurred; we can attempt unmuted playback
         
         try {
           if (videoEl.paused) {
             triggerHapticFeedback('selection');
-            isUserPaused = false; // User wants to play
-            videoEl.dataset.userPaused = 'false'; // Clear user paused flag
-            videoEl.muted = false; // Unmute when user interacts
             await videoEl.play();
             // Indicator will show via 'play' event listener
           } else {
             triggerHapticFeedback('selection');
-            // If the video is currently playing but muted, treat tap as "unmute"
-            // so the user doesn't have to pause -> play again just to get audio.
-            if (videoEl.muted) {
-              videoEl.muted = false;
-              videoEl.volume = 1.0;
-              videoEl.play().catch(() => {});
-              return;
-            }
-
-            isUserPaused = true; // User wants to pause
-            videoEl.dataset.userPaused = 'true'; // Mark as user-paused
             videoEl.pause();
             // Indicator will show via 'pause' event listener
           }
@@ -1832,17 +1819,8 @@
         return;
       }
 
-      // Don't play if user manually paused this video
-      if (videoEl.dataset.userPaused === 'true') {
-        return;
-      }
-      
-      // Pause any currently playing video (only if it's not user-paused)
       if (activeVideoEl && activeVideoEl !== videoEl) {
-        // Only pause if the other video wasn't manually paused
-        if (activeVideoEl.dataset.userPaused !== 'true') {
-          pauseActiveVideo();
-        }
+        pauseActiveVideo();
       }
 
       activeVideoEl = videoEl;
@@ -1850,32 +1828,24 @@
       // Try to play with audio (browsers may still mute until user interaction)
       // Set volume to 1.0 to ensure audio is enabled
       videoEl.volume = 1.0;
-      // iOS requires muted autoplay until a user gesture "unlocks" audio.
-      // Once unlocked, we try unmuted; if blocked, fall back to muted.
-      videoEl.muted = !audioUnlocked;
+      videoEl.muted = false;
       
       try {
         await videoEl.play();
         console.log('Video playing:', cardEl.dataset.itemId);
-        // Remove user paused flag when video starts playing
-        videoEl.dataset.userPaused = 'false';
       } catch (error) {
         // Handle iOS-specific video errors
         if (error.name === 'NotAllowedError') {
-          // Autoplay blocked - fall back to muted playback
-          videoEl.muted = true;
-          try {
-            await videoEl.play();
-          } catch (mutedError) {
-            // Even muted autoplay blocked - wait for user interaction
-            const tryPlayOnInteraction = () => {
-              videoEl.play().catch(() => {});
-              document.removeEventListener('click', tryPlayOnInteraction, { once: true });
-              document.removeEventListener('touchstart', tryPlayOnInteraction, { once: true });
-            };
-            document.addEventListener('click', tryPlayOnInteraction, { once: true });
-            document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
-          }
+          // Autoplay blocked - user interaction required
+          console.log('Autoplay blocked, waiting for user interaction');
+          // Try to play on next user interaction
+          const tryPlayOnInteraction = () => {
+            videoEl.play().catch(() => {});
+            document.removeEventListener('click', tryPlayOnInteraction, { once: true });
+            document.removeEventListener('touchstart', tryPlayOnInteraction, { once: true });
+          };
+          document.addEventListener('click', tryPlayOnInteraction, { once: true });
+          document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
         } else if (error.name === 'AbortError') {
           // Play was interrupted by pause - this is normal, ignore
           // This happens when scrolling quickly between videos
@@ -1915,43 +1885,28 @@
         let bestRatio = 0;
         
         for (const e of entries) {
-          // TikTok behavior: only ONE video should be playing.
-          // Pause videos that leave the viewport so audio doesn't "spill" while scrolling.
-          const v = e.target.querySelector('video');
           if (!e.isIntersecting) {
-            if (v && !v.paused) {
-              try { v.pause(); } catch (_) {}
+            // Pause video if it goes out of view
+            const videoEl = e.target.querySelector('video');
+            if (videoEl && !videoEl.paused) {
+              videoEl.pause();
             }
             continue;
           }
           
-          if (e.isIntersecting && e.intersectionRatio > bestRatio) {
+          if (e.intersectionRatio > bestRatio) {
             best = e;
             bestRatio = e.intersectionRatio;
           }
         }
         
-        // Auto-play the most visible video when it comes into view
-        // Only play if user hasn't manually paused it
-        // Lower threshold (0.2) to trigger autoplay earlier
-        if (best && best.target && bestRatio > 0.55) {
-          const videoEl = best.target.querySelector('video');
-          if (videoEl) {
-            // Check if this video was manually paused by user
-            const isPaused = videoEl.dataset.userPaused === 'true';
-            if (!isPaused && videoEl.paused) {
-              // Video is paused and not user-paused, so autoplay it
-              playVideoInCard(best.target);
-            } else if (!isPaused && !videoEl.paused) {
-              // Video is already playing, ensure it's the active one
-              activeVideoEl = videoEl;
-            }
-          }
+        if (best && best.target && bestRatio > 0.5) {
+          playVideoInCard(best.target);
         }
       }, { 
-        root: null, 
+        root: feedEl, 
         rootMargin: '0px',
-        threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0] // More granular thresholds for better detection
+        threshold: [0, 0.25, 0.5, 0.75, 1.0] // More granular thresholds
       });
 
       // Observe all video items
@@ -1965,23 +1920,10 @@
       if (items.length > 0) {
         const firstItem = items[0];
         const rect = firstItem.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-          // First item is visible, try to play it immediately
-          // Use a small delay to ensure DOM is ready
-          setTimeout(() => {
-            playVideoInCard(firstItem);
-          }, 200);
-        } else {
-          // First item not yet visible, play it when it becomes visible
-          const firstObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                playVideoInCard(entry.target);
-                firstObserver.disconnect();
-              }
-            });
-          }, { root: null, threshold: 0.1 });
-          firstObserver.observe(firstItem);
+        const feedRect = feedEl.getBoundingClientRect();
+        if (rect.top < feedRect.bottom && rect.bottom > feedRect.top) {
+          // First item is visible, try to play it
+          setTimeout(() => playVideoInCard(firstItem), 100);
         }
       }
     }
@@ -1994,7 +1936,7 @@
             loadNextPage();
           }
         });
-      }, { root: null, threshold: 0.1 });
+      }, { root: feedEl, threshold: 0.1 });
       loadMoreObs.observe(lastEl);
     }
 
@@ -2067,18 +2009,6 @@
 
         cards.forEach((c) => feedEl.appendChild(c));
         setupVisibilityObserver();
-        
-        // Ensure first video autoplays if it's the first load
-        if (page === 1 && cards.length > 0) {
-          const firstCard = cards[0];
-          setTimeout(() => {
-            const videoEl = firstCard.querySelector('video');
-            if (videoEl && videoEl.paused) {
-              // Try to play the first video immediately
-              playVideoInCard(firstCard);
-            }
-          }, 300); // Small delay to ensure video element is ready
-        }
 
         // Infinite scroll trigger: observe the last appended item.
         const last = cards[cards.length - 1];
@@ -2154,44 +2084,94 @@
     }
 
     // Boot
+    // Function to adjust layout for browser UI on mobile
+    function adjustForBrowserUI() {
+      // Detect if we're on a mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        document.documentElement.style.setProperty('--browser-bar-height', '0px');
+        return;
+      }
+      
+      let browserBarHeight = 0;
+      
+      // Use Visual Viewport API if available (better detection)
+      if (window.visualViewport) {
+        const visualHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const screenHeight = window.screen.height;
+        
+        // Calculate the difference - this accounts for browser UI
+        // When browser UI is visible, visualViewport.height < window.innerHeight
+        const heightDiff = Math.max(0, screenHeight - visualHeight);
+        
+        // On iOS, browser bottom bar is typically 60-80px
+        // On Android Chrome, it can vary
+        if (heightDiff > 20) {
+          browserBarHeight = Math.min(heightDiff, 80); // Cap at 80px
+        } else {
+          // Fallback: use fixed value for iOS (most common case)
+          const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+          browserBarHeight = isIOS ? 60 : 0;
+        }
+      } else {
+        // Fallback for browsers without Visual Viewport API
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const vh = window.innerHeight;
+        const screenHeight = window.screen.height;
+        
+        if (isIOS) {
+          // On iOS, browser bar is typically 60px when visible
+          browserBarHeight = 60;
+        } else {
+          // For Android, estimate based on viewport difference
+          const estimatedBarHeight = Math.max(0, screenHeight - vh);
+          browserBarHeight = Math.min(estimatedBarHeight, 80);
+        }
+      }
+      
+      // Set CSS variable for dynamic adjustment
+      document.documentElement.style.setProperty('--browser-bar-height', `${browserBarHeight}px`);
+    }
+    
+    // Adjust on load, resize, and scroll (browser UI can hide/show on scroll)
+    let resizeTimeout;
+    let scrollTimeout;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        adjustForBrowserUI();
+      }, 100);
+    }
+    
+    function handleScroll() {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        adjustForBrowserUI();
+      }, 150);
+    }
+    
     document.addEventListener('DOMContentLoaded', async () => {
       SuperAffiliateAPI.renderAuthNav('authNav');
       loginGateEl.style.display = SuperAffiliateAPI.isAuthenticated() ? 'none' : 'flex';
       
-      // First user gesture:
-      // - unlocks audio on iOS
-      // - kickstarts autoplay for the currently visible item
-      let firstGestureHandled = false;
-      const handleFirstUserGesture = () => {
-        if (firstGestureHandled) return;
-        firstGestureHandled = true;
-        audioUnlocked = true;
-
-        // If there is an active muted video playing, unmute it (no pause->play needed)
-        if (activeVideoEl && !activeVideoEl.paused && activeVideoEl.muted) {
-          try {
-            activeVideoEl.muted = false;
-            activeVideoEl.volume = 1.0;
-            activeVideoEl.play().catch(() => {});
-          } catch (_) {}
-        }
-
-        // Try to play all visible videos (viewport-based; body scroll)
-        const visibleItems = Array.from(document.querySelectorAll('.item')).filter(item => {
-          const rect = item.getBoundingClientRect();
-          return rect.top < window.innerHeight && rect.bottom > 0;
-        });
-
-        visibleItems.forEach(item => {
-          const videoEl = item.querySelector('video');
-          if (videoEl && videoEl.paused && videoEl.dataset.userPaused !== 'true') {
-            playVideoInCard(item);
-          }
-        });
-      };
+      // Adjust for browser UI
+      adjustForBrowserUI();
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', () => {
+        setTimeout(adjustForBrowserUI, 200);
+      });
       
-      document.addEventListener('touchstart', handleFirstUserGesture, { once: true, passive: true });
-      document.addEventListener('click', handleFirstUserGesture, { once: true, passive: true });
+      // Use Visual Viewport API for better browser UI detection
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', adjustForBrowserUI);
+        window.visualViewport.addEventListener('scroll', handleScroll);
+      }
+      
+      // Adjust on scroll (browser UI can hide/show during scroll)
+      if (feedEl) {
+        feedEl.addEventListener('scroll', handleScroll, { passive: true });
+      }
 
       // Add touch gesture listeners for swipe back
       document.addEventListener('touchstart', (e) => {
@@ -2205,57 +2185,10 @@
         handleSwipeGesture();
       }, { passive: true });
 
-      // TikTok-style snap for iOS (page scrolling):
-      // CSS scroll-snap can be flaky on iOS depending on momentum scrolling,
-      // so we also "snap" to the nearest item when scrolling stops.
-      let snapTimer = null;
-      let isProgrammaticSnap = false;
-
-      function getNearestItemToTop() {
-        const items = Array.from(document.querySelectorAll('.item'));
-        if (items.length === 0) return null;
-
-        let bestItem = null;
-        let bestDist = Infinity;
-        for (const el of items) {
-          const r = el.getBoundingClientRect();
-          const dist = Math.abs(r.top); // distance from top of viewport
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestItem = el;
-          }
-        }
-        return bestItem;
-      }
-
-      window.addEventListener('scroll', () => {
-        if (isProgrammaticSnap) return;
-
-        // Prevent audio from continuing across videos while user scrolls
-        if (activeVideoEl && !activeVideoEl.paused && activeVideoEl.dataset.userPaused !== 'true') {
-          try { activeVideoEl.pause(); } catch (_) {}
-        }
-
-        if (snapTimer) clearTimeout(snapTimer);
-        snapTimer = setTimeout(() => {
-          const target = getNearestItemToTop();
-          if (!target) return;
-
-          isProgrammaticSnap = true;
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-          // After snap settles, play the snapped video (if user didn't manually pause it)
-          setTimeout(() => {
-            isProgrammaticSnap = false;
-            playVideoInCard(target);
-          }, 250);
-        }, 140);
-      }, { passive: true });
-
       // Pull to Refresh
       if (SuperAffiliateAPI.isAuthenticated()) {
         new PullToRefresh({
-          container: document.body,
+          container: feedEl,
           onRefresh: async (done) => {
             page = 1;
             hasNext = true;
@@ -2314,7 +2247,7 @@
             setupVisibilityObserver();
             
             // Auto-scroll to the top to show the requested video
-            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            feedEl.scrollTop = 0;
             
             // Play the video after a short delay to ensure it's in view
             setTimeout(() => {
