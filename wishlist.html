@@ -522,7 +522,26 @@
 
     async function addToCart(productId) {
       try {
-        await SuperAffiliateAPI.addToCart(productId, 1);
+        // Fetch product to check for variations
+        const product = await SuperAffiliateAPI.getProductDetails(productId);
+        const variationOptions = product?.variation_options || {};
+        
+        let selectedVariations = {};
+        
+        // If product has variations, show modal
+        if (variationOptions && Object.keys(variationOptions).length > 0) {
+          const modalVariations = await SuperAffiliateAPI.showVariationModal(productId, product);
+          if (!modalVariations) {
+            // User cancelled
+            return;
+          }
+          selectedVariations = modalVariations;
+        }
+
+        const options = Object.keys(selectedVariations).length > 0 
+          ? { selected_variations: selectedVariations }
+          : {};
+        await SuperAffiliateAPI.addToCart(productId, 1, options);
         showToast('Added to cart!', 'success');
         await SuperAffiliateAPI.updateCartBadge();
       } catch (error) {
@@ -532,7 +551,26 @@
 
     async function buyNow(productId) {
       try {
-        await SuperAffiliateAPI.addToCart(productId, 1);
+        // Fetch product to check for variations
+        const product = await SuperAffiliateAPI.getProductDetails(productId);
+        const variationOptions = product?.variation_options || {};
+        
+        let selectedVariations = {};
+        
+        // If product has variations, show modal
+        if (variationOptions && Object.keys(variationOptions).length > 0) {
+          const modalVariations = await SuperAffiliateAPI.showVariationModal(productId, product);
+          if (!modalVariations) {
+            // User cancelled
+            return;
+          }
+          selectedVariations = modalVariations;
+        }
+
+        const options = Object.keys(selectedVariations).length > 0 
+          ? { selected_variations: selectedVariations }
+          : {};
+        await SuperAffiliateAPI.addToCart(productId, 1, options);
         window.location.href = 'checkout.html';
       } catch (error) {
         showToast(error.message || 'Failed to add to cart', 'error');

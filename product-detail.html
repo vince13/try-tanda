@@ -337,6 +337,91 @@
       font-size: 1rem;
     }
 
+    .variation-selector {
+      margin-bottom: 1.5rem;
+    }
+
+    .variation-selector label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .variation-selector select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .variation-selector select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .variation-selector select option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .variation-selector + .variation-selector {
+      margin-top: 1rem;
+    }
+
+    .options-policies-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .options-policies-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .policy-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .policy-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .policy-item i {
+      color: var(--accent-color);
+      width: 20px;
+      text-align: center;
+    }
+
+    .policy-item.not-returnable {
+      color: #ff6b6b;
+    }
+
+    .policy-item.not-returnable i {
+      color: #ff6b6b;
+    }
+
     .quantity-selector {
       display: flex;
       align-items: center;
@@ -794,6 +879,10 @@
         font-size: 1.8rem;
       }
 
+      .variation-selector select {
+        width: 100%;
+      }
+
       .quantity-selector {
         flex-direction: column;
         align-items: flex-start;
@@ -927,9 +1016,18 @@
             </div>
           </div>
 
+          <!-- Variation Selection -->
+          <div id="variation-selection" style="display: none;"></div>
+
           <div class="quantity-selector" id="quantity-selector">
             <label>Quantity:</label>
             <input type="number" id="quantity" value="1" min="1" max="10">
+          </div>
+
+          <!-- Options & Policies Card -->
+          <div id="options-policies-card" class="options-policies-card" style="display: none;">
+            <h3><i class="fas fa-info-circle"></i> Options & Policies</h3>
+            <div id="options-policies-content"></div>
           </div>
 
           <!-- Product Actions -->
@@ -994,6 +1092,7 @@
   <script src="js/super-affiliate-api.js?v=3"></script>
   <script>
     let productData = null;
+    let selectedVariations = {}; // Store selected variations
 
     // Check authentication (optional for viewing products)
     SuperAffiliateAPI.renderAuthNav('authNav');
@@ -1075,12 +1174,19 @@
         
         // Hide quantity selector for digital products (always 1)
         document.getElementById('quantity-selector').style.display = 'none';
+        document.getElementById('variation-selection').style.display = 'none';
       } else {
         // Hide digital elements for physical products
         document.getElementById('product-type-badge').style.display = 'none';
         document.getElementById('digital-product-info').style.display = 'none';
         document.getElementById('quantity-selector').style.display = 'flex';
       }
+      
+      // Display variation options if available
+      displayVariationOptions(data);
+      
+      // Display options & policies (returns, warranty)
+      displayOptionsAndPolicies(data);
       
       // Handle post-purchase download button
       if (hasDownloadLink) {
@@ -1347,16 +1453,152 @@
       loadFavoriteStatus();
     }
 
+    function displayVariationOptions(data) {
+      const variationOptions = data.variation_options || {};
+      const variationContainer = document.getElementById('variation-selection');
+      
+      // Reset selected variations
+      selectedVariations = {};
+      
+      if (!variationOptions || Object.keys(variationOptions).length === 0) {
+        variationContainer.style.display = 'none';
+        return;
+      }
+      
+      variationContainer.style.display = 'block';
+      variationContainer.innerHTML = '';
+      
+      // Create a dropdown for each variation option
+      Object.entries(variationOptions).forEach(([key, values]) => {
+        if (!Array.isArray(values) || values.length === 0) return;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'variation-selector';
+        
+        const label = document.createElement('label');
+        label.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}:`;
+        label.setAttribute('for', `variation-${key}`);
+        
+        const select = document.createElement('select');
+        select.id = `variation-${key}`;
+        select.setAttribute('data-variation-key', key);
+        
+        // Add placeholder option
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = `Choose ${key}...`;
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        select.appendChild(placeholder);
+        
+        // Add value options
+        values.forEach(value => {
+          const option = document.createElement('option');
+          option.value = String(value);
+          option.textContent = String(value);
+          select.appendChild(option);
+        });
+        
+        // Handle selection change
+        select.addEventListener('change', (e) => {
+          const selectedValue = e.target.value;
+          if (selectedValue) {
+            selectedVariations[key] = selectedValue;
+          } else {
+            delete selectedVariations[key];
+          }
+        });
+        
+        wrapper.appendChild(label);
+        wrapper.appendChild(select);
+        variationContainer.appendChild(wrapper);
+      });
+    }
+
+    function displayOptionsAndPolicies(data) {
+      const card = document.getElementById('options-policies-card');
+      const content = document.getElementById('options-policies-content');
+      const productType = data.product_type || 'physical';
+      const isDigital = productType === 'digital';
+      const isReturnable = isDigital ? false : (data.is_returnable === true);
+      const returnDays = data.return_period_days;
+      const warrantyMonths = data.warranty_period_months;
+      
+      // Check if we have any policies to show
+      const hasPolicies = isDigital || data.hasOwnProperty('is_returnable') || returnDays != null || warrantyMonths != null;
+      
+      if (!hasPolicies) {
+        card.style.display = 'none';
+        return;
+      }
+      
+      card.style.display = 'block';
+      content.innerHTML = '';
+      
+      // Return policy
+      let returnText = '';
+      let returnClass = '';
+      if (isDigital) {
+        returnText = 'Not refundable (Digital product)';
+        returnClass = 'not-returnable';
+      } else if (isReturnable) {
+        returnText = returnDays ? `Returnable within ${returnDays} days` : 'Returnable';
+      } else {
+        returnText = 'Not returnable';
+        returnClass = 'not-returnable';
+      }
+      
+      const returnItem = document.createElement('div');
+      returnItem.className = `policy-item ${returnClass}`;
+      returnItem.innerHTML = `<i class="fas fa-undo-alt"></i><span><strong>Returns:</strong> ${returnText}</span>`;
+      content.appendChild(returnItem);
+      
+      // Warranty
+      if (warrantyMonths != null && warrantyMonths.toString().trim() !== '') {
+        const warrantyItem = document.createElement('div');
+        warrantyItem.className = 'policy-item';
+        warrantyItem.innerHTML = `<i class="fas fa-shield-alt"></i><span><strong>Warranty:</strong> ${warrantyMonths} months</span>`;
+        content.appendChild(warrantyItem);
+      }
+    }
+
+    function validateVariations() {
+      const variationOptions = productData?.variation_options || {};
+      if (!variationOptions || Object.keys(variationOptions).length === 0) {
+        return true; // No variations required
+      }
+      
+      // Check if all required variations are selected
+      const requiredKeys = Object.keys(variationOptions);
+      const missing = requiredKeys.filter(key => !selectedVariations[key] || !selectedVariations[key].trim());
+      
+      if (missing.length > 0) {
+        const missingLabels = missing.map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(', ');
+        showToast(`Please select: ${missingLabels}`, 'error');
+        return false;
+      }
+      
+      return true;
+    }
+
     async function addToCart() {
       if (!SuperAffiliateAPI.isAuthenticated()) {
         window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
         return;
       }
 
+      // Validate variations before adding to cart
+      if (!validateVariations()) {
+        return;
+      }
+
       const quantity = parseInt(document.getElementById('quantity').value) || 1;
+      const options = Object.keys(selectedVariations).length > 0 
+        ? { selected_variations: selectedVariations }
+        : {};
 
       try {
-        await SuperAffiliateAPI.addToCart(productId, quantity);
+        await SuperAffiliateAPI.addToCart(productId, quantity, options);
         showToast('Product added to cart!', 'success');
         // Update cart badge immediately and also with a small delay to ensure DOM is ready
         await SuperAffiliateAPI.updateCartBadge();
@@ -1377,10 +1619,32 @@
         return;
       }
 
+      // Check if variations are required and not all selected
+      const variationOptions = productData?.variation_options || {};
+      let finalVariations = { ...selectedVariations };
+      
+      if (variationOptions && Object.keys(variationOptions).length > 0) {
+        const requiredKeys = Object.keys(variationOptions);
+        const missing = requiredKeys.filter(key => !finalVariations[key] || !finalVariations[key].trim());
+        
+        if (missing.length > 0) {
+          // Show modal to select variations
+          const modalVariations = await SuperAffiliateAPI.showVariationModal(productId, productData);
+          if (!modalVariations) {
+            // User cancelled
+            return;
+          }
+          finalVariations = modalVariations;
+        }
+      }
+
       const quantity = parseInt(document.getElementById('quantity').value) || 1;
+      const options = Object.keys(finalVariations).length > 0 
+        ? { selected_variations: finalVariations }
+        : {};
 
       try {
-        await SuperAffiliateAPI.addToCart(productId, quantity);
+        await SuperAffiliateAPI.addToCart(productId, quantity, options);
         window.location.href = 'checkout.html';
       } catch (error) {
         showToast(error.message || 'Failed to add to cart', 'error');

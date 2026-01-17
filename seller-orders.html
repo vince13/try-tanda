@@ -715,6 +715,14 @@
         const firstItem = items[0];
         const firstItemName = firstItem?.product?.name || 'Product';
         const itemCount = items.length;
+        
+        // Get variations for first item if available
+        const firstItemVariations = firstItem?.selected_variations && typeof firstItem.selected_variations === 'object'
+          ? Object.entries(firstItem.selected_variations)
+              .filter(([k, v]) => v !== null && v !== undefined && String(v).trim().length > 0)
+              .map(([k, v]) => `${k}: ${v}`)
+          : [];
+        const variationsText = firstItemVariations.length > 0 ? ` (${firstItemVariations.join(', ')})` : '';
 
         const status = (order.status || 'pending').toLowerCase();
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
@@ -744,7 +752,7 @@
             <td>
               <div>${customerName}</div>
               <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                ${firstItemName}${itemCount > 1 ? ` +${itemCount - 1} more` : ''}
+                ${firstItemName}${variationsText}${itemCount > 1 ? ` +${itemCount - 1} more` : ''}
               </div>
             </td>
             <td>

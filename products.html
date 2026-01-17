@@ -955,11 +955,32 @@
         return;
       }
 
-      const input = document.getElementById(`qty-${productId}`);
-      const quantity = input ? parseInt(input.value) || 1 : 1;
-
       try {
-        await SuperAffiliateAPI.addToCart(productId, quantity);
+        // Fetch product to check for variations
+        const product = await SuperAffiliateAPI.getProductDetails(productId);
+        const variationOptions = product?.variation_options || {};
+        
+        let selectedVariations = {};
+        
+        // If product has variations, show modal
+        if (variationOptions && Object.keys(variationOptions).length > 0) {
+          const modalVariations = await SuperAffiliateAPI.showVariationModal(productId, product);
+          if (!modalVariations) {
+            // User cancelled
+            return;
+          }
+          selectedVariations = modalVariations;
+        }
+
+        const input = document.getElementById(`qty-${productId}`);
+        const quantity = input ? parseInt(input.value) || 1 : 1;
+
+        // Add to cart with variations
+        const options = Object.keys(selectedVariations).length > 0 
+          ? { selected_variations: selectedVariations }
+          : {};
+        await SuperAffiliateAPI.addToCart(productId, quantity, options);
+        
         showToast('Added to cart!', 'success');
         // Update cart badge immediately and also with a small delay to ensure DOM is ready
         await SuperAffiliateAPI.updateCartBadge();
@@ -1714,11 +1735,31 @@
       }
 
       try {
+        // Fetch product to check for variations
+        const product = await SuperAffiliateAPI.getProductDetails(productId);
+        const variationOptions = product?.variation_options || {};
+        
+        let selectedVariations = {};
+        
+        // If product has variations, show modal
+        if (variationOptions && Object.keys(variationOptions).length > 0) {
+          const modalVariations = await SuperAffiliateAPI.showVariationModal(productId, product);
+          if (!modalVariations) {
+            // User cancelled
+            return;
+          }
+          selectedVariations = modalVariations;
+        }
+        
         const input = document.getElementById(`qty-${productId}`);
         const quantity = input ? parseInt(input.value) || 1 : 1;
         
-        // Add to cart first
-        await SuperAffiliateAPI.addToCart(productId, quantity);
+        // Add to cart with variations
+        const options = Object.keys(selectedVariations).length > 0 
+          ? { selected_variations: selectedVariations }
+          : {};
+        await SuperAffiliateAPI.addToCart(productId, quantity, options);
+        
         // Redirect to checkout
         window.location.href = 'checkout.html';
       } catch (error) {

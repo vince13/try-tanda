@@ -939,6 +939,14 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Get product details by product ID
+   * Backend endpoint: GET /api/commerce/products/{product_id}/
+   */
+  static async getProductDetails(productId) {
+    return await this.apiRequest(`/commerce/products/${encodeURIComponent(productId)}/`);
+  }
+
+  /**
    * Cart Management Methods
    */
   static async getCart() {
@@ -1064,6 +1072,204 @@ class SuperAffiliateAPI {
       console.warn('Error updating cart badge:', error);
       return 0;
     }
+  }
+
+  /**
+   * Show variation selection modal for products with required options
+   * Returns a Promise that resolves with selected variations or null if cancelled
+   */
+  static async showVariationModal(productId, productData = null) {
+    return new Promise(async (resolve) => {
+      // Fetch product data if not provided
+      let product = productData;
+      if (!product) {
+        try {
+          product = await this.getProductDetails(productId);
+        } catch (error) {
+          console.error('Error fetching product for variation modal:', error);
+          resolve(null);
+          return;
+        }
+      }
+
+      const variationOptions = product?.variation_options || {};
+      if (!variationOptions || Object.keys(variationOptions).length === 0) {
+        // No variations required
+        resolve({});
+        return;
+      }
+
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      `;
+
+      // Create modal
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: #2a2a2a;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      `;
+
+      const selectedVariations = {};
+      
+      // Build modal content
+      let modalHTML = `
+        <h2 style="margin: 0 0 1.5rem 0; color: var(--text-primary, #fff); font-size: 1.5rem;">
+          <i class="fas fa-cog"></i> Select Options
+        </h2>
+        <p style="color: var(--text-secondary, #aaa); margin-bottom: 1.5rem; font-size: 0.9rem;">
+          Please select the following options for <strong>${product?.name || 'this product'}</strong>:
+        </p>
+      `;
+
+      // Create selectors for each variation
+      Object.entries(variationOptions).forEach(([key, values]) => {
+        if (!Array.isArray(values) || values.length === 0) return;
+
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        modalHTML += `
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary, #fff); font-weight: 600;">
+              ${label} <span style="color: #ff6b6b;">*</span>
+            </label>
+            <select 
+              id="modal-variation-${key}" 
+              data-variation-key="${key}"
+              style="
+                width: 100%;
+                padding: 0.75rem;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 0.5rem;
+                color: var(--text-primary, #fff);
+                font-size: 1rem;
+                cursor: pointer;
+              "
+              required
+            >
+              <option value="">Choose ${key}...</option>
+              ${values.map(v => `<option value="${String(v)}">${String(v)}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      });
+
+      modalHTML += `
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button 
+            id="modal-cancel-btn"
+            style="
+              flex: 1;
+              padding: 0.75rem;
+              background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 0.5rem;
+              color: var(--text-primary, #fff);
+              font-size: 1rem;
+              cursor: pointer;
+              font-weight: 600;
+            "
+          >
+            Cancel
+          </button>
+          <button 
+            id="modal-confirm-btn"
+            style="
+              flex: 1;
+              padding: 0.75rem;
+              background: linear-gradient(135deg, #ff0050, #00f2ea);
+              border: none;
+              border-radius: 0.5rem;
+              color: white;
+              font-size: 1rem;
+              cursor: pointer;
+              font-weight: 600;
+            "
+          >
+            Continue
+          </button>
+        </div>
+      `;
+
+      modal.innerHTML = modalHTML;
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      // Add event listeners
+      const selects = modal.querySelectorAll('select[data-variation-key]');
+      selects.forEach(select => {
+        select.addEventListener('change', (e) => {
+          const key = e.target.getAttribute('data-variation-key');
+          const value = e.target.value;
+          if (value) {
+            selectedVariations[key] = value;
+          } else {
+            delete selectedVariations[key];
+          }
+        });
+      });
+
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+
+      cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        resolve(null);
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        // Validate all selections
+        const requiredKeys = Object.keys(variationOptions);
+        const missing = requiredKeys.filter(key => !selectedVariations[key] || !selectedVariations[key].trim());
+        
+        if (missing.length > 0) {
+          const missingLabels = missing.map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(', ');
+          alert(`Please select: ${missingLabels}`);
+          return;
+        }
+
+        document.body.removeChild(overlay);
+        resolve(selectedVariations);
+      });
+
+      // Close on overlay click
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          document.body.removeChild(overlay);
+          resolve(null);
+        }
+      });
+
+      // Close on Escape key
+      const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+          document.body.removeChild(overlay);
+          document.removeEventListener('keydown', escapeHandler);
+          resolve(null);
+        }
+      };
+      document.addEventListener('keydown', escapeHandler);
+    });
   }
 }
 

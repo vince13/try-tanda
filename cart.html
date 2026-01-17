@@ -354,6 +354,93 @@
       font-size: 0.85rem;
     }
 
+    /* Promo code input */
+    .promo-input-wrapper {
+      margin-top: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .promo-input {
+      flex: 1;
+      min-width: 150px;
+      padding: 0.6rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .promo-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .promo-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: none;
+    }
+
+    .promo-apply-btn {
+      padding: 0.6rem 1rem;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .promo-apply-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
+    }
+
+    .promo-apply-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .promo-apply-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .promo-status {
+      font-size: 0.85rem;
+      margin-top: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .promo-status.saving {
+      color: var(--text-secondary);
+    }
+
+    .promo-status.saved {
+      color: #00c853;
+    }
+
+    .promo-status.error {
+      color: #ff6b6b;
+    }
+
+    .item-variations {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
     .summary {
       background: var(--bg-card);
       backdrop-filter: blur(20px);
@@ -593,6 +680,10 @@
             <span>Subtotal</span>
             <span id="subtotal">₦0.00</span>
           </div>
+          <div class="summary-row" id="tax-row">
+            <span>Tax (VAT)</span>
+            <span id="tax">₦0.00</span>
+          </div>
           <div class="summary-row" id="shipping-estimate-row">
             <span>Shipping (estimate)</span>
             <span id="shipping">Calculating...</span>
@@ -627,6 +718,7 @@
   <script>
     let cartData = null;
     let estimatedShipping = 0;
+    let estimatedTax = 0;
 
     // Define global functions FIRST before they're used in HTML generation
     window.validateCartQuantity = function(itemId, value) {
@@ -824,19 +916,22 @@
         const response = await SuperAffiliateAPI.apiRequest(`/commerce/cart/?_t=${timestamp}`);
         const items = response.items || [];
         
-        // Calculate totals
-        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
+        // Calculate totals using discounted prices from API
+        const subtotal = items.reduce((sum, item) => sum + parseFloat(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity || 0), 0);
 
         const formatCurrency = (amount) => {
           return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
         };
 
         document.getElementById('subtotal').textContent = formatCurrency(subtotal);
-        
+
+        // Calculate tax estimate
+        calculateTaxEstimate(items, subtotal);
+
         // Recalculate shipping estimate when quantity changes
         calculateShippingEstimate(items, subtotal);
-        
-        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedShipping);
+
+        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedTax + estimatedShipping);
         
         // Also update individual item quantities in case they changed
         items.forEach(item => {
@@ -968,12 +1063,28 @@
       const itemsContainer = document.getElementById('cart-items');
       itemsContainer.innerHTML = items.map(item => {
         const imageUrl = getImageUrl(item.product);
+        const promoCode = (item.applied_promo_code || '').trim();
+        const variations = (item.selected_variations && typeof item.selected_variations === 'object')
+          ? Object.entries(item.selected_variations)
+              .filter(([k, v]) => v !== null && v !== undefined && String(v).trim().length > 0)
+              .map(([k, v]) => `${k}: ${v}`)
+          : [];
+        
         return `
-        <div class="cart-item">
+        <div class="cart-item" data-item-id="${item.id}">
           ${imageUrl ? `<img src="${imageUrl}" alt="${item.product?.name || 'Product'}" class="item-image" onerror="this.style.display='none';">` : '<div class="item-image" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
           <div class="item-info">
             <div class="item-name">${item.product?.name || 'Product'}</div>
-            <div class="item-price">${formatCurrency(item.product?.price || 0)}</div>
+            ${variations.length ? `<div class="item-variations">Options: ${variations.join(' · ')}</div>` : ''}
+            <div class="item-price">
+              ${item.discount_amount > 0 ? `
+                <span style="text-decoration: line-through; color: var(--text-secondary); font-size: 0.9em; margin-right: 0.5rem;">
+                  ${formatCurrency(item.original_unit_price || item.product?.price || 0)}
+                </span>
+                <span style="color: #00c853;">${formatCurrency(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity)}</span>
+                <span style="font-size: 0.85em; color: #00c853; margin-left: 0.5rem;">(${formatCurrency((item.discount_amount || 0) * item.quantity)})</span>
+              ` : formatCurrency(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity)}
+            </div>
             <div class="item-actions">
               <label style="color: var(--text-secondary); font-size: 0.9rem;">Qty:</label>
               <div class="quantity-selector">
@@ -995,21 +1106,92 @@
                 <i class="fas fa-trash"></i> Remove
               </button>
             </div>
+            <div class="promo-input-wrapper">
+              <input type="text" 
+                     class="promo-input" 
+                     id="promo-${item.id}"
+                     value="${promoCode}"
+                     placeholder="Promo code (optional)"
+                     data-item-id="${item.id}"
+                     data-quantity="${item.quantity}"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault(); window.savePromoCode('${item.id}', true);}">
+              <button type="button" 
+                      class="promo-apply-btn" 
+                      onclick="window.savePromoCode('${item.id}', true)"
+                      id="promo-apply-${item.id}">
+                Apply
+              </button>
+              <span class="promo-status" id="promo-status-${item.id}"></span>
+            </div>
           </div>
         </div>
       `;
       }).join('');
 
-      // Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.product?.price || 0) * item.quantity), 0);
+        // Calculate totals using discounted prices from API
+        const subtotal = items.reduce((sum, item) => sum + parseFloat(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity || 0), 0);
+        
+        document.getElementById('subtotal').textContent = formatCurrency(subtotal);
       
-      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+      // Calculate tax estimate
+      calculateTaxEstimate(items, subtotal);
       
       // Start shipping estimate calculation
       calculateShippingEstimate(items, subtotal);
       
-      // Show initial total without shipping
-      document.getElementById('total').textContent = formatCurrency(subtotal);
+      // Show initial total without shipping/tax
+      document.getElementById('total').textContent = formatCurrency(subtotal + estimatedTax);
+    }
+
+    async function calculateTaxEstimate(items, subtotal) {
+      const formatCurrency = (amount) => {
+        return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      };
+
+      try {
+        // Group items by seller (same logic as shipping)
+        const itemsBySeller = {};
+        items.forEach(item => {
+          const sellerId = item.product?.creator?.id;
+          if (sellerId) {
+            if (!itemsBySeller[sellerId]) {
+              itemsBySeller[sellerId] = {
+                seller: item.product.creator,
+                sellerInfo: item.product?.creator_seller_info || {},
+                items: [],
+                subtotal: 0
+              };
+            }
+            itemsBySeller[sellerId].items.push(item);
+            itemsBySeller[sellerId].subtotal += parseFloat(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity || 0);
+          }
+        });
+
+        // Calculate tax for each seller group
+        let totalTax = 0;
+        const DEFAULT_TAX_RATE = 7.5; // 7.5% VAT default
+
+        for (const [sellerId, sellerGroup] of Object.entries(itemsBySeller)) {
+          // Get tax rate from seller info or use default
+          let taxRate = DEFAULT_TAX_RATE;
+          if (sellerGroup.sellerInfo?.tax_rate !== undefined && sellerGroup.sellerInfo.tax_rate !== null) {
+            taxRate = parseFloat(sellerGroup.sellerInfo.tax_rate);
+          } else if (sellerGroup.seller?.tax_rate !== undefined && sellerGroup.seller.tax_rate !== null) {
+            taxRate = parseFloat(sellerGroup.seller.tax_rate);
+          }
+
+          // Calculate tax: subtotal * (tax_rate / 100)
+          const sellerTax = sellerGroup.subtotal * (taxRate / 100.0);
+          totalTax += sellerTax;
+        }
+
+        estimatedTax = totalTax;
+        document.getElementById('tax').textContent = formatCurrency(totalTax);
+      } catch (error) {
+        console.error('Error calculating tax estimate:', error);
+        estimatedTax = 0;
+        document.getElementById('tax').textContent = formatCurrency(0);
+      }
     }
 
     async function calculateShippingEstimate(items, subtotal) {
@@ -1046,7 +1228,7 @@
               };
             }
             itemsBySeller[sellerId].items.push(item);
-            itemsBySeller[sellerId].subtotal += parseFloat(item.product?.price || 0) * item.quantity;
+            itemsBySeller[sellerId].subtotal += parseFloat(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity || 0);
           }
         });
         
@@ -1106,16 +1288,34 @@
           document.getElementById('shipping-note').innerHTML = '<i class="fas fa-gift"></i> Free shipping available!';
         } else {
           document.getElementById('shipping').textContent = 'TBD';
-          document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+          // Check if user has no address - show helpful hint
+          if (!defaultAddress) {
+            document.getElementById('shipping-note').innerHTML = '<i class="fas fa-map-marker-alt"></i> Add a shipping address to see shipping cost.';
+          } else {
+            document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+          }
         }
         
-        // Update total
-        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedShipping);
+        // Update total (tax already calculated)
+        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedTax + estimatedShipping);
         
       } catch (error) {
         console.error('Error calculating shipping estimate:', error);
         document.getElementById('shipping').textContent = 'TBD';
-        document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+        // Check if error is due to no address
+        try {
+          const addressResponse = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
+          const addresses = Array.isArray(addressResponse) 
+            ? addressResponse 
+            : (addressResponse.results || addressResponse.data || []);
+          if (!addresses || addresses.length === 0) {
+            document.getElementById('shipping-note').innerHTML = '<i class="fas fa-map-marker-alt"></i> Add a shipping address to see shipping cost.';
+          } else {
+            document.getElementById('shipping-note').innerHTML = '<i class="fas fa-info-circle"></i> Shipping calculated at checkout.';
+          }
+        } catch (addrError) {
+          document.getElementById('shipping-note').innerHTML = '<i class="fas fa-map-marker-alt"></i> Add a shipping address to see shipping cost.';
+        }
       }
     }
 
@@ -1176,6 +1376,107 @@
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     }
+
+    // Promo code management
+    const promoLastSaved = {};
+
+    window.savePromoCode = async function(itemId, showToastOnSave) {
+      const input = document.getElementById(`promo-${itemId}`);
+      const statusEl = document.getElementById(`promo-status-${itemId}`);
+      const applyBtn = document.getElementById(`promo-apply-${itemId}`);
+      const qtyInput = document.getElementById(`qty-${itemId}`);
+      
+      if (!input || !statusEl) return;
+      
+      // Normalize code: remove all whitespace and convert to uppercase (matches backend normalization)
+      const code = input.value.trim().replace(/\s+/g, '').toUpperCase();
+      const lastSaved = promoLastSaved[itemId] || '';
+      
+      // Don't save if unchanged
+      if (code === lastSaved) {
+        if (code && showToastOnSave) {
+          showToast('Promo code already applied', 'info');
+        }
+        return;
+      }
+      
+      const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+      
+      // Disable button during save
+      if (applyBtn) applyBtn.disabled = true;
+      
+      // Show saving state
+      statusEl.className = 'promo-status saving';
+      statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
+      
+      try {
+        const numItemId = typeof itemId === 'string' ? parseInt(itemId) : itemId;
+        
+        // Normalize the code before sending (backend expects normalized format)
+        await SuperAffiliateAPI.updateCartItem(numItemId, quantity, { applied_promo_code: code });
+        
+        promoLastSaved[itemId] = code;
+        
+        if (code) {
+          statusEl.className = 'promo-status saved';
+          statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Applied! Discount will be applied at checkout.';
+          if (showToastOnSave) {
+            showToast('Promo code applied successfully!', 'success');
+          }
+          // Update input to show normalized version
+          input.value = code;
+        } else {
+          statusEl.className = 'promo-status';
+          statusEl.innerHTML = '';
+          if (showToastOnSave) {
+            showToast('Promo code removed', 'success');
+          }
+        }
+        
+        // Refresh totals and reload cart to get updated data
+        await loadCart();
+      } catch (error) {
+        console.error('Error saving promo code:', error);
+        statusEl.className = 'promo-status error';
+        
+        // Extract error message from response
+        let errorMsg = 'Invalid promo code';
+        if (error.message) {
+          errorMsg = error.message;
+        } else if (error.response && error.response.data && error.response.data.error) {
+          errorMsg = error.response.data.error;
+        }
+        
+        statusEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMsg}`;
+        
+        if (showToastOnSave) {
+          showToast(errorMsg, 'error');
+        }
+        
+        // Reset input to last saved value
+        if (lastSaved) {
+          input.value = lastSaved;
+        } else {
+          input.value = '';
+        }
+        
+        // Clear error after a few seconds
+        setTimeout(() => {
+          if (statusEl.classList.contains('error')) {
+            if (promoLastSaved[itemId]) {
+              statusEl.className = 'promo-status saved';
+              statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Applied! Discount will be applied at checkout.';
+            } else {
+              statusEl.className = 'promo-status';
+              statusEl.innerHTML = '';
+            }
+          }
+        }, 5000);
+      } finally {
+        // Re-enable button
+        if (applyBtn) applyBtn.disabled = false;
+      }
+    };
 
     // Initialize
     loadCart();

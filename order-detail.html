@@ -898,7 +898,7 @@
                   ` : ''}
                 </div>
                 <div class="item-quantity">Quantity: ${item.quantity}</div>
-                ${variations.length ? `<div class="item-quantity" style="margin-top: 0.25rem; color: var(--text-secondary);">Options: ${variations.join(' · ')}</div>` : ''}
+                ${variations.length ? `<div class="item-quantity" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0, 242, 234, 0.1); border-left: 3px solid var(--accent-color); border-radius: 0.25rem; color: var(--accent-color); font-weight: 500;"><strong>Selected Options:</strong> ${variations.map(v => `<span style="margin-left: 0.5rem;">${v}</span>`).join('')}</div>` : ''}
                 ${promoCode && showDiscount ? `<div class="item-quantity" style="margin-top: 0.25rem; color: var(--accent-color);">Promo applied: <strong>${promoCode}</strong> (${formatCurrency(discount)} off)</div>` : ''}
                 
                 ${hasDownloadLink ? `

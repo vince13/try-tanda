@@ -163,7 +163,20 @@
       color: var(--accent-color);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+    }
+
+    .section-title i {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+      border-radius: 12px;
+      color: white;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
     }
 
     .form-group {
@@ -432,26 +445,26 @@
           </div>
 
           <div class="form-group">
-            <label for="shop_logo">Shop Logo</label>
+            <label for="shop_logo">Shop Logo <span class="required">*</span></label>
             <div class="file-upload">
-              <input type="file" id="shop_logo" name="shop_logo" accept="image/*">
+              <input type="file" id="shop_logo" name="shop_logo" accept="image/*" required>
               <label for="shop_logo" class="file-upload-label">
                 <i class="fas fa-upload"></i>
                 <span>Click to upload logo</span>
               </label>
             </div>
             <div class="file-name" id="logo-file-name"></div>
+            <div class="form-help">Required to make your shop stand out</div>
           </div>
 
           <div class="form-group">
             <label for="business_type">Business Type <span class="required">*</span></label>
             <select id="business_type" name="business_type" required>
               <option value="">Select business type</option>
-              <option value="Individual">Individual</option>
-              <option value="Sole Proprietorship">Sole Proprietorship</option>
-              <option value="Partnership">Partnership</option>
-              <option value="Limited Liability Company">Limited Liability Company</option>
-              <option value="Corporation">Corporation</option>
+              <option value="Individual">Individual (Freelancer/Sole Proprietor)</option>
+              <option value="Retail">Retail (Physical Store)</option>
+              <option value="Wholesale">Wholesale (Bulk Seller)</option>
+              <option value="Online Business">Online Business (E-commerce)</option>
             </select>
           </div>
         </div>
@@ -465,7 +478,8 @@
           <div class="form-row">
             <div class="form-group">
               <label for="business_phone">Business Phone</label>
-              <input type="tel" id="business_phone" name="business_phone" placeholder="+234 800 000 0000">
+              <input type="tel" id="business_phone" name="business_phone" placeholder="e.g., 08123456789" pattern="[0-9]{7,15}" maxlength="15" inputmode="numeric">
+              <div class="form-help">Numbers only, 7-15 digits</div>
             </div>
             <div class="form-group">
               <label for="business_email">Business Email</label>
@@ -511,6 +525,12 @@
           <div class="form-group">
             <label for="street_address">Street Address</label>
             <input type="text" id="street_address" name="street_address" placeholder="123 Main Street">
+          </div>
+
+          <div class="form-group">
+            <label for="landmark">Landmark <span class="required">*</span></label>
+            <input type="text" id="landmark" name="landmark" placeholder="e.g., Near Eko Hotel" required>
+            <div class="form-help">Helps customers and delivery locate your shop</div>
           </div>
         </div>
 
@@ -559,8 +579,8 @@
 
           <div class="form-group">
             <label for="nin">NIN (optional)</label>
-            <input type="text" id="nin" name="nin" placeholder="11-digit NIN" pattern="[0-9]{11}" maxlength="11">
-            <div class="form-help">National Identification Number for additional verification</div>
+            <input type="text" id="nin" name="nin" placeholder="11-digit NIN" pattern="[0-9]{11}" maxlength="11" inputmode="numeric">
+            <div class="form-help">National Identification Number - numbers only, exactly 11 digits</div>
           </div>
         </div>
 
@@ -690,6 +710,7 @@
       if (profile.city) document.getElementById('city').value = profile.city;
       if (profile.local_government) document.getElementById('local_government').value = profile.local_government;
       if (profile.street_address) document.getElementById('street_address').value = profile.street_address;
+      if (profile.landmark) document.getElementById('landmark').value = profile.landmark;
       if (profile.bank_name) {
         document.getElementById('bank_name').value = profile.bank_name;
         document.getElementById('bank_search').value = profile.bank_name;
@@ -1043,6 +1064,38 @@
         return;
       }
 
+      // Validate landmark (required field)
+      const landmark = document.getElementById('landmark').value.trim();
+      if (!landmark) {
+        showAlert('Landmark is required. Please provide a landmark near your location.', 'error');
+        document.getElementById('landmark').focus();
+        return;
+      }
+
+      // Validate shop logo (required for new applications)
+      const shopLogo = document.getElementById('shop_logo').files[0];
+      if (!isEditMode && !shopLogo) {
+        showAlert('Shop Logo is required. Please upload your shop logo.', 'error');
+        document.getElementById('shop_logo').focus();
+        return;
+      }
+
+      // Validate phone number (if provided, must be 7-15 digits)
+      const businessPhone = document.getElementById('business_phone').value.trim();
+      if (businessPhone && !/^[0-9]{7,15}$/.test(businessPhone)) {
+        showAlert('Phone number must be 7-15 digits only (no spaces or special characters).', 'error');
+        document.getElementById('business_phone').focus();
+        return;
+      }
+
+      // Validate NIN (if provided, must be exactly 11 digits)
+      const nin = document.getElementById('nin').value.trim();
+      if (nin && !/^[0-9]{11}$/.test(nin)) {
+        showAlert('NIN must be exactly 11 digits.', 'error');
+        document.getElementById('nin').focus();
+        return;
+      }
+
       // Validate ID Document (only required for new applications, optional for edits)
       const idDocument = document.getElementById('id_document').files[0];
       if (!isEditMode && !idDocument) {
@@ -1077,7 +1130,7 @@
         const formFields = [
           'shop_name', 'shop_description', 'business_type',
           'business_phone', 'business_email', 'website',
-          'country', 'state', 'city', 'local_government', 'street_address',
+          'country', 'state', 'city', 'local_government', 'street_address', 'landmark',
           'bank_name', 'account_number', 'account_name', 'nin'
         ];
 
