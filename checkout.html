@@ -155,6 +155,22 @@
       grid-template-columns: 2fr 1fr;
       gap: 2rem;
     }
+    
+    /* In mobile, reorder so summary (with button) appears first */
+    @media (max-width: 768px) {
+      .checkout-layout {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .checkout-layout > div:first-child {
+        order: 2; /* Form appears second */
+      }
+      
+      .checkout-layout .summary {
+        order: 1; /* Summary appears first */
+      }
+    }
 
     .card {
       background: var(--bg-card);
@@ -764,10 +780,6 @@
                 </label>
               </div>
             </div>
-
-            <button type="submit" class="btn" id="checkout-btn">
-              <i class="fas fa-lock"></i> Complete Order
-            </button>
           </form>
         </div>
 
@@ -793,6 +805,11 @@
             <span>Total</span>
             <span id="total">₦0.00</span>
           </div>
+          
+          <!-- Complete Order Button - Moved here to appear below order summary -->
+          <button type="submit" form="checkout-form" class="btn" id="checkout-btn">
+            <i class="fas fa-lock"></i> Complete Order
+          </button>
         </div>
       </div>
     </div>
@@ -855,6 +872,23 @@
           }
           document.getElementById('shipping-method-card').style.display = 'none';
           currentShippingCost = 0;
+          
+          // Remove required attributes from shipping address fields for digital-only carts
+          const requiredFields = [
+            'shipping-full-name',
+            'shipping-phone',
+            'shipping-address',
+            'shipping-city',
+            'shipping-state',
+            'shipping-country'
+          ];
+          requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+              field.removeAttribute('required');
+            }
+          });
+          
           updateOrderTotals();
         } else {
           // Load shipping addresses only for non-digital carts
