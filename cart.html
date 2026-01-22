@@ -1194,10 +1194,37 @@
       }
     }
 
+    // Check if cart contains only digital products
+    function isDigitalOnlyCart(items) {
+      if (!items || items.length === 0) return false;
+      
+      for (const item of items) {
+        const product = item.product || item;
+        const productType = product.product_type || product.productType || 'physical';
+        
+        // If any product is physical or hybrid (contains physical component), cart is not digital-only
+        if (productType === 'physical' || productType === 'hybrid') {
+          return false;
+        }
+      }
+      
+      // All products are digital
+      return true;
+    }
+
     async function calculateShippingEstimate(items, subtotal) {
       const formatCurrency = (amount) => {
         return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
       };
+      
+      // If cart contains only digital products, no shipping needed
+      if (isDigitalOnlyCart(items)) {
+        estimatedShipping = 0;
+        document.getElementById('shipping').textContent = 'FREE';
+        document.getElementById('shipping-note').innerHTML = '<i class="fas fa-download"></i> Digital products - No shipping required';
+        document.getElementById('total').textContent = formatCurrency(subtotal + estimatedTax);
+        return;
+      }
       
       try {
         // Get user's default shipping address
@@ -1215,9 +1242,17 @@
           console.log('No saved addresses for shipping estimate');
         }
         
-        // Group items by seller
+        // Group items by seller (filter out digital products)
         const itemsBySeller = {};
         items.forEach(item => {
+          const product = item.product || item;
+          const productType = product.product_type || product.productType || 'physical';
+          
+          // Skip digital-only products (hybrid products still need shipping)
+          if (productType === 'digital') {
+            return;
+          }
+          
           const sellerId = item.product?.creator?.id;
           if (sellerId) {
             if (!itemsBySeller[sellerId]) {

@@ -782,7 +782,7 @@
             <span>Tax (VAT)</span>
             <span id="tax">₦0.00</span>
           </div>
-          <div class="summary-row">
+          <div class="summary-row" id="shipping-row">
             <span>Shipping</span>
             <span id="shipping">₦0.00</span>
           </div>
@@ -817,6 +817,24 @@
     // Render auth nav
     SuperAffiliateAPI.renderAuthNav('authNav');
 
+    // Check if cart contains only digital products
+    function isDigitalOnlyCart(items) {
+      if (!items || items.length === 0) return false;
+      
+      for (const item of items) {
+        const product = item.product || item;
+        const productType = product.product_type || product.productType || 'physical';
+        
+        // If any product is physical or hybrid (contains physical component), cart is not digital-only
+        if (productType === 'physical' || productType === 'hybrid') {
+          return false;
+        }
+      }
+      
+      // All products are digital
+      return true;
+    }
+
     async function loadCart() {
       try {
         const response = await SuperAffiliateAPI.getCart();
@@ -825,8 +843,23 @@
         document.getElementById('loading-section').style.display = 'none';
         document.getElementById('checkout-section').style.display = 'block';
         
-        // Load shipping addresses
-        await loadShippingAddresses();
+        const items = response.items || [];
+        const isDigitalOnly = isDigitalOnlyCart(items);
+        
+        // Hide shipping address and shipping method sections for digital-only carts
+        if (isDigitalOnly) {
+          // Hide the shipping address card (the card containing "Shipping Address" h2)
+          const shippingAddressCard = document.querySelector('.card h2')?.parentElement;
+          if (shippingAddressCard && shippingAddressCard.querySelector('h2')?.textContent === 'Shipping Address') {
+            shippingAddressCard.style.display = 'none';
+          }
+          document.getElementById('shipping-method-card').style.display = 'none';
+          currentShippingCost = 0;
+          updateOrderTotals();
+        } else {
+          // Load shipping addresses only for non-digital carts
+          await loadShippingAddresses();
+        }
       } catch (error) {
         console.error('Error loading cart:', error);
         window.location.href = 'cart.html';
@@ -994,6 +1027,14 @@
         return `₦${parseFloat(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
       };
 
+      // Check if cart is digital-only
+      const isDigitalOnly = isDigitalOnlyCart(items);
+      
+      // If digital-only, set shipping cost to 0
+      if (isDigitalOnly) {
+        currentShippingCost = 0;
+      }
+
       // Use discounted prices from API (item.total_price includes promo discounts)
       const subtotal = items.reduce((sum, item) => sum + parseFloat(item.total_price || (item.unit_price || item.product?.price || 0) * item.quantity || 0), 0);
       
@@ -1030,12 +1071,21 @@
         totalTax += sellerTax;
       }
 
-      const shipping = currentShippingCost;
+      const shipping = isDigitalOnly ? 0 : currentShippingCost;
       const total = subtotal + totalTax + shipping;
 
       document.getElementById('subtotal').textContent = formatCurrency(subtotal);
       document.getElementById('tax').textContent = formatCurrency(totalTax);
-      document.getElementById('shipping').textContent = formatCurrency(shipping);
+      
+      // Hide shipping row for digital-only carts, or show cost for physical products
+      const shippingRow = document.getElementById('shipping-row');
+      if (isDigitalOnly) {
+        if (shippingRow) shippingRow.style.display = 'none';
+      } else {
+        if (shippingRow) shippingRow.style.display = 'flex';
+        document.getElementById('shipping').textContent = formatCurrency(shipping);
+      }
+      
       document.getElementById('total').textContent = formatCurrency(total);
     }
 
@@ -1050,6 +1100,18 @@
       }
 
       try {
+        const items = cartData.items || [];
+        
+        // If cart contains only digital products, no shipping needed
+        if (isDigitalOnlyCart(items)) {
+          currentShippingCost = 0;
+          sellerShippingOptions = {};
+          selectedShippingMethods = {};
+          document.getElementById('shipping-method-card').style.display = 'none';
+          updateOrderTotals();
+          return;
+        }
+
         // Show shipping method card with loading state
         const shippingCard = document.getElementById('shipping-method-card');
         const shippingContainer = document.getElementById('shipping-methods-container');
@@ -1070,10 +1132,17 @@
           return;
         }
 
-        // Group items by seller
-        const items = cartData.items || [];
+        // Group items by seller (filter out digital products)
         const itemsBySeller = {};
         items.forEach(item => {
+          const product = item.product || item;
+          const productType = product.product_type || product.productType || 'physical';
+          
+          // Skip digital-only products (hybrid products still need shipping)
+          if (productType === 'digital') {
+            return;
+          }
+          
           const sellerId = item.product?.creator?.id;
           if (sellerId) {
             if (!itemsBySeller[sellerId]) {
@@ -1137,11 +1206,23 @@
           }
         }
 
-        // Display shipping options
-        displayShippingMethods();
+        // Check if there are any physical products that need shipping
+        const physicalItemsCount = Object.keys(itemsBySeller).length;
         
-        // Calculate total shipping
-        recalculateTotalShipping();
+        if (physicalItemsCount === 0) {
+          // All items are digital - no shipping needed
+          currentShippingCost = 0;
+          sellerShippingOptions = {};
+          selectedShippingMethods = {};
+          document.getElementById('shipping-method-card').style.display = 'none';
+          updateOrderTotals();
+        } else {
+          // Display shipping options
+          displayShippingMethods();
+          
+          // Calculate total shipping
+          recalculateTotalShipping();
+        }
         
       } catch (error) {
         console.error('Error calculating shipping cost:', error);
@@ -1375,8 +1456,12 @@
         }
       }
 
-      // Validate that we have an address ID
-      if (!shippingAddressId) {
+      // Check if cart is digital-only
+      const items = cartData.items || [];
+      const isDigitalOnly = isDigitalOnlyCart(items);
+      
+      // Only require shipping address for non-digital-only carts
+      if (!isDigitalOnly && !shippingAddressId) {
         showToast('Please select or add a shipping address', 'error');
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
@@ -1386,17 +1471,22 @@
       try {
 
         // Create order with shipping methods
+        // For digital-only carts, shipping address and method are optional (can be null/empty)
         const orderData = {
-          shipping_address: shippingAddressId,
-          billing_address: shippingAddressId, // Use same for billing
           payment_method: document.querySelector('input[name="payment_method"]:checked').value,
           // Explicitly set callback URL so Paystack redirects back to the same origin
           // (works for both localhost and production like https://app.tanda.media)
           callback_url: `${window.location.origin}/payment-callback.html`,
         };
         
-        // Include selected shipping methods if available
-        if (Object.keys(selectedShippingMethods).length > 0) {
+        // Only include shipping address and methods for non-digital-only carts
+        if (!isDigitalOnly) {
+          orderData.shipping_address = shippingAddressId;
+          orderData.billing_address = shippingAddressId; // Use same for billing
+        }
+        
+        // Include selected shipping methods if available (only for non-digital carts)
+        if (!isDigitalOnly && Object.keys(selectedShippingMethods).length > 0) {
           orderData.shipping_methods = {};
           for (const [sellerId, method] of Object.entries(selectedShippingMethods)) {
             orderData.shipping_methods[sellerId] = {
