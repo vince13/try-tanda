@@ -1421,41 +1421,47 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
+      // Check if cart is digital-only FIRST, before any shipping validation
+      const items = cartData.items || [];
+      const isDigitalOnly = isDigitalOnlyCart(items);
+      
       let shippingAddressId = null;
 
-      // Validate shipping method selection (if shipping options exist)
-      const sellerIds = Object.keys(sellerShippingOptions);
-      if (sellerIds.length > 0) {
-        // Check that all sellers have a shipping method selected
-        for (const sellerId of sellerIds) {
-          if (!selectedShippingMethods[sellerId]) {
-            showToast('Please select a shipping method for all sellers', 'error');
+      // Only validate shipping for non-digital-only carts
+      if (!isDigitalOnly) {
+        // Validate shipping method selection (if shipping options exist)
+        const sellerIds = Object.keys(sellerShippingOptions);
+        if (sellerIds.length > 0) {
+          // Check that all sellers have a shipping method selected
+          for (const sellerId of sellerIds) {
+            if (!selectedShippingMethods[sellerId]) {
+              showToast('Please select a shipping method for all sellers', 'error');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
+              return;
+            }
+          }
+        }
+
+        // Check if user selected an existing address
+        if (selectedAddressId) {
+          shippingAddressId = selectedAddressId;
+          console.log('Using existing shipping address:', shippingAddressId);
+        } else {
+          // User is creating a new address - validate form
+          const fullName = document.getElementById('shipping-full-name').value.trim();
+          const phone = document.getElementById('shipping-phone').value.trim();
+          const address = document.getElementById('shipping-address').value.trim();
+          const city = document.getElementById('shipping-city').value.trim();
+          const state = document.getElementById('shipping-state').value.trim();
+          const country = document.getElementById('shipping-country').value.trim();
+
+          if (!fullName || !phone || !address || !city || !state || !country) {
+            showToast('Please fill in all shipping details', 'error');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
             return;
           }
-        }
-      }
-
-      // Check if user selected an existing address
-      if (selectedAddressId) {
-        shippingAddressId = selectedAddressId;
-        console.log('Using existing shipping address:', shippingAddressId);
-      } else {
-        // User is creating a new address - validate form
-        const fullName = document.getElementById('shipping-full-name').value.trim();
-        const phone = document.getElementById('shipping-phone').value.trim();
-        const address = document.getElementById('shipping-address').value.trim();
-        const city = document.getElementById('shipping-city').value.trim();
-        const state = document.getElementById('shipping-state').value.trim();
-        const country = document.getElementById('shipping-country').value.trim();
-
-        if (!fullName || !phone || !address || !city || !state || !country) {
-          showToast('Please fill in all shipping details', 'error');
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
-          return;
-        }
 
         // Create new shipping address
         const shippingAddressData = {
@@ -1488,18 +1494,6 @@
           btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
           return; // Stop execution
         }
-      }
-
-      // Check if cart is digital-only
-      const items = cartData.items || [];
-      const isDigitalOnly = isDigitalOnlyCart(items);
-      
-      // Only require shipping address for non-digital-only carts
-      if (!isDigitalOnly && !shippingAddressId) {
-        showToast('Please select or add a shipping address', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
-        return;
       }
 
       try {
