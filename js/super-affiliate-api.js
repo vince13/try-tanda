@@ -1358,9 +1358,9 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       <a href="upload.html" class="nav-link-btn" aria-label="Upload">
         <i class="fas fa-cloud-upload-alt"></i> Upload
       </a>
-      <a href="cart.html" class="nav-link-btn" aria-label="Shopping Cart" style="position: relative;" onclick="if(!SuperAffiliateAPI.isAuthenticated()) { event.preventDefault(); window.location.href='super-affiliate-login.html?redirect=' + encodeURIComponent('cart.html'); }">
+      <a href="cart.html" class="nav-link-btn" aria-label="Shopping Cart" style="position: relative; overflow: visible;" onclick="if(!SuperAffiliateAPI.isAuthenticated()) { event.preventDefault(); window.location.href='super-affiliate-login.html?redirect=' + encodeURIComponent('cart.html'); }">
         <i class="fas fa-shopping-cart"></i> Cart
-        <span id="cart-badge" style="display: none; position: absolute; top: -8px; right: -8px; background: #ff0050; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10;">0</span>
+        <span id="cart-badge" style="display: none; position: absolute; top: -6px; right: -6px; background: #ff0050; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; overflow: visible;">0</span>
       </a>
       <div class="user-menu-dropdown">
         <button class="user-menu-toggle" id="userMenuToggle" aria-label="User menu">
@@ -1442,6 +1442,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         cursor: pointer !important;
         outline: none !important;
         white-space: nowrap !important;
+        overflow: visible !important;
       }
       .nav-link-btn:hover {
         color: #00f2ea !important;
@@ -1522,8 +1523,8 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       /* Cart badge styling */
       #cart-badge {
         position: absolute !important;
-        top: -8px !important;
-        right: -8px !important;
+        top: -6px !important;
+        right: -6px !important;
         background: #ff0050 !important;
         color: white !important;
         border-radius: 50% !important;
@@ -1535,6 +1536,18 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         justify-content: center !important;
         font-weight: 700 !important;
         z-index: 10 !important;
+        overflow: visible !important;
+      }
+      
+      /* Ensure cart link allows badge overflow */
+      .nav-link-btn[aria-label="Shopping Cart"] {
+        overflow: visible !important;
+      }
+      
+      /* Ensure parent containers allow overflow */
+      .user-menu-wrapper,
+      .tanda-nav-container {
+        overflow: visible !important;
       }
       
       #cart-badge[style*="display: none"] {
