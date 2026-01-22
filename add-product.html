@@ -586,8 +586,8 @@
           </div>
 
           <div class="form-group">
-            <label for="description">Description <span class="required">*</span></label>
-            <textarea id="description" name="description" required placeholder="Describe your product in detail..."></textarea>
+            <label for="description">Product Description <span class="required">*</span></label>
+            <textarea id="description" name="description" required placeholder="Describe your product in detail (what it is, features, benefits, etc.)..."></textarea>
           </div>
 
           <div class="form-group">
@@ -734,8 +734,9 @@
           </div>
 
           <div class="form-group">
-            <label for="digital_description">Digital Product Description</label>
-            <textarea id="digital_description" name="digital_description" placeholder="Additional details about the digital product (file contents, usage instructions, etc.)"></textarea>
+            <label for="digital_description">Digital Product Details (Optional)</label>
+            <textarea id="digital_description" name="digital_description" placeholder="Additional information specific to the digital file (e.g., file contents, system requirements, usage instructions, license terms, etc.)"></textarea>
+            <div class="form-help" style="margin-top: 0.5rem;">This is separate from the main product description above. Use this for digital-specific details.</div>
           </div>
         </div>
 
@@ -1592,6 +1593,11 @@
             body: formData,
           });
           showAlert('Product updated successfully!', 'success');
+          // Hide upload progress indicator
+          const digitalFileProgress = document.getElementById('digital-file-progress');
+          const digitalFileUploading = document.getElementById('digital-file-uploading');
+          if (digitalFileProgress) digitalFileProgress.style.display = 'none';
+          if (digitalFileUploading) digitalFileUploading.style.display = 'none';
           setTimeout(() => {
             window.location.href = `product-detail.html?id=${editProductId}`;
           }, 1500);
@@ -1602,6 +1608,11 @@
             body: formData,
           });
           showAlert('Product created successfully!', 'success');
+          // Hide upload progress indicator
+          const digitalFileProgress = document.getElementById('digital-file-progress');
+          const digitalFileUploading = document.getElementById('digital-file-uploading');
+          if (digitalFileProgress) digitalFileProgress.style.display = 'none';
+          if (digitalFileUploading) digitalFileUploading.style.display = 'none';
           setTimeout(() => {
             window.location.href = `product-detail.html?id=${response.id}`;
           }, 1500);
@@ -1611,6 +1622,11 @@
         console.error(`Error ${isEditMode ? 'updating' : 'creating'} product:`, error);
         const errorMessage = error.message || `Failed to ${isEditMode ? 'update' : 'create'} product. Please try again.`;
         showAlert(errorMessage, 'error');
+        // Hide upload progress indicator on error
+        const digitalFileProgress = document.getElementById('digital-file-progress');
+        const digitalFileUploading = document.getElementById('digital-file-uploading');
+        if (digitalFileProgress) digitalFileProgress.style.display = 'none';
+        if (digitalFileUploading) digitalFileUploading.style.display = 'none';
         btn.disabled = false;
         btn.innerHTML = isEditMode 
           ? '<i class="fas fa-save"></i> Update Product'
