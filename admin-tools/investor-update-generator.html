@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Tanda – Investor update generator (admin)</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #3d8bfd;
+      --accent-dim: #2a5fad;
+      --ok: #34c759;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+    h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .warn {
+      background: #3a2a1a;
+      border: 1px solid #6b4e2e;
+      color: #f5d4a8;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    .grid { display: grid; gap: 1rem; }
+    label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.95rem;
+    }
+    textarea { min-height: 5.5rem; resize: vertical; font-family: inherit; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .row2 { grid-template-columns: 1fr; } }
+    .btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button:hover { background: var(--accent-dim); }
+    button.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+    button.secondary:hover { border-color: var(--muted); }
+    button.danger { background: #5c2d2d; }
+    button.danger:hover { background: #7a3a3a; }
+    .out-wrap { margin-top: 1.25rem; }
+    #output {
+      width: 100%;
+      min-height: 280px;
+      background: #0a0e14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8rem;
+      color: #c8d4e4;
+      white-space: pre-wrap;
+    }
+    .press-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
+    .press-row input { flex: 1; }
+    .press-row button { padding: 0.45rem 0.65rem; font-size: 0.8rem; }
+    footer { margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Tanda – Investor update generator</h1>
+    <p class="sub">For FasterCapital and other partners. Output is copied or downloaded – nothing is sent to a server.</p>
+    <div class="warn">
+      <strong>Private use.</strong> If this folder is deployed on public GitHub Pages, anyone can open it. Prefer running locally or protect <code>/admin-tools/</code> with your host’s access control (see <code>README.md</code>).
+    </div>
+
+    <div class="grid">
+      <div class="row2">
+        <div>
+          <label for="weekEnding">Week / as-of date</label>
+          <input type="date" id="weekEnding" />
+        </div>
+        <div>
+          <label for="subjectLine">Email subject (optional)</label>
+          <input type="text" id="subjectLine" placeholder="Tanda – Weekly investor update" />
+        </div>
+      </div>
+
+      <div>
+        <label for="product">Product / releases</label>
+        <textarea id="product" placeholder="e.g. Live on Google Play (invite-only); final QA before broader onboarding…"></textarea>
+      </div>
+      <div>
+        <label for="traction">Users / traction</label>
+        <textarea id="traction" placeholder="Onboarded users, waitlist, WAU, engagement – keep definitions consistent…"></textarea>
+      </div>
+      <div>
+        <label for="partnerships">Partnerships / MOUs</label>
+        <textarea id="partnerships" placeholder="Unions, cities, signed dates, pipeline…"></textarea>
+      </div>
+      <div>
+        <label for="team">Team / advisors</label>
+        <textarea id="team" placeholder="Hires, advisors, key roles…"></textarea>
+      </div>
+      <div>
+        <label for="milestones">Milestones / metrics</label>
+        <textarea id="milestones" placeholder="Next milestone date, KPI deltas, infrastructure…"></textarea>
+      </div>
+      <div>
+        <label for="siteAnalytics">Site &amp; web traffic (monthly)</label>
+        <textarea id="siteAnalytics" placeholder="e.g. Cloudflare: ~X unique visitors / requests for [month]. GA / Plausible / other: … (note source and period so numbers stay comparable week to week)."></textarea>
+      </div>
+      <div>
+        <label for="fundraising">Fundraising ask</label>
+        <textarea id="fundraising" placeholder="Amount, use of funds, one line for public profile…"></textarea>
+      </div>
+
+      <div>
+        <label>Press / distribution links</label>
+        <div id="pressLinks"></div>
+        <button type="button" class="secondary" id="addPress">+ Add link</button>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button type="button" id="applyTemplate">Apply FasterCapital template</button>
+      <button type="button" class="secondary" id="buildOutput">Refresh preview &amp; save now</button>
+      <button type="button" id="copyFull">Copy full update</button>
+      <button type="button" id="copyBullets">Copy bullets only</button>
+      <button type="button" class="secondary" id="downloadTxt">Download .txt</button>
+      <button type="button" class="danger secondary" id="clearDraft">Clear draft</button>
+    </div>
+
+    <div class="out-wrap">
+      <label for="output">Preview <span style="font-weight:400;text-transform:none;color:var(--muted)">(updates as you type)</span></label>
+      <textarea id="output" readonly></textarea>
+    </div>
+
+    <footer>Draft auto-saves in this browser (localStorage). No analytics, no API calls.</footer>
+  </div>
+
+  <script>
+(function () {
+  const STORAGE_KEY = "tanda-investor-update-draft-v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  function todayISODate() {
+    const d = new Date();
+    const z = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+  }
+
+  function formatDisplayDate(iso) {
+    if (!iso) return "–";
+    const p = iso.split("-");
+    if (p.length !== 3) return iso;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const m = parseInt(p[1], 10) - 1;
+    return `${months[m] || p[1]} ${parseInt(p[2], 10)}, ${p[0]}`;
+  }
+
+  function getPressUrls() {
+    return Array.from(document.querySelectorAll(".press-url"))
+      .map((i) => i.value.trim())
+      .filter(Boolean);
+  }
+
+  function setPressRows(urls) {
+    const host = $("pressLinks");
+    host.innerHTML = "";
+    const list = urls.length ? urls : [""];
+    list.forEach((url, idx) => {
+      const row = document.createElement("div");
+      row.className = "press-row";
+      row.innerHTML =
+        `<input type="text" class="press-url" placeholder="https://…" value="${url.replace(/"/g, "&quot;")}" />` +
+        `<button type="button" class="secondary remove-press" title="Remove">×</button>`;
+      host.appendChild(row);
+    });
+    host.querySelectorAll(".remove-press").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.closest(".press-row").remove();
+        if (!host.children.length) setPressRows([""]);
+        onFormChange();
+      });
+    });
+    host.querySelectorAll(".press-url").forEach((inp) => bindPressUrlInput(inp));
+  }
+
+  function bindPressUrlInput(inp) {
+    inp.addEventListener("input", onFormChange);
+  }
+
+  function debounce(fn, ms) {
+    let t;
+    return function () {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, arguments), ms);
+    };
+  }
+
+  function syncPreviewNow() {
+    $("output").value = buildFullBody(collectState());
+  }
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+    } catch (e) { /* ignore */ }
+  }
+
+  const scheduleSaveDraft = debounce(saveDraft, 450);
+
+  function onFormChange() {
+    syncPreviewNow();
+    scheduleSaveDraft();
+  }
+
+  function collectState() {
+    return {
+      weekEnding: $("weekEnding").value,
+      subjectLine: $("subjectLine").value.trim(),
+      product: $("product").value.trim(),
+      traction: $("traction").value.trim(),
+      partnerships: $("partnerships").value.trim(),
+      team: $("team").value.trim(),
+      milestones: $("milestones").value.trim(),
+      siteAnalytics: $("siteAnalytics").value.trim(),
+      fundraising: $("fundraising").value.trim(),
+      press: getPressUrls(),
+    };
+  }
+
+  function applyState(s) {
+    $("weekEnding").value = s.weekEnding || todayISODate();
+    $("subjectLine").value = s.subjectLine || "";
+    $("product").value = s.product || "";
+    $("traction").value = s.traction || "";
+    $("partnerships").value = s.partnerships || "";
+    $("team").value = s.team || "";
+    $("milestones").value = s.milestones || "";
+    $("siteAnalytics").value = s.siteAnalytics || "";
+    $("fundraising").value = s.fundraising || "";
+    setPressRows(Array.isArray(s.press) ? s.press : []);
+  }
+
+  function loadDraft() {
+    const keys = [STORAGE_KEY, "tanda-investor-update-draft-v1"];
+    for (let i = 0; i < keys.length; i++) {
+      try {
+        const raw = localStorage.getItem(keys[i]);
+        if (raw) return JSON.parse(raw);
+      } catch (e) { /* ignore */ }
+    }
+    return null;
+  }
+
+  function buildFullBody(s) {
+    const when = formatDisplayDate(s.weekEnding);
+    const lines = [
+      "Please find below this week's progress update for Tanda.",
+      "",
+      "Tanda – Weekly Investor Update",
+      "",
+      "Product / Releases:",
+      s.product || "[Add product / releases]",
+      "",
+      "Users / Traction:",
+      s.traction || "[Add traction]",
+      "",
+      "Partnerships / MOUs:",
+      s.partnerships || "[Add partnerships / MOUs]",
+      "",
+      "Team / Advisors:",
+      s.team || "[Add team / advisors]",
+      "",
+      "Milestones / Metrics:",
+      s.milestones || "[Add milestones / metrics]",
+      "",
+      "Site & Web Traffic (monthly / sources):",
+      s.siteAnalytics || "[e.g. Cloudflare + other analytics – month, definition, figures]",
+      "",
+      "Fundraising Ask:",
+      s.fundraising || "[Add fundraising ask]",
+      "",
+      "Press / Distribution Links:",
+    ];
+    const urls = s.press && s.press.length ? s.press : [];
+    if (urls.length) urls.forEach((u, i) => lines.push(`${i + 1}. ${u}`));
+    else lines.push("[Link 1]", "[Link 2]", "[Link 3]");
+    lines.push(
+      "",
+      "–",
+      `As of: ${when}`,
+      "",
+      "Please let me know if you'd like any additional details included in future updates.",
+    );
+    return lines.join("\n");
+  }
+
+  function buildBullets(s) {
+    const blocks = [
+      ["Product / releases:", s.product],
+      ["Customer traction / pilots / sales:", s.traction],
+      ["Partnerships / MOUs:", s.partnerships],
+      ["Team hires / advisors:", s.team],
+      ["Milestones / metrics:", s.milestones],
+      ["Site / web traffic (monthly):", s.siteAnalytics],
+      ["Press / distribution links:", s.press && s.press.length ? s.press.join(" | ") : ""],
+    ];
+    const out = ["Updates (3–8 bullets):", ""];
+    blocks.forEach(([label, val]) => {
+      const v = (val || "").replace(/\n/g, " ").trim();
+      out.push(`- ${label} ${v || "…"}`);
+    });
+    if (s.fundraising) {
+      out.splice(out.length - 1, 0, `- Fundraising: ${s.fundraising.replace(/\n/g, " ").trim()}`);
+    }
+    return out.join("\n");
+  }
+
+  function refreshOutput() {
+    syncPreviewNow();
+    saveDraft();
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      $("output").value = text;
+      $("output").select();
+      try {
+        document.execCommand("copy");
+        return true;
+      } catch (e2) {
+        return false;
+      }
+    }
+  }
+
+  $("weekEnding").value = todayISODate();
+
+  const draft = loadDraft();
+  if (draft) applyState(draft);
+  else setPressRows([""]);
+
+  ["product", "traction", "partnerships", "team", "milestones", "siteAnalytics", "fundraising", "subjectLine"].forEach((id) => {
+    $(id).addEventListener("input", onFormChange);
+  });
+  $("weekEnding").addEventListener("change", onFormChange);
+
+  $("addPress").addEventListener("click", () => {
+    const host = $("pressLinks");
+    const row = document.createElement("div");
+    row.className = "press-row";
+    row.innerHTML =
+      `<input type="text" class="press-url" placeholder="https://…" />` +
+      `<button type="button" class="secondary remove-press" title="Remove">×</button>`;
+    host.appendChild(row);
+    row.querySelector(".remove-press").addEventListener("click", () => {
+      row.remove();
+      if (!host.children.length) setPressRows([""]);
+      onFormChange();
+    });
+    bindPressUrlInput(row.querySelector(".press-url"));
+    onFormChange();
+  });
+
+  $("applyTemplate").addEventListener("click", () => {
+    if (!confirm("Replace all fields with the FasterCapital skeleton? (Draft is saved; you can Clear draft to reset.)")) return;
+    applyState({
+      weekEnding: todayISODate(),
+      subjectLine: "Tanda – Weekly investor update",
+      product:
+        "Tanda is live on Google Play in an invite-only / controlled onboarding model.\n" +
+        "We are completing final testing before opening access more broadly.",
+      traction:
+        "[e.g. ~900+ users onboarded for structured testing; X%+ weekly active – define consistently.]",
+      partnerships:
+        "MOUs in place with market unions: [e.g. 4 in Abuja, 4 in Lagos; Enugu or others as applicable].\n" +
+        "MOU signed: [Insert dates]",
+      team: "[e.g. Advisor additions, hires, or “No new hires this period.”]",
+      milestones:
+        "[e.g. Waitlist / engagement trend; next milestone: infrastructure scale-up – Month Year]\n" +
+        "Next planned MVP rollout milestone: [date]",
+      siteAnalytics:
+        "[e.g. February 2026 – Cloudflare: X unique visitors / Y total requests (app + marketing domains). Plausible/GA: … – note metric definitions.]",
+      fundraising:
+        "Tanda is currently raising [$X for Y%] to support [infrastructure scaling, union-led SME onboarding, product hardening].",
+      press: [],
+    });
+    refreshOutput();
+  });
+
+  $("buildOutput").addEventListener("click", refreshOutput);
+
+  function fullEmailForClipboard() {
+    const s = collectState();
+    const body = buildFullBody(s);
+    if (s.subjectLine) return `Subject: ${s.subjectLine}\n\n${body}`;
+    return body;
+  }
+
+  $("copyFull").addEventListener("click", async () => {
+    refreshOutput();
+    await copyText(fullEmailForClipboard());
+  });
+
+  $("copyBullets").addEventListener("click", async () => {
+    const text = buildBullets(collectState());
+    await copyText(text);
+  });
+
+  $("downloadTxt").addEventListener("click", () => {
+    refreshOutput();
+    const s = collectState();
+    const text = fullEmailForClipboard();
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `tanda-investor-update-${s.weekEnding || todayISODate()}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  $("clearDraft").addEventListener("click", () => {
+    if (!confirm("Clear saved draft and reset fields?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    applyState({
+      weekEnding: todayISODate(),
+      subjectLine: "",
+      product: "",
+      traction: "",
+      partnerships: "",
+      team: "",
+      milestones: "",
+      siteAnalytics: "",
+      fundraising: "",
+      press: [],
+    });
+    syncPreviewNow();
+  });
+
+  refreshOutput();
+})();
+  </script>
+</body>
+</html>
