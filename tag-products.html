@@ -909,10 +909,15 @@
           <div id="quotaPlan" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);">Loading...</div>
         </div>
       </div>
+      <div id="quotaLoadErrorActions" style="display: none; margin-top: 1rem;">
+        <button type="button" class="btn secondary" id="quotaStatusRetryBtn" style="width: auto; display: inline-flex;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+      </div>
       <div id="quotaWarning" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(255, 0, 80, 0.1); border: 1px solid rgba(255, 0, 80, 0.3); border-radius: 0.5rem; color: #ff6b6b;">
-        <strong><i class="fas fa-exclamation-triangle"></i> Quota Exceeded:</strong>
+        <strong id="quotaWarningHeading"><i class="fas fa-exclamation-triangle"></i> <span id="quotaWarningHeadingLabel">Notice:</span></strong>
         <span id="quotaWarningText"></span>
-        <a href="subscription.html" style="color: var(--accent-color); text-decoration: underline; margin-left: 0.5rem;">Upgrade Now</a>
+        <a id="quotaUpgradeLink" href="subscription.html" style="color: var(--accent-color); text-decoration: underline; margin-left: 0.5rem;">Upgrade Now</a>
       </div>
     </div>
 
@@ -1159,12 +1164,13 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
-    SuperAffiliateAPI.renderAuthNav('authNav');
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html';
+      const here = (window.location.pathname.split('/').pop() || 'tag-products.html') + window.location.search;
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
     }
+    SuperAffiliateAPI.renderAuthNav('authNav');
 
     const params = new URLSearchParams(window.location.search);
     const initialVideoId = params.get('video_id');
@@ -1530,9 +1536,14 @@
           <div class="product-empty">
             <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; color: #ff0050;"></i>
             <p>Failed to load products.</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">${error.message || 'Please try again later.'}</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">${(error.message || 'Please try again later.').replace(/</g, '&lt;')}</p>
+            <button type="button" class="btn secondary" id="tag-product-catalog-retry" style="margin-top: 1rem; width: auto; display: inline-flex;">
+              <i class="fas fa-redo"></i> Try again
+            </button>
           </div>
         `;
+        const retry = document.getElementById('tag-product-catalog-retry');
+        if (retry) retry.addEventListener('click', () => loadProducts());
         console.error('Error loading products:', error);
       }
     }
@@ -2361,6 +2372,8 @@
     // Load quota status
     let quotaStatus = null;
     async function loadQuotaStatus() {
+      const quotaErrActions = document.getElementById('quotaLoadErrorActions');
+      if (quotaErrActions) quotaErrActions.style.display = 'none';
       try {
         quotaStatus = await SuperAffiliateAPI.apiRequest('/videos/overlay-quota/');
         console.log('Quota status response:', quotaStatus);
@@ -2368,6 +2381,9 @@
         // Handle response structure
         const plan = quotaStatus?.plan || null;
         const usage = quotaStatus?.usage || {};
+        const upg = document.getElementById('quotaUpgradeLink');
+        const hLbl = document.getElementById('quotaWarningHeadingLabel');
+        if (upg) upg.style.display = '';
 
         if (plan && plan.name) {
           // Ensure we have valid numbers
@@ -2388,6 +2404,7 @@
             const warningText = [];
             if (productsExceeded) warningText.push(`You've reached your monthly product limit (${productsLimit})`);
             if (videosExceeded) warningText.push(`You've reached your monthly video limit (${videosLimit})`);
+            if (hLbl) hLbl.textContent = 'Quota exceeded:';
             document.getElementById('quotaWarningText').textContent = warningText.join('. ') + '.';
             document.getElementById('quotaWarning').style.display = 'block';
           } else {
@@ -2403,18 +2420,29 @@
             document.getElementById('quotaProducts').textContent = `${productsUsed} / -`;
             document.getElementById('quotaVideos').textContent = `${videosUsed} / -`;
             document.getElementById('quotaPlan').textContent = 'No Plan';
+            if (hLbl) hLbl.textContent = 'Plan required:';
             document.getElementById('quotaWarningText').textContent = 'You need to subscribe to a plan to tag products.';
             document.getElementById('quotaWarning').style.display = 'block';
           }
         }
       } catch (error) {
         console.error('Error loading quota status:', error);
-        document.getElementById('quotaProducts').textContent = 'Error';
-        document.getElementById('quotaVideos').textContent = 'Error';
-        document.getElementById('quotaPlan').textContent = 'Error';
-        document.getElementById('quotaWarningText').textContent = 'Failed to load quota status. Please refresh the page.';
+        const hLblErr = document.getElementById('quotaWarningHeadingLabel');
+        if (hLblErr) hLblErr.textContent = 'Could not load status:';
+        document.getElementById('quotaProducts').textContent = '—';
+        document.getElementById('quotaVideos').textContent = '—';
+        document.getElementById('quotaPlan').textContent = '—';
+        document.getElementById('quotaWarningText').textContent = error.message || 'Failed to load quota status.';
+        const upg = document.getElementById('quotaUpgradeLink');
+        if (upg) upg.style.display = 'none';
         document.getElementById('quotaWarning').style.display = 'block';
+        if (quotaErrActions) quotaErrActions.style.display = 'block';
       }
+    }
+
+    const quotaStatusRetryBtn = document.getElementById('quotaStatusRetryBtn');
+    if (quotaStatusRetryBtn) {
+      quotaStatusRetryBtn.addEventListener('click', () => loadQuotaStatus());
     }
 
     // Check quota before creating tag

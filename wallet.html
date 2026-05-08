@@ -39,6 +39,20 @@
       padding: 2rem;
     }
 
+    @supports (padding: env(safe-area-inset-top)) {
+      body {
+        padding-top: calc(2rem + env(safe-area-inset-top));
+        padding-left: calc(2rem + env(safe-area-inset-left));
+        padding-right: calc(2rem + env(safe-area-inset-right));
+      }
+      @media (max-width: 768px) {
+        body {
+          padding-left: calc(1rem + env(safe-area-inset-left));
+          padding-right: calc(1rem + env(safe-area-inset-right));
+        }
+      }
+    }
+
     .header {
       max-width: 1100px;
       margin: 0 auto 1.5rem;
@@ -72,10 +86,15 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
       
       .nav::-webkit-scrollbar {
         display: none;
+      }
+
+      .nav > * {
+        flex-shrink: 0;
       }
       
       /* Ensure user menu dropdown can escape overflow on mobile */
@@ -214,6 +233,91 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .transaction-item.expandable {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .transaction-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 0.35rem;
+    }
+
+    .transaction-item-header:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .transaction-item-header:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+
+    .transaction-chevron {
+      flex-shrink: 0;
+      opacity: 0.65;
+      font-size: 0.75rem;
+      transition: transform 0.2s ease;
+    }
+
+    .transaction-item.expandable.open .transaction-chevron {
+      transform: rotate(180deg);
+    }
+
+    .transaction-details {
+      width: 100%;
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .txn-summary-body {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+    }
+
+    .txn-summary-img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .txn-summary-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .txn-summary-primary {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      line-height: 1.35;
+      margin-bottom: 0.25rem;
+    }
+
+    .txn-summary-secondary {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
 
     .transaction-item:last-child {
@@ -374,6 +478,22 @@
       display: block;
     }
 
+    .wallet-bootstrap-error {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .wallet-bootstrap-error h2 {
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -421,7 +541,7 @@
         padding: 1.5rem;
       }
 
-      .transaction-item {
+      .transaction-item:not(.expandable) {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
@@ -463,6 +583,20 @@
       <p>Loading wallet...</p>
     </div>
 
+    <div id="wallet-bootstrap-error" class="wallet-bootstrap-error" style="display: none;">
+      <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.45;"></i>
+      <h2>Could not load wallet</h2>
+      <p style="max-width: 420px; margin: 0 auto 1.25rem;">
+        Check your connection and try again. If you were logged out, sign in and return here.
+      </p>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <button type="button" class="btn" id="wallet-retry-btn" style="border: none; cursor: pointer;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+        <a href="super-affiliate-login.html" class="btn btn-secondary" style="display: inline-block; text-decoration: none;">Login</a>
+      </div>
+    </div>
+
     <div id="wallet-section" style="display: none;">
       <div id="error-message" class="error-message"></div>
       <div id="success-message" class="success-message"></div>
@@ -498,17 +632,17 @@
       </div>
 
       <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('transactions')">
+      <div class="tabs" id="wallet-main-tabs">
+        <button type="button" class="tab active" data-main-tab="transactions" onclick="switchTab('transactions')">
           <i class="fas fa-list"></i> Transactions
         </button>
-        <button class="tab" onclick="switchTab('earnings')">
+        <button type="button" class="tab" data-main-tab="earnings" onclick="switchTab('earnings')">
           <i class="fas fa-coins"></i> Earnings
         </button>
-        <button class="tab" onclick="switchTab('withdraw')">
+        <button type="button" class="tab" data-main-tab="withdraw" onclick="switchTab('withdraw')">
           <i class="fas fa-money-bill-wave"></i> Withdraw
         </button>
-        <button class="tab" onclick="switchTab('deposit')">
+        <button type="button" class="tab" data-main-tab="deposit" onclick="switchTab('deposit')">
           <i class="fas fa-plus-circle"></i> Deposit
         </button>
       </div>
@@ -792,7 +926,7 @@
   </div>
 
   <script src="js/error-handler.js"></script>
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let walletData = null;
     
@@ -1188,42 +1322,57 @@
       }
     }
 
-    // Load wallet data
+    // Load wallet data (balance: same endpoint as mobile app – ledger-aligned)
     async function loadWallet() {
+      document.getElementById('wallet-bootstrap-error').style.display = 'none';
+      document.getElementById('wallet-section').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+
       try {
-        const response = await SuperAffiliateAPI.apiRequest('/wallet/');
-        walletData = response;
-        displayWallet(response);
+        const balanceRes = await SuperAffiliateAPI.apiRequest('/wallet/balance/');
+        if (!balanceRes || balanceRes.success !== true) {
+          const msg = (balanceRes && balanceRes.error) ? balanceRes.error : 'Wallet unavailable';
+          throw new Error(msg);
+        }
+
+        let detailRes = null;
+        try {
+          detailRes = await SuperAffiliateAPI.apiRequest('/wallet/');
+        } catch (e) {
+          console.warn('Optional wallet detail fetch failed:', e);
+        }
+
+        if (detailRes && detailRes.error) {
+          detailRes = null;
+        }
+
+        walletData = {
+          ...(detailRes && typeof detailRes === 'object' ? detailRes : {}),
+          balance: balanceRes.balance,
+          total_earned: balanceRes.total_earned != null ? balanceRes.total_earned : (detailRes && detailRes.total_earned),
+          total_withdrawn: balanceRes.total_withdrawn != null ? balanceRes.total_withdrawn : (detailRes && detailRes.total_withdrawn),
+          ads_balance: balanceRes.ads_balance != null ? balanceRes.ads_balance : (detailRes && detailRes.ads_balance),
+          total_balance: balanceRes.total_balance != null ? balanceRes.total_balance : (detailRes && detailRes.total_balance),
+          currency: balanceRes.currency != null ? balanceRes.currency : (detailRes && detailRes.currency),
+        };
+
+        displayWallet(walletData);
         loadTransactions();
       } catch (error) {
         console.error('Error loading wallet:', error);
-        
-        // Hide loading section even on error
+
         const loadingSection = document.getElementById('loading-section');
         const walletSection = document.getElementById('wallet-section');
-        if (loadingSection) {
-          loadingSection.style.display = 'none';
-        }
-        if (walletSection) {
-          walletSection.style.display = 'block';
-        }
-        
-        // Show user-friendly error message
-        let errorMessage = 'Failed to load wallet. Please try again.';
-        if (error.message) {
-          // Check if it's a validation error about decimal places
-          if (error.message.includes('decimal places')) {
-            errorMessage = 'Wallet data issue detected. Please refresh the page. If the problem persists, contact support.';
-          } else {
-            errorMessage = error.message;
-          }
-        }
-        showError(errorMessage);
+        const bootstrapErr = document.getElementById('wallet-bootstrap-error');
+        if (loadingSection) loadingSection.style.display = 'none';
+        if (walletSection) walletSection.style.display = 'none';
+        if (bootstrapErr) bootstrapErr.style.display = 'block';
       }
     }
 
     function displayWallet(data) {
       document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('wallet-bootstrap-error').style.display = 'none';
       document.getElementById('wallet-section').style.display = 'block';
 
       // Format currency
@@ -1237,16 +1386,50 @@
       document.getElementById('stat-pending').textContent = formatCurrency(data.ad_earnings_pending || 0);
     }
 
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let transactionsExpandBound = false;
+    function bindTransactionsExpandOnce() {
+      const list = document.getElementById('transactions-list');
+      if (!list || transactionsExpandBound) return;
+      transactionsExpandBound = true;
+      list.addEventListener('click', (e) => {
+        const header = e.target.closest('.transaction-item-header');
+        if (!header) return;
+        const item = header.closest('.transaction-item.expandable');
+        if (!item) return;
+        const details = item.querySelector('.transaction-details');
+        const willOpen = !item.classList.contains('open');
+        item.classList.toggle('open', willOpen);
+        header.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        if (details) details.hidden = !willOpen;
+      });
+    }
+
     async function loadTransactions() {
+      const list = document.getElementById('transactions-list');
       try {
-        const response = await SuperAffiliateAPI.apiRequest('/wallet/transactions/');
+        const response = await SuperAffiliateAPI.apiRequest('/wallet/transactions/?limit=100');
         // Backend returns {success: true, transactions: [...]} format
         // Also handle paginated format {results: [...]} for compatibility
         const transactions = response.transactions || response.results || (Array.isArray(response) ? response : []);
         displayTransactions(transactions);
       } catch (error) {
         console.error('Error loading transactions:', error);
-        document.getElementById('transactions-list').innerHTML = '<p style="color: var(--text-secondary);">Failed to load transactions</p>';
+        list.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p style="margin-bottom: 1rem;">Could not load transactions.</p>
+            <button type="button" class="btn" onclick="loadTransactions()" style="border: none; cursor: pointer;">
+              <i class="fas fa-redo"></i> Try again
+            </button>
+          </div>`;
       }
     }
 
@@ -1281,11 +1464,41 @@
           'affiliate_commission': 'Affiliate Commission',
           'ad_earnings': 'Ad Earnings',
           'purchase': 'Purchase',
+          'order_payment': 'Order payment',
           'refund': 'Refund',
         };
-        return labels[type] || type;
+        return labels[type] || (type ? String(type).replace(/_/g, ' ') : '');
       };
 
+      const renderUserFacingSummary = (txn) => {
+        const s = txn.user_facing_summary;
+        if (s && typeof s === 'object') {
+          const primary = s.primary_label != null ? String(s.primary_label).trim() : '';
+          const secondary = s.secondary_label != null ? String(s.secondary_label).trim() : '';
+          const imgRaw = s.image_url != null ? String(s.image_url).trim() : '';
+          const imgBlock = imgRaw
+            ? `<img class="txn-summary-img" src="${escapeHtml(imgRaw)}" alt="" loading="lazy" width="56" height="56" />`
+            : '';
+          if (!primary && !secondary && !imgBlock) {
+            return '<p class="txn-summary-secondary" style="margin:0;">No extra details for this activity.</p>';
+          }
+          return `
+            <div class="txn-summary-body">
+              ${imgBlock}
+              <div class="txn-summary-text">
+                ${primary ? `<div class="txn-summary-primary">${escapeHtml(primary)}</div>` : ''}
+                ${secondary ? `<div class="txn-summary-secondary">${escapeHtml(secondary)}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }
+        const desc = (txn.description || '').trim();
+        if (desc) {
+          const short = desc.length > 160 ? desc.slice(0, 159) + '…' : desc;
+          return `<p class="txn-summary-secondary" style="margin:0;">${escapeHtml(short)}</p>`;
+        }
+        return '<p class="txn-summary-secondary" style="margin:0;">No extra details for this activity.</p>';
+      };
       const getStatusBadge = (status) => {
         const statusLabels = {
           'pending': '<span class="status-badge status-pending">Pending</span>',
@@ -1324,20 +1537,27 @@
         const statusBadge = txn.status !== 'completed' ? getStatusBadge(txn.status) : '';
 
         return `
-          <div class="transaction-item">
-            <div class="transaction-info">
-              <div class="transaction-type">
-                ${getTransactionTypeLabel(txn.transaction_type)}
-                ${statusBadge}
+          <div class="transaction-item expandable">
+            <button type="button" class="transaction-item-header" aria-expanded="false" aria-label="Show more about this activity">
+              <div class="transaction-info">
+                <div class="transaction-type">
+                  ${getTransactionTypeLabel(txn.transaction_type)}
+                  ${statusBadge}
+                </div>
+                <div class="transaction-date">${formatDate(txn.created_at)}</div>
               </div>
-              <div class="transaction-date">${formatDate(txn.created_at)}</div>
-            </div>
-            <div class="transaction-amount ${amountClass}">
-              ${amountPrefix}${formatCurrency(Math.abs(txn.amount))}
+              <div class="transaction-amount ${amountClass}">
+                ${amountPrefix}${formatCurrency(Math.abs(txn.amount))}
+              </div>
+              <span class="transaction-chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="transaction-details" hidden>
+              ${renderUserFacingSummary(txn)}
             </div>
           </div>
         `;
       }).join('');
+      bindTransactionsExpandOnce();
     }
 
     async function handleWithdraw(event) {
@@ -1642,15 +1862,18 @@
     }
 
     function switchTab(tabName) {
-      // Update tab buttons
-      document.querySelectorAll('.tabs:first-of-type .tab').forEach(tab => tab.classList.remove('active'));
-      event.target.classList.add('active');
+      document.querySelectorAll('#wallet-main-tabs .tab').forEach((tab) => tab.classList.remove('active'));
+      const activeBtn = document.querySelector(`#wallet-main-tabs .tab[data-main-tab="${tabName}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
 
-      // Update tab content
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      document.getElementById(`tab-${tabName}`).classList.add('active');
+      document.querySelectorAll('#wallet-section > .tab-content').forEach((content) => content.classList.remove('active'));
+      const panel = document.getElementById(`tab-${tabName}`);
+      if (panel) {
+        panel.classList.add('active');
+      }
 
-      // Load earnings data when switching to earnings tab
       if (tabName === 'earnings') {
         loadAllEarnings();
       }
@@ -2293,6 +2516,12 @@
         }
       }
     }
+
+    document.getElementById('wallet-retry-btn').addEventListener('click', () => {
+      document.getElementById('wallet-bootstrap-error').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+      loadWallet();
+    });
 
     // Initialize
     initializeWallet();

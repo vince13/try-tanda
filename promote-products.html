@@ -127,6 +127,10 @@
       .nav::-webkit-scrollbar {
         display: none;
       }
+
+      .nav > * {
+        flex-shrink: 0;
+      }
       
       /* Ensure user menu dropdown can escape overflow on mobile */
       .nav .user-menu-dropdown {
@@ -313,6 +317,26 @@
       color: #f44336;
     }
 
+    .promote-load-error {
+      display: none;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(244, 67, 54, 0.35);
+      background: rgba(244, 67, 54, 0.08);
+    }
+    .promote-load-error h2 {
+      color: #ff8a80;
+      font-size: 1.1rem;
+      margin-bottom: 0.65rem;
+    }
+    .promote-load-error p {
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 1rem;
+      font-size: 0.92rem;
+    }
+
     .loading {
       text-align: center;
       padding: 4rem 2rem;
@@ -493,6 +517,14 @@
   <div class="container">
     <div id="alert-container"></div>
 
+    <div id="promote-catalog-load-error" class="card promote-load-error" role="alert">
+      <h2><i class="fas fa-plug"></i> Couldn’t load promotable products</h2>
+      <p id="promote-catalog-load-error-detail">Check your connection and try again.</p>
+      <button type="button" class="btn secondary" id="promote-catalog-retry" style="width:auto;display:inline-flex;">
+        <i class="fas fa-redo"></i> Try again
+      </button>
+    </div>
+
     <div class="card">
       <div class="filters">
         <div class="filter-group">
@@ -524,6 +556,13 @@
 
     <!-- My Promotions Section -->
     <div class="card" id="my-promotions-section" style="display: none;">
+      <div id="my-promotions-load-error" class="promote-load-error" role="alert" style="display: none; margin-bottom: 1.25rem;">
+        <h2 style="margin-top: 0;"><i class="fas fa-plug"></i> Couldn’t load promotions</h2>
+        <p id="my-promotions-load-error-detail">Check your connection and try again.</p>
+        <button type="button" class="btn secondary" id="my-promotions-retry" style="width: auto; display: inline-flex;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+      </div>
       <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--accent-color);">
         <i class="fas fa-star"></i> My Promotions
       </h2>
@@ -531,14 +570,46 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
-    // Check authentication
-    if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    const promotionNameById = new Map();
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
     }
 
-    // Render auth nav
+    function mediaBaseUrl() {
+      try {
+        const api = SuperAffiliateAPI.getApiBase();
+        return api.replace(/\/?api\/?$/, '') || '';
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function hidePromoteCatalogError() {
+      const el = document.getElementById('promote-catalog-load-error');
+      if (el) el.style.display = 'none';
+    }
+
+    function showPromoteCatalogError(msg) {
+      const el = document.getElementById('promote-catalog-load-error');
+      const det = document.getElementById('promote-catalog-load-error-detail');
+      if (det) det.textContent = msg || 'Check your connection and try again.';
+      if (el) el.style.display = 'block';
+      document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('empty-section').style.display = 'none';
+      document.getElementById('products-section').style.display = 'none';
+    }
+
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      const here = (window.location.pathname.split('/').pop() || 'promote-products.html') + window.location.search;
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
+    }
+
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
 
@@ -569,6 +640,8 @@
 
     // Load available products
     async function loadProducts() {
+      hidePromoteCatalogError();
+      document.getElementById('loading-section').style.display = 'block';
       try {
         const search = document.getElementById('search').value;
         const category = document.getElementById('category-filter').value;
@@ -585,14 +658,13 @@
         displayProducts(Array.isArray(products) ? products : []);
       } catch (error) {
         console.error('Error loading products:', error);
-        showAlert('Failed to load products. Please try again.', 'error');
-        document.getElementById('loading-section').style.display = 'none';
-        document.getElementById('empty-section').style.display = 'block';
+        showPromoteCatalogError(error.message || 'Failed to load products.');
       }
     }
 
     function displayProducts(products) {
       document.getElementById('loading-section').style.display = 'none';
+      hidePromoteCatalogError();
       
       if (products.length === 0) {
         document.getElementById('empty-section').style.display = 'block';
@@ -604,19 +676,19 @@
       document.getElementById('products-section').style.display = 'block';
 
       const grid = document.getElementById('products-grid');
-      const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
+      const mediaRoot = mediaBaseUrl() || '';
       
       const getImageUrl = (product) => {
         if (product.image) {
-          return product.image.startsWith('http') ? product.image : API_BASE_URL + (product.image.startsWith('/') ? product.image : '/' + product.image);
+          return product.image.startsWith('http') ? product.image : mediaRoot + (product.image.startsWith('/') ? product.image : '/' + product.image);
         }
         if (product.thumbnail) {
-          return product.thumbnail.startsWith('http') ? product.thumbnail : API_BASE_URL + (product.thumbnail.startsWith('/') ? product.thumbnail : '/' + product.thumbnail);
+          return product.thumbnail.startsWith('http') ? product.thumbnail : mediaRoot + (product.thumbnail.startsWith('/') ? product.thumbnail : '/' + product.thumbnail);
         }
         if (product.images && product.images.length > 0) {
           const img = product.images[0].image || product.images[0].image_url;
           if (img) {
-            return img.startsWith('http') ? img : API_BASE_URL + (img.startsWith('/') ? img : '/' + img);
+            return img.startsWith('http') ? img : mediaRoot + (img.startsWith('/') ? img : '/' + img);
           }
         }
         return '';
@@ -630,21 +702,23 @@
         const imageUrl = getImageUrl(product);
         const commissionRate = product.affiliate_commission_rate || 10;
         const commissionAmount = Math.round(parseFloat(product.price || 0) * commissionRate / 100);
+        const safeName = escapeHtml(product.name || 'Product');
+        const pid = String(product.id || '').replace(/'/g, "\\'");
         
         return `
           <div class="product-card">
             <div class="product-image-container">
               ${imageUrl ? `
-                <img src="${imageUrl}" alt="${product.name}" class="product-image" onerror="this.style.display='none';">
+                <img src="${imageUrl}" alt="${safeName}" class="product-image" onerror="this.style.display='none';">
               ` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
             </div>
             <div class="product-info">
-              <div class="product-name">${product.name}</div>
+              <div class="product-name">${safeName}</div>
               <div class="product-price">${formatCurrency(product.price)}</div>
               <div class="product-commission">
                 <i class="fas fa-percentage"></i> Earn ₦${parseFloat(commissionAmount).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} per sale (${commissionRate}%)
               </div>
-              <button class="btn" onclick="promoteProduct('${product.id}')">
+              <button type="button" class="btn" onclick="promoteProduct('${pid}')">
                 <i class="fas fa-tag"></i> Promote This Product
               </button>
             </div>
@@ -687,7 +761,7 @@
           </div>
           ${product ? `
             <div style="padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; margin: 1rem 0;">
-              <div style="font-weight: 600; margin-bottom: 0.5rem;">${product.name}</div>
+              <div style="font-weight: 600; margin-bottom: 0.5rem;">${escapeHtml(product.name || 'Product')}</div>
               <div style="color: var(--accent-color); font-size: 0.9rem;">₦${parseFloat(product.price || 0).toLocaleString('en-NG')}</div>
             </div>
           ` : ''}
@@ -770,30 +844,33 @@
         return;
       }
 
-      const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
+      const mediaRoot = mediaBaseUrl() || '';
       
       grid.innerHTML = videos.map(video => {
         const videoId = video.id || video.video_id;
         const videoIdStr = String(videoId || '');
         const isNumericId = /^\d+$/.test(videoIdStr); // Only numeric IDs are taggable (shared/imported videos have UUIDs)
         const thumbnail = video.thumbnail || video.thumbnail_url || '';
-        const title = video.title || video.caption || 'Untitled Video';
+        const titleRaw = video.title || video.caption || 'Untitled Video';
+        const safeTitleHtml = escapeHtml(titleRaw);
+        const displayTitle = titleRaw.length > 30 ? titleRaw.substring(0, 30) + '...' : titleRaw;
+        const safeDisplayTitle = escapeHtml(displayTitle);
         const hasTag = video.product_tags && video.product_tags.length > 0;
-        const thumbnailUrl = thumbnail.startsWith('http') ? thumbnail : (thumbnail ? API_BASE_URL + (thumbnail.startsWith('/') ? thumbnail : '/' + thumbnail) : '');
+        const thumbnailUrl = thumbnail.startsWith('http') ? thumbnail : (thumbnail ? mediaRoot + (thumbnail.startsWith('/') ? thumbnail : '/' + thumbnail) : '');
 
         // Escape videoId for onclick handler
         const escapedVideoId = videoIdStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const escapedTitle = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safePid = String(productId || '').replace(/'/g, "\\'");
 
         return `
           <div class="product-item" style="cursor: ${isNumericId ? 'pointer' : 'not-allowed'}; position: relative; opacity: ${isNumericId ? '1' : '0.6'};" 
-               onclick="${isNumericId ? `selectVideoForTagging('${escapedVideoId}', '${productId}')` : `showAlert('Shared/imported videos (UUID format) cannot be tagged in the webapp. Please use the Flutter app to tag these videos.', 'error')`}">
+               onclick="${isNumericId ? `selectVideoForTagging('${escapedVideoId}', '${safePid}')` : `showAlert('Shared/imported videos (UUID format) cannot be tagged in the webapp. Please use the Flutter app to tag these videos.', 'error')`}">
             <div class="product-item-image" style="position: relative;">
-              ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${title}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-video\\'></i>'">` : '<i class="fas fa-video"></i>'}
+              ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${safeTitleHtml}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-video\\'></i>'">` : '<i class="fas fa-video"></i>'}
               ${hasTag ? '<div style="position: absolute; top: 4px; left: 4px; background: rgba(0,242,234,0.9); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;"><i class="fas fa-tag"></i></div>' : ''}
               ${!isNumericId ? '<div style="position: absolute; top: 4px; right: 4px; background: rgba(255,0,0,0.8); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;" title="Shared/imported videos cannot be tagged in webapp"><i class="fas fa-lock"></i></div>' : ''}
             </div>
-            <div class="product-item-name" style="font-size: 0.85rem; margin-top: 0.5rem;">${title.length > 30 ? title.substring(0, 30) + '...' : title}</div>
+            <div class="product-item-name" style="font-size: 0.85rem; margin-top: 0.5rem;">${safeDisplayTitle}</div>
           </div>
         `;
       }).join('');
@@ -1025,8 +1102,23 @@
       }
     }
 
+    function hideMyPromotionsError() {
+      const el = document.getElementById('my-promotions-load-error');
+      if (el) el.style.display = 'none';
+    }
+
+    function showMyPromotionsError(msg) {
+      const el = document.getElementById('my-promotions-load-error');
+      const det = document.getElementById('my-promotions-load-error-detail');
+      if (det) det.textContent = msg || 'Check your connection and try again.';
+      if (el) el.style.display = 'block';
+      document.getElementById('my-promotions-section').style.display = 'block';
+      document.getElementById('my-promotions-grid').innerHTML = '';
+    }
+
     // Load my promotions
     async function loadMyPromotions() {
+      hideMyPromotionsError();
       try {
         const response = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/promotions/');
         const promotions = response.promotions || response.results || response;
@@ -1039,13 +1131,16 @@
         }
       } catch (error) {
         console.error('Error loading promotions:', error);
+        showMyPromotionsError(error.message || 'Failed to load promotions.');
       }
     }
 
     function displayMyPromotions(promotions) {
       const grid = document.getElementById('my-promotions-grid');
-      const API_BASE_URL = SuperAffiliateAPI.BASE_URL || 'http://localhost:8000';
-      
+      hideMyPromotionsError();
+      const mediaRoot = mediaBaseUrl() || '';
+      promotionNameById.clear();
+
       const getImageUrl = (product) => {
         if (!product) return '';
         
@@ -1060,9 +1155,9 @@
             if (img.startsWith('http://') || img.startsWith('https://')) {
               return img;
             }
-            // Handle relative paths - add API base URL
+            // Handle relative paths
             const path = img.startsWith('/') ? img : '/' + img;
-            return API_BASE_URL + path;
+            return mediaRoot + path;
           }
         }
         
@@ -1073,7 +1168,7 @@
             return img;
         }
           const path = img.startsWith('/') ? img : '/' + img;
-          return API_BASE_URL + path;
+          return mediaRoot + path;
         }
         
         // Try thumbnail field
@@ -1083,7 +1178,7 @@
             return thumb;
           }
           const path = thumb.startsWith('/') ? thumb : '/' + thumb;
-          return API_BASE_URL + path;
+          return mediaRoot + path;
         }
         
         // Try image_url field
@@ -1093,7 +1188,7 @@
             return imgUrl;
           }
           const path = imgUrl.startsWith('/') ? imgUrl : '/' + imgUrl;
-          return API_BASE_URL + path;
+          return mediaRoot + path;
         }
         
         return '';
@@ -1105,8 +1200,11 @@
 
       grid.innerHTML = promotions.map(promo => {
         const product = promo.product || {};
+        const safeName = escapeHtml(product.name || 'Product');
+        if (promo.id != null) promotionNameById.set(promo.id, String(product.name || 'Product'));
         const imageUrl = getImageUrl(product);
         const trackingCode = promo.unique_code || promo.tracking_code;
+        const safeCode = String(trackingCode || '').replace(/'/g, "\\'");
         const isActive = promo.is_active !== false;
         
         // Debug logging (can be removed later)
@@ -1124,26 +1222,26 @@
           <div class="product-card">
             <div class="product-image-container">
               ${imageUrl ? `
-                <img src="${imageUrl}" alt="${product.name}" class="product-image" onerror="this.style.display='none';">
+                <img src="${imageUrl}" alt="${safeName}" class="product-image" onerror="this.style.display='none';">
               ` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 2rem; opacity: 0.3;"></i></div>'}
             </div>
             <div class="product-info">
-              <div class="product-name">${product.name || 'Product'}</div>
+              <div class="product-name">${safeName}</div>
               <div class="product-price">${formatCurrency(product.price)}</div>
               <div class="product-commission" style="margin-bottom: 0.5rem;">
-                <i class="fas fa-link"></i> Code: ${trackingCode}
+                <i class="fas fa-link"></i> Code: ${escapeHtml(String(trackingCode || ''))}
               </div>
               <div style="margin-bottom: 1rem; font-size: 0.85rem; color: ${isActive ? '#4caf50' : '#ffc107'};">
                 <i class="fas fa-${isActive ? 'check-circle' : 'pause-circle'}"></i> ${isActive ? 'Active' : 'Paused'}
               </div>
               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="btn btn-success" onclick="copyAffiliateLink('${trackingCode}')" style="flex: 1; min-width: 100px;">
+                <button class="btn btn-success" onclick="copyAffiliateLink('${safeCode}')" style="flex: 1; min-width: 100px;">
                   <i class="fas fa-copy"></i> Copy Link
                 </button>
-                <button class="btn" onclick="togglePromotion(${promo.id}, ${isActive})" style="flex: 1; min-width: 100px;">
+                <button type="button" class="btn" onclick="togglePromotion(${promo.id}, ${isActive})" style="flex: 1; min-width: 100px;">
                   <i class="fas fa-${isActive ? 'pause' : 'play'}"></i> ${isActive ? 'Pause' : 'Resume'}
                 </button>
-                <button class="btn" onclick="deletePromotion(${promo.id}, '${product.name || 'this product'}')" style="background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; flex: 1; min-width: 100px;">
+                <button type="button" class="btn" onclick="deletePromotion(${promo.id})" style="background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; flex: 1; min-width: 100px;">
                   <i class="fas fa-trash"></i> Delete
                 </button>
               </div>
@@ -1166,7 +1264,10 @@
       }
     }
 
-    async function deletePromotion(promotionId, productName) {
+    async function deletePromotion(promotionId) {
+      const productName = promotionNameById.get(promotionId)
+        ?? promotionNameById.get(Number(promotionId))
+        ?? 'this product';
       const confirmed = confirm(
         `Are you sure you want to delete the promotion for "${productName}"?\n\n` +
         `This will remove the promotion and stop tracking new sales. Historical sales data will be preserved.`
@@ -1212,10 +1313,12 @@
       const container = document.getElementById('alert-container');
       const alert = document.createElement('div');
       alert.className = `alert alert-${type}`;
-      alert.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-      `;
+      const icon = document.createElement('i');
+      icon.className = `fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}`;
+      const span = document.createElement('span');
+      span.textContent = message != null ? String(message) : '';
+      alert.appendChild(icon);
+      alert.appendChild(span);
       container.innerHTML = '';
       container.appendChild(alert);
       
@@ -1244,6 +1347,9 @@
     }
 
     // Event listeners
+    document.getElementById('promote-catalog-retry').addEventListener('click', () => loadProducts());
+    const myPromoRetry = document.getElementById('my-promotions-retry');
+    if (myPromoRetry) myPromoRetry.addEventListener('click', () => loadMyPromotions());
     document.getElementById('search').addEventListener('input', debounce(loadProducts, 500));
     document.getElementById('category-filter').addEventListener('change', loadProducts);
 

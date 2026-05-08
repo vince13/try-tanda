@@ -303,7 +303,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Search – creators, tags, and products.">
   <div class="header">
     <h1 class="title">Search</h1>
     <div class="nav" id="authNav"></div>
@@ -322,18 +322,24 @@
     </div>
 
     <div class="search-tabs">
-      <button class="search-tab active" onclick="switchTab('all')">All</button>
-      <button class="search-tab" onclick="switchTab('videos')">Videos</button>
-      <button class="search-tab" onclick="switchTab('users')">Users</button>
-      <button class="search-tab" onclick="switchTab('products')">Products</button>
+      <button type="button" class="search-tab active" data-tab="all" onclick="switchTab('all')">All</button>
+      <button type="button" class="search-tab" data-tab="videos" onclick="switchTab('videos')">Videos</button>
+      <button type="button" class="search-tab" data-tab="users" onclick="switchTab('users')">Users</button>
+      <button type="button" class="search-tab" data-tab="products" onclick="switchTab('products')">Products</button>
     </div>
 
     <div id="results-section" style="display: none;">
       <div class="results-grid" id="results-grid"></div>
     </div>
 
+    <div id="popular-section" class="trending-section" style="display: none;">
+      <h2 style="margin-bottom: 1rem; color: var(--accent-color);">Popular searches</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin: -0.5rem 0 1rem;">From Tanda discovery – same idea as the app home search.</p>
+      <div class="trending-tags" id="popular-queries"></div>
+    </div>
+
     <div id="trending-section" class="trending-section" style="display: none;">
-      <h2 style="margin-bottom: 1rem; color: var(--accent-color);">Trending</h2>
+      <h2 style="margin-bottom: 1rem; color: var(--accent-color);">Trending hashtags</h2>
       <div class="trending-tags" id="trending-tags"></div>
     </div>
 
@@ -348,7 +354,8 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     let currentTab = 'all';
     let searchTimeout = null;
@@ -358,13 +365,35 @@
 
     function switchTab(tab) {
       currentTab = tab;
-      document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
-      
+      document.querySelectorAll('.search-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+
       const query = document.getElementById('search-input').value;
-      if (query) {
+      if (query.trim()) {
         performSearch();
       }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function normalizeVideoResult(v) {
+      if (!v) return null;
+      const id = v.id;
+      if (id == null) return null;
+      return {
+        id,
+        thumbnail_url: v.thumbnail_url || v.thumbnail || '',
+        title: v.title || v.caption || v.description || 'Video',
+        likes: v.likes_count ?? v.likes ?? 0,
+        username: v.user?.username || v.creator_username || v.uploaded_by?.username || 'user',
+      };
     }
 
     function handleSearch(event) {
@@ -391,6 +420,7 @@
       if (!query) {
         document.getElementById('empty-section').style.display = 'block';
         document.getElementById('results-section').style.display = 'none';
+        document.getElementById('empty-section').innerHTML = '<i class="fas fa-search" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i><p>Enter a search term to get started</p>';
         return;
       }
 
@@ -403,9 +433,12 @@
 
         if (currentTab === 'all' || currentTab === 'videos') {
           try {
-            const videoResponse = await SuperAffiliateAPI.apiRequest(`/videos/search/?q=${encodeURIComponent(query)}&category=videos`);
-            const videos = videoResponse.results || videoResponse.videos || [];
-            results = results.concat(videos.map(v => ({ type: 'video', data: v })));
+            const videoResponse = await SuperAffiliateAPI.unifiedVideoSearch(query, 'videos', 1);
+            const videos = videoResponse.videos || videoResponse.results || [];
+            for (const v of videos) {
+              const n = normalizeVideoResult(v);
+              if (n) results.push({ type: 'video', data: n });
+            }
           } catch (error) {
             console.error('Video search error:', error);
           }
@@ -413,11 +446,20 @@
 
         if (currentTab === 'all' || currentTab === 'users') {
           try {
-            const userResponse = await SuperAffiliateAPI.searchUsers(query);
-            const users = userResponse.results || userResponse.users || [];
+            const userResponse = await SuperAffiliateAPI.unifiedVideoSearch(query, 'users', 1);
+            let users = userResponse.users || [];
+            if (!users.length) {
+              const fallback = await SuperAffiliateAPI.searchUsers(query);
+              users = fallback.results || fallback.users || [];
+            }
             results = results.concat(users.map(u => ({ type: 'user', data: u })));
           } catch (error) {
             console.error('User search error:', error);
+            try {
+              const fallback = await SuperAffiliateAPI.searchUsers(query);
+              const users = fallback.results || fallback.users || [];
+              results = results.concat(users.map(u => ({ type: 'user', data: u })));
+            } catch (_) {}
           }
         }
 
@@ -434,9 +476,11 @@
         displayResults(results);
       } catch (error) {
         console.error('Search error:', error);
-        document.getElementById('loading-section').style.display = 'none';
         document.getElementById('empty-section').style.display = 'block';
-        document.getElementById('empty-section').innerHTML = '<p>Search failed. Please try again.</p>';
+        document.getElementById('empty-section').innerHTML =
+          '<i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.4;"></i><p>Search failed. Please try again.</p>';
+      } finally {
+        document.getElementById('loading-section').style.display = 'none';
       }
     }
 
@@ -445,7 +489,8 @@
 
       if (results.length === 0) {
         document.getElementById('empty-section').style.display = 'block';
-        document.getElementById('empty-section').innerHTML = '<p>No results found</p>';
+        document.getElementById('empty-section').innerHTML =
+          '<i class="fas fa-search" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i><p>No results for this tab. Try another category or query.</p>';
         return;
       }
 
@@ -455,70 +500,122 @@
       grid.innerHTML = results.map(result => {
         if (result.type === 'video') {
           const v = result.data;
+          const titleEsc = escapeHtml(v.title || 'Video');
+          const userEsc = escapeHtml(v.username || 'user');
           return `
-            <a href="video-detail.html?id=${v.id}" class="result-card">
-              <img src="${v.thumbnail_url || v.thumbnail || ''}" alt="${v.title || v.caption}" class="result-image" onerror="this.style.display='none';">
+            <a href="feed.html?video=${encodeURIComponent(v.id)}" class="result-card">
+              <img src="${escapeHtml(v.thumbnail_url || '')}" alt="" class="result-image" onerror="this.style.display='none';">
               <div class="result-info">
-                <div class="result-title">${v.title || v.caption || 'Video'}</div>
-                <div class="result-meta">@${v.user?.username || 'user'} • ${v.likes || 0} likes</div>
+                <div class="result-title">${titleEsc}</div>
+                <div class="result-meta">@${userEsc} • ${v.likes || 0} likes</div>
               </div>
             </a>
           `;
         } else if (result.type === 'user') {
           const u = result.data;
+          const uname = u.username != null ? String(u.username) : '';
+          if (!uname) return '';
           const avatarUrl = u.avatar || u.avatar_url || '';
-          const displayName = u.first_name && u.last_name 
-            ? `${u.first_name} ${u.last_name}` 
-            : u.username;
+          const displayNameRaw = u.first_name && u.last_name
+            ? `${u.first_name} ${u.last_name}`
+            : uname;
+          const displayName = escapeHtml(displayNameRaw);
+          const bioHtml = u.bio ? `<div class="user-bio" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(u.bio)}</div>` : '';
+          const avatarSafe = avatarUrl && /^https?:\/\//i.test(String(avatarUrl))
+            ? escapeHtml(avatarUrl)
+            : '';
           return `
-            <a href="user-profile.html?username=${u.username}" class="result-card user-card">
-              <div class="user-avatar" style="${avatarUrl ? `background-image: url('${avatarUrl}'); background-size: cover; background-position: center;` : ''}">
-                ${!avatarUrl ? '<i class="fas fa-user"></i>' : ''}
+            <a href="user-profile.html?username=${encodeURIComponent(uname)}" class="result-card user-card">
+              <div class="user-avatar" style="${avatarSafe ? `background-image: url('${avatarSafe}'); background-size: cover; background-position: center;` : ''}">
+                ${!avatarSafe ? '<i class="fas fa-user"></i>' : ''}
               </div>
               <div class="user-info">
                 <div class="user-name">${displayName}</div>
-                <div class="user-stats">@${u.username} • ${u.total_followers || 0} followers</div>
-                ${u.bio ? `<div class="user-bio" style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${u.bio}</div>` : ''}
+                <div class="user-stats">@${escapeHtml(uname)} • ${u.total_followers || 0} followers</div>
+                ${bioHtml}
               </div>
             </a>
           `;
         } else if (result.type === 'product') {
           const p = result.data;
+          const pid = p.id;
+          if (pid == null) return '';
+          const nameEsc = escapeHtml(p.name || 'Product');
+          const img = escapeHtml(p.image || p.thumbnail || '');
           return `
-            <a href="product-detail.html?id=${p.id}" class="result-card">
-              <img src="${p.image || p.thumbnail || ''}" alt="${p.name}" class="result-image" onerror="this.style.display='none';">
+            <a href="product-detail.html?id=${encodeURIComponent(pid)}" class="result-card">
+              <img src="${img}" alt="" class="result-image" onerror="this.style.display='none';">
               <div class="result-info">
-                <div class="result-title">${p.name}</div>
+                <div class="result-title">${nameEsc}</div>
                 <div class="result-meta">₦${parseFloat(p.price || 0).toLocaleString('en-NG')}</div>
               </div>
             </a>
           `;
         }
-      }).join('');
+        return '';
+      }).filter(Boolean).join('');
     }
 
-    // Load trending on page load
-    async function loadTrending() {
-      try {
-        const response = await SuperAffiliateAPI.apiRequest('/videos/trending/');
-        const videos = response.results || response.videos || [];
-        
-        // Extract hashtags from captions (simple implementation)
-        const tags = new Set();
-        videos.slice(0, 10).forEach(v => {
-          const caption = v.caption || v.title || '';
-          const hashtags = caption.match(/#\w+/g) || [];
-          hashtags.forEach(tag => tags.add(tag));
+    function fillTagContainer(containerEl, tags, maxItems) {
+      if (!containerEl) return;
+      containerEl.innerHTML = '';
+      tags.slice(0, maxItems).forEach((tag) => {
+        const s = String(tag || '').trim();
+        if (!s) return;
+        const a = document.createElement('a');
+        a.href = '#';
+        a.className = 'trending-tag';
+        a.textContent = s;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          searchTag(s);
         });
+        containerEl.appendChild(a);
+      });
+    }
 
+    async function loadTrendingFromVideosFallback() {
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/videos/trending/?page=1');
+        const videos = response.results || response.videos || [];
+        const tags = new Set();
+        videos.slice(0, 15).forEach((v) => {
+          const caption = v.caption || v.title || v.description || '';
+          const hashtags = caption.match(/#\w+/g) || [];
+          hashtags.forEach((tag) => tags.add(tag));
+        });
         if (tags.size > 0) {
           document.getElementById('trending-section').style.display = 'block';
-          document.getElementById('trending-tags').innerHTML = Array.from(tags).slice(0, 10).map(tag => 
-            `<a href="#" class="trending-tag" onclick="searchTag('${tag}'); return false;">${tag}</a>`
-          ).join('');
+          const el = document.getElementById('trending-tags');
+          fillTagContainer(el, Array.from(tags), 12);
         }
       } catch (error) {
-        console.error('Error loading trending:', error);
+        console.error('Error loading trending fallback:', error);
+      }
+    }
+
+    async function loadSearchDiscovery() {
+      try {
+        const raw = await SuperAffiliateAPI.getSearchDiscovery();
+        const hashtags = Array.isArray(raw.trending_hashtags) ? raw.trending_hashtags : [];
+        const popular = Array.isArray(raw.popular_queries) ? raw.popular_queries : [];
+
+        if (popular.length > 0) {
+          document.getElementById('popular-section').style.display = 'block';
+          fillTagContainer(document.getElementById('popular-queries'), popular, 10);
+        }
+
+        if (hashtags.length > 0) {
+          document.getElementById('trending-section').style.display = 'block';
+          fillTagContainer(document.getElementById('trending-tags'), hashtags, 12);
+        }
+
+        if (!hashtags.length && !popular.length) {
+          await loadTrendingFromVideosFallback();
+        }
+      } catch (error) {
+        console.error('Error loading search discovery:', error);
+        await loadTrendingFromVideosFallback();
       }
     }
 
@@ -527,8 +624,7 @@
       performSearch();
     }
 
-    // Initialize
-    loadTrending();
+    loadSearchDiscovery();
   </script>
 </body>
 </html>

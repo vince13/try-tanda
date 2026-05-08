@@ -651,7 +651,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Cart — review items before checkout.">
   <div class="header">
     <h1 class="title">Shopping Cart</h1>
     <div class="nav" id="authNav"></div>
@@ -712,9 +712,24 @@
         <i class="fas fa-shopping-bag"></i> Start Shopping
       </a>
     </div>
+
+    <div id="error-section" class="empty-cart" style="display: none;">
+      <i class="fas fa-exclamation-circle" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.4;"></i>
+      <h2 style="margin-bottom: 0.75rem;">Could not load your cart</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.25rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+        Check your connection and try again. If you were logged out, sign in and return here.
+      </p>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <button type="button" class="btn" id="cart-retry-btn" style="border: none; cursor: pointer;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+        <a href="super-affiliate-login.html" class="btn btn-link" style="display: inline-block;">Login</a>
+      </div>
+    </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     let cartData = null;
     let estimatedShipping = 0;
@@ -1001,7 +1016,7 @@
         padding: 1rem 2rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: ${typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600};
       `;
       toast.textContent = message;
       document.body.appendChild(toast);
@@ -1018,6 +1033,9 @@
     SuperAffiliateAPI.updateCartBadge();
 
     async function loadCart() {
+      document.getElementById('error-section').style.display = 'none';
+      document.getElementById('empty-section').style.display = 'none';
+      document.getElementById('cart-section').style.display = 'none';
       try {
         // Force fresh data - bypass cache by using direct API call with timestamp
         const timestamp = new Date().getTime();
@@ -1028,23 +1046,31 @@
       } catch (error) {
         console.error('Error loading cart:', error);
         document.getElementById('loading-section').style.display = 'none';
-        document.getElementById('empty-section').style.display = 'block';
+        document.getElementById('error-section').style.display = 'block';
       }
     }
 
     // Load cart immediately on page load
+    document.getElementById('cart-retry-btn').addEventListener('click', () => {
+      document.getElementById('loading-section').style.display = 'block';
+      document.getElementById('error-section').style.display = 'none';
+      loadCart();
+    });
     loadCart();
 
     function displayCart(data) {
       document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('error-section').style.display = 'none';
 
       const items = data.items || [];
       
       if (items.length === 0) {
         document.getElementById('empty-section').style.display = 'block';
+        document.getElementById('cart-section').style.display = 'none';
         return;
       }
 
+      document.getElementById('empty-section').style.display = 'none';
       document.getElementById('cart-section').style.display = 'block';
 
       const formatCurrency = (amount) => {
@@ -1405,7 +1431,7 @@
         padding: 1rem 2rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: ${typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600};
       `;
       toast.textContent = message;
       document.body.appendChild(toast);

@@ -72,10 +72,15 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
       
       .nav::-webkit-scrollbar {
         display: none;
+      }
+
+      .nav > * {
+        flex-shrink: 0;
       }
       
       /* Ensure user menu dropdown can escape overflow on mobile */
@@ -277,6 +282,23 @@
       text-align: center;
       padding: 4rem 2rem;
       color: var(--text-secondary);
+    }
+
+    .profile-load-error {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-load-error h2 {
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
     }
 
     .error-message {
@@ -512,7 +534,33 @@
       <p>Loading profile...</p>
     </div>
 
+    <div id="profile-load-error" class="profile-load-error">
+      <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.45;"></i>
+      <h2>Could not load profile</h2>
+      <p style="max-width: 420px; margin: 0 auto 1.25rem;">Check your connection and try again. If you were logged out, sign in and return here.</p>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <button type="button" class="btn" id="profile-retry-btn" style="border: none; cursor: pointer;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+        <a href="super-affiliate-login.html" class="btn btn-secondary" style="display: inline-block; text-decoration: none;">Login</a>
+      </div>
+    </div>
+
     <div id="profile-section" style="display: none;">
+      <div id="field-operator-banner" class="card" style="display: none; border-color: rgba(0, 242, 234, 0.35); background: rgba(0, 242, 234, 0.06);">
+        <h2 style="font-size: 1.15rem; color: var(--accent-color); margin-bottom: 0.65rem;">
+          <i class="fas fa-id-card-clip"></i> Field operator
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.85rem;">
+          You are an approved field operator. Use the same logistics and order tools as the mobile pilot.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+          <a href="delivery-org-hub.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-truck-field"></i> Org logistics</a>
+          <a href="driver-dashboard.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-motorcycle"></i> Delivery console</a>
+          <a href="seller-orders.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-shopping-bag"></i> Customer orders</a>
+        </div>
+      </div>
+
       <div class="tabs">
         <button class="tab active" onclick="switchTab('profile')">
           <i class="fas fa-user"></i> Profile
@@ -568,6 +616,21 @@
             <div class="stat-item">
               <div class="stat-value" id="stat-likes">0</div>
               <div class="stat-label">Likes</div>
+            </div>
+          </div>
+
+          <div style="margin: 1.5rem 0 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="font-size: 1rem; color: var(--accent-color); margin-bottom: 0.5rem;">
+              <i class="fas fa-truck-fast"></i> Help &amp; logistics
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.85rem;">
+              Support chat, delivery partner tools, and staff inbox (same APIs as the app). These links also appear in the left account menu when you are logged in.
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+              <a href="help-support.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-life-ring"></i> Help &amp; support</a>
+              <a href="driver-dashboard.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-motorcycle"></i> Delivery console</a>
+              <a id="org-logistics-link" href="delivery-org-hub.html" class="btn btn-secondary" style="text-decoration: none; display: none;"><i class="fas fa-truck-field"></i> Org logistics</a>
+              <a href="support-inbox.html" class="btn btn-secondary" style="text-decoration: none;"><i class="fas fa-inbox"></i> Support inbox (staff)</a>
             </div>
           </div>
 
@@ -720,7 +783,7 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let profileData = null;
 
@@ -733,7 +796,32 @@
     SuperAffiliateAPI.renderAuthNav('authNav');
 
     // Load profile data
+    async function refreshLogisticsUiHints() {
+      try {
+        const op = await SuperAffiliateAPI.getCommerceOperatorMe();
+        const banner = document.getElementById('field-operator-banner');
+        const approvedOp = op && op.is_operator === true && op.operator_status === 'approved';
+        if (banner) {
+          banner.style.display = approvedOp ? 'block' : 'none';
+        }
+      } catch (_) {}
+
+      try {
+        const mine = await SuperAffiliateAPI.getCommerceDeliveryOrgsMine();
+        const rows = (mine && mine.results) ? mine.results : [];
+        const hasApprovedOrg = rows.some((o) => o && o.status === 'approved');
+        const link = document.getElementById('org-logistics-link');
+        if (link) {
+          link.style.display = hasApprovedOrg ? 'inline-flex' : 'none';
+        }
+      } catch (_) {}
+    }
+
     async function loadProfile() {
+      document.getElementById('profile-load-error').style.display = 'none';
+      document.getElementById('profile-section').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+
       try {
         // IMPORTANT:
         // - `/users/profile/` may return `null` for followers/following depending on privacy settings
@@ -756,14 +844,17 @@
 
         profileData = merged;
         displayProfile(merged);
+        void refreshLogisticsUiHints();
       } catch (error) {
         console.error('Error loading profile:', error);
-        showError('Failed to load profile. Please try again.');
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('profile-load-error').style.display = 'block';
       }
     }
 
     function displayProfile(data) {
       document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('profile-load-error').style.display = 'none';
       document.getElementById('profile-section').style.display = 'block';
 
       const cacheBustUrl = (url) => {
@@ -1187,6 +1278,12 @@
           console.warn('⚠️ Service Worker registration failed:', error);
         });
     }
+
+    document.getElementById('profile-retry-btn').addEventListener('click', () => {
+      document.getElementById('profile-load-error').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+      loadProfile();
+    });
 
     // Initialize profile after service worker is registered
     loadProfile();

@@ -78,10 +78,15 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
       
       .nav::-webkit-scrollbar {
         display: none;
+      }
+
+      .nav > * {
+        flex-shrink: 0;
       }
       
       .nav .user-menu-dropdown {
@@ -698,7 +703,7 @@
   </div>
 
   <script src="js/security-utils.js"></script>
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     SuperAffiliateAPI.renderAuthNav('authNav');
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -725,6 +730,15 @@
       // Convert USD to NGN: 1 USD = 1000 NGN (matching Flutter app)
       const priceNGN = Math.round(num * 1000);
       return formatNumber(priceNGN);
+    }
+
+    // Clean subscription URL after Paystack return (works in subfolders, not only site root).
+    function subscriptionPagePathOnly() {
+      try {
+        return new URL('subscription.html', window.location.href).pathname;
+      } catch (_) {
+        return '/subscription.html';
+      }
     }
 
     // Show alert message
@@ -901,8 +915,12 @@
       } catch (error) {
         console.error('Error loading quota status:', error);
         document.getElementById('quotaStatus').innerHTML = `
-          <div class="error-message">Failed to load quota status. Please refresh the page.</div>
-        `;
+          <div class="error-message" style="display: block; text-align: center; padding: 1.5rem;">
+            <p style="margin-bottom: 1rem;">Could not load your subscription quota. Check your connection and try again.</p>
+            <button type="button" class="btn" onclick="loadQuotaStatus()" style="border: none; cursor: pointer;">
+              <i class="fas fa-redo"></i> Try again
+            </button>
+          </div>`;
       }
     }
 
@@ -1481,7 +1499,7 @@
         // Check if user is admin/staff (can bypass role check)
         try {
           const userProfile = await SuperAffiliateAPI.getUserProfile();
-          if (userProfile && (userProfile.is_staff || userProfile.is_superuser || userProfile.role === 'admin')) {
+          if (userProfile && SuperAffiliateAPI.isTandaWebAdmin(userProfile)) {
             userRoleStatus.hasRole = true; // Admin/staff can subscribe
             console.log('✅ User is admin/staff - can subscribe');
           }
@@ -1587,18 +1605,18 @@
           const message = urlParams.get('message') || `Successfully subscribed to ${planName || 'plan'}!`;
           showAlert(message, 'success');
           // Clean URL
-          window.history.replaceState({}, document.title, '/subscription.html');
+          window.history.replaceState({}, document.title, subscriptionPagePathOnly());
           // Reload quota to show updated status
           await loadQuotaStatus();
         } else if (paymentStatus === 'failed') {
           const error = errorMsg ? decodeURIComponent(errorMsg) : 'Payment failed. Please try again.';
           showAlert(error, 'error');
           // Clean URL
-          window.history.replaceState({}, document.title, '/subscription.html');
+          window.history.replaceState({}, document.title, subscriptionPagePathOnly());
         } else if (cancelled === 'true') {
           showAlert('Payment was cancelled. You can try again anytime.', 'warning');
           // Clean URL
-          window.history.replaceState({}, document.title, '/subscription.html');
+          window.history.replaceState({}, document.title, subscriptionPagePathOnly());
         }
         
         // Check if user returned from Paystack without reference (likely cancelled)

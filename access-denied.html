@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Access denied – Tanda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --text: #fff;
+      --muted: #aaa;
+      --accent: #00f2ea;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(145deg, #000, #121212);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+      padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+    }
+    .card {
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.75rem;
+    }
+    h1 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    p { color: var(--muted); line-height: 1.55; font-size: 0.95rem; margin-bottom: 1.25rem; }
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #000;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.75rem 1.1rem;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="heading">Access denied</h1>
+    <p id="detail">You do not have permission to open this page.</p>
+    <a href="index.html" id="homeLink">Back to home</a>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var reason = params.get('reason') || '';
+      var heading = document.getElementById('heading');
+      var detail = document.getElementById('detail');
+      if (reason === 'admin-tools') {
+        heading.textContent = 'Admin tools';
+        detail.textContent = 'Staff-only tools are limited to approved admin accounts. If you need access, contact your organization admin.';
+      }
+    })();
+  </script>
+</body>
+</html>

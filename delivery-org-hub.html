@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Org logistics — Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+      --err: #ff6b8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; gap: 0.25rem; scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.05rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    a.link { color: var(--accent); }
+    .banner-page-err {
+      display: none;
+      border: 1px solid rgba(255, 107, 138, 0.5);
+      background: rgba(255, 107, 138, 0.1);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      color: var(--err);
+      font-size: 0.92rem;
+    }
+    .mini-err { color: var(--err); font-size: 0.82rem; margin-top: 0.35rem; }
+    .mini-ok { color: #7dcea0; font-size: 0.82rem; margin-top: 0.35rem; }
+    .row-split {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+    input.in-text, select.in-select {
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .job-block {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .job-block:last-child { border-bottom: none; }
+    table.simple {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    table.simple th, table.simple td {
+      text-align: left;
+      padding: 0.5rem 0.35rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: top;
+    }
+    table.simple th { color: var(--accent); font-weight: 600; }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.35rem;
+      background: rgba(255,255,255,0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title"><i class="fas fa-truck-field"></i> Org logistics</div>
+    <div class="nav">
+      <a class="btn btn-ghost" href="profile.html"><i class="fas fa-user"></i> Profile</a>
+      <a class="btn btn-ghost" href="driver-dashboard.html"><i class="fas fa-motorcycle"></i> Rider console</a>
+      <a class="btn btn-ghost" href="seller-orders.html"><i class="fas fa-shopping-bag"></i> Orders</a>
+      <button type="button" class="btn" id="page-retry"><i class="fas fa-redo"></i> Refresh</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="page-fatal" class="banner-page-err" role="alert"></div>
+
+    <p class="muted" style="margin-bottom: 1.25rem;">
+      Manage logistics companies you own: roster, jobs assigned to your orgs, and open broadcasts you can bid on (same APIs as the mobile app).
+    </p>
+
+    <div class="card">
+      <h2><i class="fas fa-building"></i> My logistics companies</h2>
+      <div id="orgs-status" class="mini-err"></div>
+      <div id="orgs-body" class="muted">Loading…</div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-users"></i> Team (linked riders)</h2>
+      <div id="drivers-status" class="mini-err"></div>
+      <div id="drivers-body" class="muted">Loading…</div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-user-plus"></i> Link a rider</h2>
+      <p class="muted" style="margin-bottom: 0.75rem;">Rider must have an approved Tanda delivery partner profile. Check eligibility before linking.</p>
+      <div class="row-split">
+        <label class="muted" for="link-org">Company</label>
+        <select id="link-org" class="in-select"></select>
+        <input type="text" id="link-username" class="in-text" placeholder="Login username (no @)" autocomplete="username">
+        <button type="button" class="btn btn-ghost" id="btn-resolve">Check</button>
+        <button type="button" class="btn" id="btn-link">Link</button>
+      </div>
+      <div id="link-hint" class="muted" style="margin-top:0.5rem;"></div>
+      <div id="link-err" class="mini-err"></div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-list"></i> Jobs assigned to my orgs</h2>
+      <div id="jobs-status" class="mini-err"></div>
+      <div id="jobs-body" class="muted">Loading…</div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-broadcast-tower"></i> Open broadcasts (org bids)</h2>
+      <div id="open-status" class="mini-err"></div>
+      <div id="open-body" class="muted">Loading…</div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    (function () {
+      if (!SuperAffiliateAPI.isAuthenticated()) {
+        window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+        return;
+      }
+
+      function esc(s) {
+        if (s == null || s === '') return '';
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+      }
+
+      function approvedOrgsFromMine(mine) {
+        var rows = (mine && mine.results) ? mine.results : [];
+        return rows.filter(function (o) { return o && o.status === 'approved'; });
+      }
+
+      function fillOrgSelects(approved) {
+        var sel = document.getElementById('link-org');
+        sel.innerHTML = '';
+        approved.forEach(function (o) {
+          var opt = document.createElement('option');
+          opt.value = o.id || '';
+          opt.textContent = (o.name || 'Org') + ' (' + (o.id || '') + ')';
+          sel.appendChild(opt);
+        });
+        if (!approved.length) {
+          var z = document.createElement('option');
+          z.value = '';
+          z.textContent = 'No approved company';
+          sel.appendChild(z);
+        }
+      }
+
+      function selectedOrgId() {
+        var sel = document.getElementById('link-org');
+        return sel && sel.value ? sel.value : '';
+      }
+
+      function driversForOrg(drivers, orgId) {
+        var oid = String(orgId || '');
+        return (drivers || []).filter(function (d) { return d && String(d.org_id || '') === oid; });
+      }
+
+      function renderOrgs(mine) {
+        var approved = approvedOrgsFromMine(mine);
+        var rows = (mine && mine.results) ? mine.results : [];
+        if (!rows.length) {
+          document.getElementById('orgs-body').innerHTML = '<p class="muted">No logistics company applications yet. Use the mobile app to apply, or contact support.</p>';
+          return;
+        }
+        var html = '<table class="simple"><thead><tr><th>Name</th><th>Status</th><th>Phone</th></tr></thead><tbody>';
+        rows.forEach(function (o) {
+          html += '<tr><td>' + esc(o.name) + '<div class="muted" style="font-size:0.78rem;">' + esc(o.id) + '</div></td><td><span class="badge">' + esc(o.status) + '</span></td><td>' + esc(o.contact_phone || '—') + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        if (!approved.length) {
+          html += '<p class="mini-err" style="margin-top:0.75rem;">No approved org yet — open jobs and roster actions unlock once a company is approved.</p>';
+        }
+        document.getElementById('orgs-body').innerHTML = html;
+      }
+
+      function renderDrivers(drivers) {
+        var list = (drivers && drivers.results) ? drivers.results : [];
+        if (!list.length) {
+          document.getElementById('drivers-body').innerHTML = '<p class="muted">No riders linked to your companies.</p>';
+          return;
+        }
+        var html = '<table class="simple"><thead><tr><th>Name</th><th>Username</th><th>Org</th><th></th></tr></thead><tbody>';
+        list.forEach(function (d) {
+          var uname = d.username || '—';
+          var oid = d.org_id || '';
+          html += '<tr><td>' + esc(d.display_name || '') + '</td><td>' + esc(uname) + '</td><td>' + esc(d.org_name || oid) + '</td><td><button type="button" class="btn btn-ghost unlink-btn" data-partner-id="' + esc(d.id) + '">Unlink</button></td></tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('drivers-body').innerHTML = html;
+      }
+
+      function assignSelectHtml(job, driverRows) {
+        var org = job.assigned_org;
+        var oid = org && org.id ? String(org.id) : '';
+        var roster = driversForOrg(driverRows, oid);
+        if (!oid || !roster.length) return '';
+        var canAssign = job.status === 'open' || job.status === 'assigned';
+        if (!canAssign) return '<span class="muted">Assign when status is open/assigned.</span>';
+        var opts = roster.map(function (d) {
+          return '<option value="' + esc(d.id) + '">' + esc(d.display_name || d.username || d.id) + '</option>';
+        }).join('');
+        return '<div class="row-split"><label class="muted">Assign rider</label><select class="in-select assign-partner" data-job-id="' + esc(job.id) + '">' + opts + '</select><button type="button" class="btn btn-ghost assign-go" data-job-id="' + esc(job.id) + '">Assign</button></div>';
+      }
+
+      function renderJobs(data, driverRows) {
+        var list = (data && data.results) ? data.results : [];
+        var drivers = driverRows || [];
+        if (!list.length) {
+          document.getElementById('jobs-body').innerHTML = '<p class="muted">No jobs routed to your orgs yet.</p>';
+          return;
+        }
+        var html = '';
+        list.forEach(function (j) {
+          var orgName = j.assigned_org && j.assigned_org.name ? j.assigned_org.name : '—';
+          html += '<div class="job-block" data-job-id="' + esc(j.id) + '">';
+          html += '<div><strong>' + esc(j.id) + '</strong> <span class="muted">· ' + esc(j.status) + '</span> · <span class="muted">' + esc(j.delivery_fee || '') + ' ' + esc(j.currency || '') + '</span></div>';
+          html += '<div class="muted" style="margin-top:0.35rem;">Org: ' + esc(orgName) + '</div>';
+          if (j.assigned_partner && j.assigned_partner.id) {
+            html += '<div class="muted" style="margin-top:0.25rem;">Rider: ' + esc(j.assigned_partner.display_name || j.assigned_partner.id) + '</div>';
+          }
+          html += assignSelectHtml(j, drivers);
+          html += '<div class="assign-inline-err mini-err"></div>';
+          html += '</div>';
+        });
+        document.getElementById('jobs-body').innerHTML = html;
+
+        document.getElementById('jobs-body').querySelectorAll('button.assign-go').forEach(function (btn) {
+          btn.addEventListener('click', async function () {
+            var jid = btn.getAttribute('data-job-id');
+            var row = btn.closest('.job-block');
+            var sel = row.querySelector('select.assign-partner');
+            var errEl = row.querySelector('.assign-inline-err');
+            if (!sel || !errEl) return;
+            errEl.textContent = '';
+            btn.disabled = true;
+            try {
+              await SuperAffiliateAPI.postCommerceDeliveryJobAssignDriver(jid, sel.value);
+              await loadAll();
+            } catch (e) {
+              errEl.textContent = e.message || String(e);
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      function renderOpenJobs(data) {
+        var list = (data && data.results) ? data.results : [];
+        if (!list.length) {
+          document.getElementById('open-body').innerHTML = '<p class="muted">No open broadcasts you can bid on right now.</p>';
+          return;
+        }
+        var html = '';
+        list.forEach(function (j) {
+          html += '<div class="job-block">';
+          html += '<div><strong>' + esc(j.id) + '</strong> <span class="muted">· fee ' + esc(j.delivery_fee || '') + ' ' + esc(j.currency || '') + '</span></div>';
+          var elig = j.eligible_orgs || [];
+          if (!elig.length) {
+            html += '<p class="muted" style="margin-top:0.5rem;">No eligible org rows (unexpected).</p>';
+          } else {
+            elig.forEach(function (org) {
+              var oid = org.id || '';
+              var pending = org.viewer_pending_bid ? ' · pending bid' : '';
+              var inpId = 'bid-amt-' + j.id + '-' + oid;
+              html += '<div class="row-split" style="margin-top:0.65rem;">';
+              html += '<span class="muted">' + esc(org.name || oid) + pending + '</span>';
+              html += '<input type="text" class="in-text bid-amt" id="' + esc(inpId) + '" placeholder="Amount" value="' + esc(j.delivery_fee || '') + '" style="width:7rem;">';
+              html += '<button type="button" class="btn btn-ghost bid-btn" data-job-id="' + esc(j.id) + '" data-org-id="' + esc(oid) + '">Place bid</button>';
+              html += '</div><div class="mini-err bid-err" data-bid-key="' + esc(j.id + '-' + oid) + '"></div>';
+            });
+          }
+          html += '</div>';
+        });
+        document.getElementById('open-body').innerHTML = html;
+
+        document.getElementById('open-body').querySelectorAll('button.bid-btn').forEach(function (btn) {
+          btn.addEventListener('click', async function () {
+            var jid = btn.getAttribute('data-job-id');
+            var orgId = btn.getAttribute('data-org-id');
+            var key = jid + '-' + orgId;
+            var errEl = document.querySelector('.bid-err[data-bid-key="' + key + '"]');
+            var amtEl = document.getElementById('bid-amt-' + key);
+            if (errEl) errEl.textContent = '';
+            btn.disabled = true;
+            try {
+              await SuperAffiliateAPI.postCommerceDeliveryJobBid(jid, {
+                org_id: orgId,
+                amount: amtEl ? amtEl.value : '',
+              });
+              await loadAll();
+            } catch (e) {
+              if (errEl) errEl.textContent = e.message || String(e);
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      function setFatal(msg) {
+        var el = document.getElementById('page-fatal');
+        if (!msg) {
+          el.style.display = 'none';
+          el.textContent = '';
+          return;
+        }
+        el.style.display = 'block';
+        el.textContent = msg;
+      }
+
+      async function loadAll() {
+        setFatal('');
+        ['orgs-status', 'drivers-status', 'jobs-status', 'open-status'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = '';
+        });
+
+        var mineP = SuperAffiliateAPI.getCommerceDeliveryOrgsMine();
+        var drvP = SuperAffiliateAPI.getCommerceDeliveryOrgDrivers();
+        var jobsP = SuperAffiliateAPI.getCommerceDeliveryOrgJobs();
+
+        var mine, drivers, jobs;
+        try {
+          mine = await mineP;
+          renderOrgs(mine);
+          fillOrgSelects(approvedOrgsFromMine(mine));
+        } catch (e) {
+          document.getElementById('orgs-status').textContent = e.message || String(e);
+          document.getElementById('orgs-body').innerHTML = '';
+          mine = { results: [] };
+        }
+
+        try {
+          drivers = await drvP;
+          renderDrivers(drivers);
+        } catch (e) {
+          document.getElementById('drivers-status').textContent = e.message || String(e);
+          document.getElementById('drivers-body').innerHTML = '';
+          drivers = { results: [] };
+        }
+
+        try {
+          jobs = await jobsP;
+          renderJobs(jobs, (drivers && drivers.results) ? drivers.results : []);
+        } catch (e) {
+          document.getElementById('jobs-status').textContent = e.message || String(e);
+          document.getElementById('jobs-body').innerHTML = '';
+        }
+
+        try {
+          var openData = await SuperAffiliateAPI.getCommerceDeliveryOrgOpenJobs();
+          renderOpenJobs(openData);
+        } catch (e) {
+          var msg = e.message || String(e);
+          document.getElementById('open-status').textContent = msg;
+          document.getElementById('open-body').innerHTML = '';
+          if (msg.indexOf('Session expired') !== -1) setFatal(msg);
+        }
+
+        if (!document.getElementById('orgs-status').textContent &&
+          !document.getElementById('drivers-status').textContent &&
+          !document.getElementById('jobs-status').textContent &&
+          !document.getElementById('open-status').textContent) {
+          /* no panel errors */
+        }
+      }
+
+      document.getElementById('page-retry').addEventListener('click', loadAll);
+
+      document.getElementById('btn-resolve').addEventListener('click', async function () {
+        var err = document.getElementById('link-err');
+        var hint = document.getElementById('link-hint');
+        err.textContent = '';
+        hint.innerHTML = '';
+        var btn = document.getElementById('btn-resolve');
+        btn.disabled = true;
+        try {
+          var orgId = selectedOrgId();
+          var uname = document.getElementById('link-username').value.trim();
+          var res = await SuperAffiliateAPI.getCommerceDeliveryOrgResolveDriver({
+            username: uname,
+            org_id: orgId || undefined,
+          });
+          if (res.eligible) {
+            hint.innerHTML = '<span class="mini-ok">Eligible: ' + esc(res.display_name || res.username || '') + '</span>';
+          } else {
+            hint.innerHTML = '<span class="muted">Not eligible: ' + esc(res.reason || 'unknown') + '</span>';
+          }
+        } catch (e) {
+          err.textContent = e.message || String(e);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById('btn-link').addEventListener('click', async function () {
+        var err = document.getElementById('link-err');
+        err.textContent = '';
+        var btn = document.getElementById('btn-link');
+        btn.disabled = true;
+        try {
+          var orgId = selectedOrgId();
+          var uname = document.getElementById('link-username').value.trim().replace(/^@+/, '');
+          var body = { username: uname };
+          if (orgId) body.org_id = orgId;
+          await SuperAffiliateAPI.postCommerceDeliveryOrgDriversLink(body);
+          document.getElementById('link-hint').innerHTML = '<span class="mini-ok">Linked.</span>';
+          await loadAll();
+        } catch (e) {
+          err.textContent = e.message || String(e);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById('drivers-body').addEventListener('click', async function (ev) {
+        var t = ev.target.closest('.unlink-btn');
+        if (!t) return;
+        var pid = t.getAttribute('data-partner-id');
+        if (!window.confirm('Remove this rider from the company roster?')) return;
+        t.disabled = true;
+        try {
+          await SuperAffiliateAPI.postCommerceDeliveryOrgDriversUnlink({ partner_id: pid });
+          await loadAll();
+        } catch (e) {
+          alert(e.message || String(e));
+        } finally {
+          t.disabled = false;
+        }
+      });
+
+      loadAll();
+    })();
+  </script>
+</body>
+</html>

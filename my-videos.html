@@ -284,10 +284,33 @@
       background: var(--primary-gradient);
     }
 
+    .my-videos-load-error {
+      display: none;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 0, 80, 0.35);
+      background: rgba(255, 0, 80, 0.08);
+      color: var(--text-primary);
+    }
+    .my-videos-load-error h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .my-videos-load-error p {
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 768px) {
       body { padding: 1rem; }
       .header { flex-wrap: wrap; }
       .nav { width: 100%; }
+      .nav > * { flex-shrink: 0; }
       .nav a { margin-left: 0; }
       .btn { 
         flex: 1 1 100%; 
@@ -308,27 +331,70 @@
   <div class="header">
     <div class="title"><i class="fas fa-film"></i> My Videos</div>
     <div class="nav">
-      <a href="index.html"><i class="fas fa-home"></i> Home</a>
+      <a href="feed.html"><i class="fas fa-home"></i> Home</a>
       <div id="authNav" class="tanda-nav-container"></div>
     </div>
   </div>
 
   <div class="container">
+    <div id="my-videos-load-error" class="my-videos-load-error" role="alert">
+      <h2><i class="fas fa-plug"></i> Couldn’t load your videos</h2>
+      <p id="my-videos-load-error-detail">Check your connection and try again.</p>
+      <button type="button" class="btn primary" id="my-videos-retry" style="width: auto; display: inline-flex;">
+        <i class="fas fa-redo"></i> Try again
+      </button>
+    </div>
     <div id="loading" class="loading">
       <i class="fas fa-spinner fa-spin"></i> Loading your videos...
     </div>
     <div id="grid" class="grid" style="display:none;"></div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
-    SuperAffiliateAPI.renderAuthNav('authNav');
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html';
+      const here = (window.location.pathname.split('/').pop() || 'my-videos.html') + window.location.search;
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+
+    const videoTitleById = new Map();
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
     }
 
-    function safeText(v) {
-      return (v === null || v === undefined) ? '' : String(v);
+    function escapeAttr(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+    }
+
+    function mediaBaseUrl() {
+      try {
+        const api = SuperAffiliateAPI.getApiBase();
+        return api.replace(/\/?api\/?$/, '') || '';
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function hideMyVideosLoadError() {
+      const el = document.getElementById('my-videos-load-error');
+      if (el) el.style.display = 'none';
+    }
+
+    function showMyVideosLoadError(msg) {
+      const el = document.getElementById('my-videos-load-error');
+      const det = document.getElementById('my-videos-load-error-detail');
+      if (det) det.textContent = msg || 'Check your connection and try again.';
+      if (el) el.style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('grid').style.display = 'none';
     }
 
     async function copyTextToClipboard(text) {
@@ -377,15 +443,37 @@
       }
     }
 
+    async function copySharableLinkBtn(btn) {
+      const videoId = btn.dataset.vid || '';
+      const hasTagged = btn.dataset.tagged === '1';
+      const direct = btn.dataset.direct || '';
+      await copySharableLink(videoId, hasTagged, direct);
+    }
+
+    function normalizeMediaUrl(url) {
+      if (!url || typeof url !== 'string' || url.trim() === '') return null;
+      url = url.trim();
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      const root = mediaBaseUrl() || '';
+      if (url.startsWith('/')) return root + url;
+      if (!root) return url;
+      return root + '/' + url;
+    }
+
     async function load() {
       const loading = document.getElementById('loading');
       const grid = document.getElementById('grid');
+      hideMyVideosLoadError();
+      loading.style.display = 'block';
+      grid.style.display = 'none';
+      grid.innerHTML = '';
       try {
         const res = await SuperAffiliateAPI.getMyVideos(1);
-        const videos = res?.videos || [];
+        const videos = res?.videos || res?.results || [];
 
         loading.style.display = 'none';
         grid.style.display = 'grid';
+        videoTitleById.clear();
 
         if (!videos.length) {
           grid.innerHTML = `
@@ -396,84 +484,37 @@
           return;
         }
 
-        // Helper function to normalize URLs (handles relative and absolute)
-        function normalizeVideoUrl(url) {
-          if (!url || typeof url !== 'string' || url.trim() === '') {
-            return null;
-          }
-          url = url.trim();
-          
-          // If already absolute, return as is
-          if (url.startsWith('http://') || url.startsWith('https://')) {
-            return url;
-          }
-          
-          // If relative, construct absolute URL
-          if (url.startsWith('/')) {
-            // Get API base URL
-            function getApiBaseUrl() {
-              const metaTag = document.querySelector('meta[name="api-base-url"]');
-              if (metaTag && metaTag.content) {
-                let base = metaTag.content.endsWith('/api') ? metaTag.content.replace('/api', '') : metaTag.content;
-                if (!base.includes('://')) {
-                  base = base.startsWith('//') ? window.location.protocol + base : base;
-                }
-                return base;
-              }
-              const hostname = window.location.hostname;
-              if (hostname.includes('tanda.media')) {
-                return 'https://api.tanda.media';
-              }
-              if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                return 'http://127.0.0.1:8000';
-              }
-              return window.location.origin;
-            }
-            return getApiBaseUrl() + url;
-          }
-          
-          return url;
-        }
-
         grid.innerHTML = videos.map((v, index) => {
           // Get video URL - check multiple fields and normalize
           let videoUrl = v.video_url || v.video_file || '';
           if (videoUrl) {
-            videoUrl = normalizeVideoUrl(videoUrl);
+            videoUrl = normalizeMediaUrl(videoUrl);
           }
           
           // Get thumbnail URL - check multiple fields and normalize
           let thumbUrl = v.thumbnail_url || v.thumbnail || '';
           if (thumbUrl) {
-            thumbUrl = normalizeVideoUrl(thumbUrl);
+            thumbUrl = normalizeMediaUrl(thumbUrl);
           }
           
           const title = v.title || 'Untitled';
           const createdAt = v.created_at ? new Date(v.created_at).toLocaleString() : '';
           const views = v.views ?? v.tanda_views ?? 0;
           const idStr = String(v.id ?? '');
+          videoTitleById.set(idStr, title);
           const isNumericId = /^\d+$/.test(idStr);
           const productTags = v.product_tags || [];
           const hasTaggedProducts = Array.isArray(productTags) && productTags.length > 0;
-          const videoId = `video-${index}-${idStr}`;
-          const thumbId = `thumb-${index}-${idStr}`;
-          const isImported = v.is_imported || false;
+          const videoId = `video-${index}-${idStr.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+          const thumbId = `thumb-${index}-${idStr.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
-          // Escape HTML for video URL
           const escapedVideoUrl = videoUrl ? videoUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
           const escapedThumbUrl = thumbUrl ? thumbUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '';
-          
-          console.log(`Video ${index}:`, {
-            id: idStr,
-            isImported,
-            videoUrl: videoUrl ? 'present' : 'missing',
-            thumbUrl: thumbUrl ? 'present' : 'missing',
-            title
-          });
+          const safeTitleHtml = escapeHtml(title);
 
           return `
             <div class="card">
-              <div class="thumb" id="${thumbId}" data-video-id="${videoId}" data-actual-video-id="${idStr}" data-video-url="${escapedVideoUrl}">
+              <div class="thumb" id="${thumbId}" data-video-id="${videoId}" data-actual-video-id="${escapeAttr(idStr)}" data-video-url="${escapedVideoUrl}">
                 ${thumbUrl ? `<img src="${escapedThumbUrl}" alt="Thumbnail" id="img-${thumbId}">` : `<div>No Thumbnail</div>`}
                 ${videoUrl ? `<video id="${videoId}" muted loop playsinline preload="metadata">
                   <source src="${escapedVideoUrl}" type="video/mp4">
@@ -488,7 +529,7 @@
                     ${productTags.slice(0, 3).map(tag => `
                       <div class="product-tag">
                         <i class="fas fa-shopping-bag"></i>
-                        <span>${safeText(tag.name || tag.product_name || 'Product')}</span>
+                        <span>${escapeHtml(tag.name || tag.product_name || 'Product')}</span>
                       </div>
                     `).join('')}
                     ${productTags.length > 3 ? `<div class="product-tag"><span>+${productTags.length - 3}</span></div>` : ''}
@@ -497,19 +538,23 @@
               </div>
               <div class="body">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                  <div style="font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safeText(title)}</div>
+                  <div style="font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${safeTitleHtml}</div>
                   <button
+                    type="button"
                     class="btn"
                     style="flex:0 0 auto; padding:0.45rem 0.6rem; border-radius:0.6rem;"
                     title="Copy shareable link"
-                    onclick="copySharableLink('${idStr}', ${hasTaggedProducts ? 'true' : 'false'}, '${escapedVideoUrl}')"
+                    onclick="copySharableLinkBtn(this)"
+                    data-vid="${escapeAttr(idStr)}"
+                    data-tagged="${hasTaggedProducts ? '1' : '0'}"
+                    data-direct="${escapeAttr(videoUrl || '')}"
                   >
                     <i class="fas fa-copy"></i>
                   </button>
                 </div>
                 <div class="meta">
-                  <span><i class="fas fa-eye"></i> ${safeText(views)}</span>
-                  ${createdAt ? `<span><i class="fas fa-clock"></i> ${safeText(createdAt)}</span>` : ``}
+                  <span><i class="fas fa-eye"></i> ${escapeHtml(String(views))}</span>
+                  ${createdAt ? `<span><i class="fas fa-clock"></i> ${escapeHtml(createdAt)}</span>` : ``}
                   ${productTags.length > 0 ? `<span><i class="fas fa-tag"></i> ${productTags.length} product${productTags.length !== 1 ? 's' : ''}</span>` : ''}
                 </div>
                 <div class="actions">
@@ -524,17 +569,17 @@
                   }
                   ${
                     isNumericId
-                      ? `<button class="btn" onclick="downloadTaggedVideo('${idStr}')">
+                      ? `<button type="button" class="btn" onclick="downloadTaggedVideo('${idStr}')">
                            <i class="fas fa-download"></i> Download Tagged
                          </button>`
-                      : `<button class="btn" disabled title="Tagged download is only available for native videos right now." style="opacity:0.55; cursor:not-allowed;">
+                      : `<button type="button" class="btn" disabled title="Tagged download is only available for native videos right now." style="opacity:0.55; cursor:not-allowed;">
                            <i class="fas fa-download"></i> Download Tagged
                          </button>`
                   }
                   <a class="btn" href="super-affiliate-dashboard.html">
                     <i class="fas fa-chart-line"></i> Dashboard
                   </a>
-                  <button class="btn" onclick="deleteVideo('${idStr}', '${safeText(title).replace(/'/g, "\\'")}')" style="background: rgba(255,0,0,0.2); border: 1px solid rgba(255,0,0,0.3);">
+                  <button type="button" class="btn" onclick="deleteVideoBtn(this)" data-vid="${escapeAttr(idStr)}" style="background: rgba(255,0,0,0.2); border: 1px solid rgba(255,0,0,0.3);">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </div>
@@ -649,12 +694,20 @@
           });
         });
       } catch (e) {
-        loading.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${safeText(e.message) || 'Failed to load videos'}`;
+        showMyVideosLoadError(e.message || 'Failed to load videos');
         showToast(e.message || 'Failed to load videos', 'error');
       }
     }
 
-    async function deleteVideo(videoId, videoTitle) {
+    function deleteVideoBtn(btn) {
+      const id = btn.dataset.vid;
+      if (id) deleteVideo(id);
+    }
+
+    async function deleteVideo(videoId) {
+      const videoTitle = videoTitleById.get(videoId)
+        ?? videoTitleById.get(String(videoId))
+        ?? 'this video';
       if (!confirm(`Are you sure you want to delete "${videoTitle}"?\n\nThis action cannot be undone.`)) {
         return;
       }
@@ -676,7 +729,8 @@
     async function downloadTaggedVideo(videoId) {
       try {
         if (!SuperAffiliateAPI.isAuthenticated()) {
-          window.location.href = 'super-affiliate-login.html';
+          const here = (window.location.pathname.split('/').pop() || 'my-videos.html') + window.location.search;
+          window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
           return;
         }
 
@@ -738,7 +792,7 @@
         color: ${type === 'success' ? '#00ff88' : type === 'error' ? '#ff4444' : '#fff'};
         padding: 1rem 1.5rem;
         border-radius: 0.75rem;
-        z-index: 10000;
+        z-index: ${typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600};
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         animation: slideIn 0.3s ease;
       `;
@@ -750,6 +804,9 @@
         setTimeout(() => toast.remove(), 300);
       }, 3000);
     }
+
+    const myVideosRetry = document.getElementById('my-videos-retry');
+    if (myVideosRetry) myVideosRetry.addEventListener('click', () => load());
 
     load();
   </script>

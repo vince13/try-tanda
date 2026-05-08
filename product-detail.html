@@ -114,6 +114,9 @@
       scrollbar-width: none; /* Firefox */
       scroll-behavior: smooth;
       max-width: 100%;
+      /* Room for cart count badge (absolute, slightly above link) inside scrollport */
+      padding-top: 10px;
+      padding-bottom: 6px;
       padding-right: 0.5rem; /* Add padding to show scrollable area */
     }
 
@@ -178,8 +181,78 @@
     .product-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
       gap: 2rem;
       margin-bottom: 2rem;
+      align-items: stretch;
+    }
+
+    .product-media-column {
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+      min-height: 100%;
+    }
+
+    .pdp-shipping-footer.product-media-column-footer {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .product-info {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+
+    @media (min-width: 769px) {
+      .pdp-shipping-footer.product-media-column-footer {
+        margin-top: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        align-self: end;
+      }
+
+      .product-info {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+      }
+
+      #product-additional-info.product-additional-info {
+        margin-top: auto;
+      }
+    }
+
+    .pdp-shipping-footer .village-batch-callout,
+    .pdp-shipping-footer .buyer-fulfillment-card {
+      margin-bottom: 0;
+    }
+
+    .product-additional-info {
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    @media (max-width: 768px) {
+      .product-additional-info {
+        margin-top: 2rem;
+      }
+    }
+
+    a.seller-shop-link {
+      color: var(--accent-color);
+      font-weight: 700;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 242, 234, 0.4);
+    }
+
+    a.seller-shop-link:hover {
+      color: #fff;
+      border-bottom-color: var(--accent-color);
     }
 
     .product-image-container {
@@ -374,6 +447,114 @@
 
     .variation-selector + .variation-selector {
       margin-top: 1rem;
+    }
+
+    .village-batch-callout {
+      background: rgba(0, 242, 234, 0.08);
+      border: 1px solid rgba(0, 242, 234, 0.25);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .village-batch-callout h3 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .village-batch-callout p {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .village-batch-callout .village-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: var(--primary-gradient);
+      color: white !important;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* §E – buyer_fulfillment (parity with app PDP) */
+    .buyer-fulfillment-card {
+      background: rgba(33, 150, 243, 0.07);
+      border: 1px solid rgba(100, 181, 246, 0.35);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .buyer-fulfillment-card.fulfillment-gap {
+      border-color: rgba(255, 152, 0, 0.45);
+      background: rgba(255, 152, 0, 0.06);
+    }
+
+    .buyer-fulfillment-card h3 {
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+      color: #64b5f6;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-weight: 700;
+    }
+
+    .buyer-fulfillment-card .bf-rail-note {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin: 0 0 0.65rem;
+    }
+
+    .buyer-fulfillment-card .bf-details {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .buyer-fulfillment-card .bf-details li {
+      margin-bottom: 0.35rem;
+    }
+
+    .buyer-fulfillment-card .bf-caveat {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      font-size: 0.8rem;
+      color: #ffcc80;
+      margin-top: 0.65rem;
+    }
+
+    .buyer-fulfillment-card .bf-methods {
+      margin-top: 0.75rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .buyer-fulfillment-card .bf-methods-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    .buyer-fulfillment-card .bf-method-row {
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
     }
 
     .options-policies-card {
@@ -853,7 +1034,25 @@
 
       .product-layout {
         grid-template-columns: 1fr;
+        grid-template-rows: none;
         gap: 1.5rem;
+      }
+
+      .product-media-column {
+        grid-column: 1;
+        grid-row: auto;
+      }
+
+      .product-info {
+        grid-column: 1;
+        grid-row: auto;
+        padding: 1.5rem;
+      }
+
+      .pdp-shipping-footer.product-media-column-footer {
+        grid-column: 1;
+        grid-row: auto;
+        align-self: stretch;
       }
 
       .product-image-gallery {
@@ -865,10 +1064,6 @@
       .product-image-thumbnail-fallback {
         width: 60px;
         height: 60px;
-      }
-
-      .product-info {
-        padding: 1.5rem;
       }
 
       .product-name {
@@ -946,7 +1141,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Product detail – variations, seller, and add to cart.">
   <div class="header">
     <h1 class="title">Product Details</h1>
     <div class="nav" id="authNav"></div>
@@ -960,13 +1155,15 @@
 
     <div id="product-section" style="display: none;">
       <div class="product-layout">
-        <div class="product-image-container">
-          <img id="product-image" class="product-image-main" src="" alt="Product">
-          <div id="product-image-fallback" class="product-image-fallback" style="display: none;">
-            <i class="fas fa-image" style="font-size: 4rem; opacity: 0.3; color: rgba(255,255,255,0.3);"></i>
+        <div class="product-media-column">
+          <div class="product-image-container">
+            <img id="product-image" class="product-image-main" src="" alt="Product">
+            <div id="product-image-fallback" class="product-image-fallback" style="display: none;">
+              <i class="fas fa-image" style="font-size: 4rem; opacity: 0.3; color: rgba(255,255,255,0.3);"></i>
+            </div>
+            <!-- Image Gallery Thumbnails -->
+            <div id="product-image-gallery" class="product-image-gallery" style="display: none;"></div>
           </div>
-          <!-- Image Gallery Thumbnails -->
-          <div id="product-image-gallery" class="product-image-gallery" style="display: none;"></div>
         </div>
 
         <div class="product-info">
@@ -1047,7 +1244,13 @@
           </div>
           
           <!-- Additional Product Information Section -->
-          <div class="product-additional-info" id="product-additional-info" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);"></div>
+          <div class="product-additional-info" id="product-additional-info"></div>
+        </div>
+
+        <div class="product-media-column-footer pdp-shipping-footer">
+          <div id="village-batch-callout" class="village-batch-callout" style="display: none;" aria-live="polite"></div>
+
+          <div id="buyer-fulfillment-card" class="buyer-fulfillment-card" style="display: none;" aria-live="polite"></div>
         </div>
       </div>
 
@@ -1182,7 +1385,8 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     let productData = null;
     let selectedVariations = {}; // Store selected variations
@@ -1200,14 +1404,62 @@
     }
 
     async function loadProduct() {
+      const loadingEl = document.getElementById('loading-section');
+      loadingEl.style.display = 'block';
+      loadingEl.innerHTML =
+        '<i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Loading product...</p>';
       try {
         const response = await SuperAffiliateAPI.apiRequest(`/commerce/products/${productId}/`);
         productData = response;
         displayProduct(response);
       } catch (error) {
         console.error('Error loading product:', error);
-        document.getElementById('loading-section').innerHTML = '<p>Product not found</p>';
+        loadingEl.style.display = 'block';
+        loadingEl.innerHTML =
+          '<i class="fas fa-box-open" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5;"></i>' +
+          '<p style="margin-bottom: 1rem; max-width: 420px; margin-left: auto; margin-right: auto; color: var(--text-secondary);">' +
+          'We could not load this product. It may be unavailable or there was a network problem.' +
+          '</p>' +
+          '<div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">' +
+          '<button type="button" class="nav-link-btn nav-link-btn-primary" id="pdp-retry-btn" style="cursor: pointer;">Try again</button>' +
+          '<a href="products.html" class="nav-link-btn" style="text-decoration: none;">All products</a>' +
+          '<a href="marketplace.html" class="nav-link-btn" style="text-decoration: none;">Marketplace</a>' +
+          '</div>';
+        const retry = document.getElementById('pdp-retry-btn');
+        if (retry) retry.addEventListener('click', () => loadProduct());
       }
+    }
+
+    function escapeHtmlPd(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function sellerDisplayNameFromProductData(data) {
+      if (!data) return 'Seller';
+      const si = data.creator_seller_info;
+      if (si && si.shop_name != null) {
+        const shop = String(si.shop_name).trim();
+        if (shop) return shop;
+      }
+      const c = data.creator;
+      if (c && typeof c === 'object' && c.username != null) {
+        const u = String(c.username).trim();
+        if (u) return u;
+      }
+      if (typeof c === 'string' && String(c).trim()) return String(c).trim();
+      return 'Seller';
+    }
+
+    function sellerShopHrefFromProductData(data) {
+      if (!data) return '';
+      const si = data.creator_seller_info;
+      const slug = si && si.slug != null ? String(si.slug).trim() : '';
+      if (!slug) return '';
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+      return `${root}shops/?slug=${encodeURIComponent(slug)}`;
     }
 
     function displayProduct(data) {
@@ -1278,6 +1530,33 @@
       // Display variation options if available
       displayVariationOptions(data);
       
+      const villageEl = document.getElementById('village-batch-callout');
+      if (villageEl) {
+        const okType = data.product_type === 'physical' || data.product_type === 'hybrid';
+        const allowBatch = data.allow_village_batching !== false && okType;
+        const root = SuperAffiliateAPI.getPathToSiteRoot();
+        const pid = encodeURIComponent(data.id || productId || '');
+        if (!allowBatch) {
+          villageEl.style.display = 'none';
+          villageEl.innerHTML = '';
+        } else if (!SuperAffiliateAPI.isAuthenticated()) {
+          villageEl.style.display = 'block';
+          villageEl.innerHTML = `
+            <h3><i class="fas fa-people-group"></i> Village batch buying</h3>
+            <p>Join a group order for this product with neighbours organized by a village agent—often at a better unit price.</p>
+            <a class="village-link" href="super-affiliate-login.html?redirect=${encodeURIComponent(root + 'village-hub.html?product=' + (data.id || productId))}">Log in to open village hub</a>`;
+        } else {
+          villageEl.style.display = 'block';
+          villageEl.innerHTML = `
+            <h3><i class="fas fa-people-group"></i> Village batch buying</h3>
+            <p>This product can be purchased through an open batch. Use the hub to see your batches or join with an ID from your agent.</p>
+            <a class="village-link" href="${root}village-hub.html?product=${pid}"><i class="fas fa-arrow-right"></i> Open village hub</a>`;
+        }
+      }
+
+      // §E – Shipping & fulfillment (buyer_fulfillment from API)
+      renderBuyerFulfillment(data);
+
       // Display options & policies (returns, warranty)
       displayOptionsAndPolicies(data);
       
@@ -1351,6 +1630,12 @@
       `;
       document.getElementById('product-meta').innerHTML = metaHtml;
       
+      const sellerDisplay = escapeHtmlPd(sellerDisplayNameFromProductData(data));
+      const sellerHref = sellerShopHrefFromProductData(data);
+      const sellerLineInner = sellerHref
+        ? `<a class="seller-shop-link" href="${sellerHref.replace(/"/g, '&quot;')}" aria-label="View ${sellerDisplay.replace(/"/g, '&quot;')}\u2019s shop on Tanda">${sellerDisplay}</a>`
+        : sellerDisplay;
+
       // Additional product information
       const additionalInfoHtml = `
         <h3 class="section-title" style="font-size: 1.2rem; margin-top: 0; margin-bottom: 1rem;">Product Details</h3>
@@ -1397,10 +1682,10 @@
               <span>Views: ${data.views}</span>
             </div>
           ` : ''}
-          ${data.creator ? `
-            <div class="meta-item">
+          ${(data.creator || data.creator_seller_info) ? `
+            <div class="meta-item meta-item-seller">
               <i class="fas fa-store"></i>
-              <span>Seller: ${data.creator.username || data.creator}</span>
+              <span>Seller: ${sellerLineInner}</span>
             </div>
           ` : ''}
         </div>
@@ -1606,6 +1891,86 @@
         wrapper.appendChild(select);
         variationContainer.appendChild(wrapper);
       });
+    }
+
+    function renderBuyerFulfillment(data) {
+      const card = document.getElementById('buyer-fulfillment-card');
+      if (!card) return;
+      const bf = data && data.buyer_fulfillment;
+      if (!bf || typeof bf !== 'object') {
+        card.style.display = 'none';
+        card.innerHTML = '';
+        return;
+      }
+      const copy = bf.copy;
+      if (!copy || typeof copy !== 'object') {
+        card.style.display = 'none';
+        card.innerHTML = '';
+        return;
+      }
+      const headline = (copy.headline != null && String(copy.headline).trim()) ? String(copy.headline).trim() : '';
+      if (!headline) {
+        card.style.display = 'none';
+        card.innerHTML = '';
+        return;
+      }
+
+      const gap = bf.fulfillment_config_gap === true;
+      card.classList.toggle('fulfillment-gap', gap);
+
+      const rail = (bf.applies_to_checkout_rail || 'tanda_native').toString();
+      const railNote = rail === 'tanda_native'
+        ? 'Availability and shipping below apply to Tanda checkout on this product.'
+        : '';
+
+      const details = Array.isArray(copy.detail_lines)
+        ? copy.detail_lines.map((e) => String(e).trim()).filter(Boolean)
+        : [];
+      const caveats = Array.isArray(copy.caveats)
+        ? copy.caveats.map((e) => String(e).trim()).filter(Boolean).filter((s) => !s.toLowerCase().includes('shopos'))
+        : [];
+
+      let methodsHtml = '';
+      const methods = data.available_shipping_methods;
+      if (Array.isArray(methods) && methods.length > 0) {
+        const rows = methods.filter((m) => m && m.is_active !== false).map((m) => {
+          const name = escapeHtmlPd(m.name || 'Shipping option');
+          const mt = m.method_type ? ` · ${escapeHtmlPd(String(m.method_type))}` : '';
+          let eta = '';
+          const tmin = m.delivery_time_min;
+          const tmax = m.delivery_time_max;
+          if (tmin != null && tmax != null && String(tmin) === String(tmax)) {
+            eta = ` (~${escapeHtmlPd(String(tmin))} day ETA)`;
+          } else if (tmin != null || tmax != null) {
+            eta = ` (${escapeHtmlPd(String(tmin ?? '?'))}–${escapeHtmlPd(String(tmax ?? '?'))} days)`;
+          }
+          return `<div class="bf-method-row"><i class="fas fa-truck" style="opacity:0.7;margin-right:0.35rem;"></i>${name}${mt}${eta}</div>`;
+        });
+        if (rows.length) {
+          methodsHtml = `<div class="bf-methods"><div class="bf-methods-title">Active shipping options (from seller)</div>${rows.join('')}</div>`;
+        }
+      }
+
+      const modes = bf.fulfillment_modes && typeof bf.fulfillment_modes === 'object' ? bf.fulfillment_modes : {};
+      const pickupNote = modes.pickup_declared === true
+        ? '<li><strong>Pickup:</strong> May be available – confirm at checkout.</li>'
+        : '';
+
+      const detailItems = details.map((line) => `<li>${escapeHtmlPd(line)}</li>`).join('');
+      const pickupHtml = pickupNote ? pickupNote : '';
+
+      const caveatBlocks = caveats.map(
+        (c) => `<div class="bf-caveat"><i class="fas fa-info-circle" style="margin-top:0.1rem;"></i><span>${escapeHtmlPd(c)}</span></div>`
+      ).join('');
+
+      card.innerHTML = `
+        <h3><i class="fas fa-truck"></i><span>${escapeHtmlPd(headline)}</span></h3>
+        ${railNote ? `<p class="bf-rail-note">${escapeHtmlPd(railNote)}</p>` : ''}
+        ${detailItems || pickupHtml ? `<ul class="bf-details">${pickupHtml}${detailItems}</ul>` : ''}
+        ${methodsHtml}
+        ${caveatBlocks}
+      `;
+      card.style.display = 'block';
     }
 
     function displayOptionsAndPolicies(data) {
@@ -2273,7 +2638,7 @@
         padding: 1rem 2rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: ${typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600};
       `;
       toast.textContent = message;
       document.body.appendChild(toast);

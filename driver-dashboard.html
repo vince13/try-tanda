@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Delivery console - Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+      --err: #ff6b8a;
+      --warn: #ffb020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; gap: 0.25rem; scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.05rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .loading, .banner-err {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+    }
+    .banner-err { color: var(--err); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    pre.raw {
+      font-size: 0.72rem;
+      overflow: auto;
+      max-height: 180px;
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.35);
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .job-row {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      gap: 0.65rem;
+    }
+    .job-row:last-child { border-bottom: none; }
+    .job-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    input.otp-in, input.hub-note-in {
+      width: 140px;
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    input.hub-note-in { flex: 1; min-width: 160px; max-width: 280px; }
+    .mini-err { color: var(--err); font-size: 0.82rem; }
+    a.link { color: var(--accent); }
+    .badge-status {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+      margin-right: 0.35rem;
+    }
+    .st-pending { background: rgba(255,176,32,0.2); color: var(--warn); }
+    .st-approved { background: rgba(0,255,136,0.15); color: #5dffa6; }
+    .st-suspended, .st-rejected { background: rgba(255,80,80,0.15); color: #ff8585; }
+    .st-draft { background: rgba(150,150,255,0.15); color: #aaaaff; }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.65rem 1rem;
+      margin: 0.75rem 0;
+      font-size: 0.9rem;
+    }
+    .summary-grid dt { color: var(--muted); font-size: 0.8rem; }
+    .summary-grid dd { font-weight: 600; }
+    details.debug-raw { margin-top: 0.75rem; }
+    details.debug-raw summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
+    .gps-ctrl { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; font-size: 0.88rem; color: var(--muted); }
+    .gps-ctrl input { width: auto; }
+    .job-details summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin: 0.35rem 0;
+    }
+    .addr-line { font-size: 0.88rem; line-height: 1.45; margin: 0.25rem 0; }
+  </style>
+</head>
+<body>
+    <div class="header">
+    <h1 class="title"><i class="fas fa-motorcycle"></i> Delivery console</h1>
+    <div class="nav" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+      <a href="rider-kyc.html" class="btn btn-ghost" style="text-decoration:none;"><i class="fas fa-id-card"></i> Rider KYC</a>
+      <div id="authNav"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <p class="muted" style="margin-bottom:1rem;">
+      Partner onboarding status, jobs, hub scan, OTP pickup/delivery, optional GPS, delivery disputes, and
+      <a class="link" href="rider-kyc.html">full rider KYC on the web</a> (multipart, iPhone-friendly).
+    </p>
+
+    <div class="gps-ctrl" id="gps-global-wrap">
+      <label style="display:inline-flex;align-items:center;gap:0.4rem;cursor:pointer;">
+        <input type="checkbox" id="attach-gps-proofs" checked>
+        Attach GPS to pickup / delivery / hub-scan when location is available
+      </label>
+    </div>
+
+    <div id="page-loading" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 1.75rem;"></i>
+      <p style="margin-top: 0.75rem;">Loading logistics data…</p>
+    </div>
+
+    <div id="page-error" class="banner-err" style="display: none;">
+      <p id="page-error-msg" style="margin-bottom: 1rem;"></p>
+      <button type="button" class="btn" id="page-retry"><i class="fas fa-redo"></i> Try again</button>
+    </div>
+
+    <div id="page-main" style="display: none;">
+      <div class="card">
+        <h2>Field operator</h2>
+        <p class="muted" style="margin-bottom: 0.75rem;">Seller pickup-point operator status (if you use this role).</p>
+        <div id="operator-status" class="muted mini-err" style="margin-bottom: 0.5rem;"></div>
+        <div id="operator-summary"></div>
+        <details class="debug-raw"><summary>Raw JSON</summary><pre id="operator-json" class="raw"></pre></details>
+      </div>
+
+      <div class="card">
+        <h2>Delivery partner</h2>
+        <p class="muted" style="margin-bottom: 0.75rem;">Your rider profile, approval status, and trust details.</p>
+        <div id="partner-status" class="muted mini-err" style="margin-bottom: 0.5rem;"></div>
+        <div id="partner-summary"></div>
+        <details class="debug-raw"><summary>Raw JSON</summary><pre id="partner-json" class="raw"></pre></details>
+      </div>
+
+      <div class="card">
+        <h2>My jobs</h2>
+        <p class="muted" style="margin-bottom: 0.75rem;">Deliveries currently assigned to you.</p>
+        <p class="muted" style="font-size:0.85rem;margin-bottom:0.65rem;line-height:1.45;">
+          <strong>Pickup &amp; delivery codes:</strong> For safety, riders do not see these codes in the app. Ask the <em>seller or shop</em> for the pickup code, and the <em>customer</em> for the delivery code, then enter them below at each step.
+        </p>
+        <div id="mine-status" class="muted mini-err" style="margin-bottom: 0.5rem;"></div>
+        <div id="mine-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Open broadcasts</h2>
+        <p class="muted" style="margin-bottom: 0.75rem;">Jobs open to riders nearby. You need an approved partner profile and to be accepting jobs.</p>
+        <div id="open-status" class="muted mini-err" style="margin-bottom: 0.5rem;"></div>
+        <div id="open-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function fmtAddr(a) {
+      if (a == null) return '—';
+      if (typeof a === 'string') return a.trim() || '—';
+      if (typeof a !== 'object') return '—';
+      const parts = [
+        a.line1, a.line2, a.address_line1, a.address_line2,
+        a.city, a.state, a.region, a.postal_code, a.zip,
+        a.country, a.formatted_address,
+      ].filter(function (x) { return x != null && String(x).trim() !== ''; }).map(function (x) { return String(x).trim(); });
+      if (parts.length) return parts.join(', ');
+      try { return JSON.stringify(a); } catch (_) { return '—'; }
+    }
+
+    function fmtMoney(amount, currency) {
+      if (amount == null || String(amount) === '') return '—';
+      var cur = (currency != null && String(currency).trim()) ? String(currency).trim().toUpperCase() : 'NGN';
+      var n = Number(amount);
+      if (Number.isNaN(n)) return esc(String(amount)) + (cur ? ' ' + esc(cur) : '');
+      var sym = cur === 'NGN' ? '₦' : '';
+      return sym + n.toLocaleString('en-NG', { maximumFractionDigits: 2, minimumFractionDigits: n % 1 ? 2 : 0 }) + (sym ? '' : ' ' + cur);
+    }
+
+    function shortJobRef(id) {
+      if (id == null || id === '') return 'This job';
+      var s = String(id).replace(/-/g, '');
+      if (s.length >= 6) return 'Ref …' + s.slice(-6);
+      return 'Ref ' + String(id).slice(0, 12);
+    }
+
+    function humanJobStatus(st) {
+      if (st == null || st === '') return '—';
+      var map = {
+        pending: 'Waiting',
+        accepted: 'Accepted',
+        picked_up: 'Picked up',
+        pickedup: 'Picked up',
+        in_transit: 'On the way',
+        delivered: 'Delivered',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+        canceled: 'Cancelled',
+        disputed: 'Under review',
+        suspended: 'Paused',
+      };
+      var k = String(st).toLowerCase().replace(/ /g, '_');
+      if (map[k]) return map[k];
+      return String(st).replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    }
+
+    function humanDeliveryMode(mode) {
+      if (mode == null || mode === '') return '—';
+      var m = String(mode).toLowerCase();
+      var map = {
+        local_broadcast: 'Open to riders nearby',
+        broadcast: 'Open offer',
+        assigned: 'Assigned to you',
+        direct: 'Direct assignment',
+      };
+      if (map[m]) return map[m];
+      return String(mode).replace(/_/g, ' ');
+    }
+
+    function fmtWhen(iso) {
+      if (iso == null || String(iso).trim() === '' || String(iso) === '—') return '—';
+      try {
+        var d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return String(iso);
+        return d.toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' });
+      } catch (_) {
+        return String(iso);
+      }
+    }
+
+    function formatRiderPickup(job) {
+      var a = job.pickup_address;
+      if (a == null) return '—';
+      if (typeof a === 'string') return fmtAddr(a);
+      if (typeof a !== 'object') return '—';
+      var bits = [];
+      if (a.shop_name) bits.push('Business: ' + String(a.shop_name).trim());
+      if (a.phone) bits.push('Phone: ' + String(a.phone).trim());
+      if (a.contact_name) bits.push('Contact: ' + String(a.contact_name).trim());
+      if (a.address && typeof a.address === 'object') {
+        var inner = fmtAddr(a.address);
+        if (inner && inner !== '—') bits.push(inner);
+      } else if (a.address && typeof a.address === 'string' && a.address.trim()) {
+        bits.push(a.address.trim());
+      }
+      if (bits.length) return bits.join(' · ');
+      return fmtAddr(a);
+    }
+
+    function riderFundingNotePlain(note) {
+      if (!note || !String(note).trim()) return '';
+      var n = String(note).toLowerCase();
+      if (n.indexOf('escrow') !== -1 || n.indexOf('wallet') !== -1) {
+        return 'Tanda holds the delivery fee safely until this job is finished.';
+      }
+      return String(note).trim();
+    }
+
+    function mapsUrl(lat, lng, addrObj) {
+      if (lat != null && lng != null && String(lat) !== '' && String(lng) !== '') {
+        var q = encodeURIComponent(String(lat) + ',' + String(lng));
+        return 'https://www.google.com/maps?q=' + q;
+      }
+      var s = fmtAddr(addrObj);
+      if (s && s !== '—') {
+        return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s);
+      }
+      return '';
+    }
+
+    function partnerStatusClass(st) {
+      var s = (st != null ? String(st) : '').toLowerCase();
+      if (s === 'approved') return 'st-approved';
+      if (s === 'pending') return 'st-pending';
+      if (s === 'suspended' || s === 'rejected') return 'st-suspended';
+      if (s === 'draft') return 'st-draft';
+      return '';
+    }
+
+    function showMain(loading, errMsg) {
+      document.getElementById('page-loading').style.display = loading ? 'block' : 'none';
+      var pe = document.getElementById('page-error');
+      if (errMsg) {
+        pe.style.display = 'block';
+        document.getElementById('page-error-msg').textContent = errMsg;
+      } else {
+        pe.style.display = 'none';
+      }
+      document.getElementById('page-main').style.display = !loading && !errMsg ? 'block' : 'none';
+    }
+
+    function setPanelError(elId, msg) {
+      document.getElementById(elId).textContent = msg || '';
+    }
+
+    function renderOperatorSummary(data) {
+      var box = document.getElementById('operator-summary');
+      if (!data || data.is_operator !== true) {
+        box.innerHTML = '<p class="muted">You are not registered as a field operator, or your profile is not active on this account.</p>';
+        return;
+      }
+      var stRaw = data.operator_status || (data.operator && data.operator.status) || '—';
+      var op = data.operator || {};
+      var tiers = op.tier_prices && typeof op.tier_prices === 'object'
+        ? Object.keys(op.tier_prices).map(function (k) { return esc(k) + ': ' + esc(op.tier_prices[k]); }).join(', ')
+        : '—';
+      var badgeClass = partnerStatusClass(String(stRaw));
+      box.innerHTML = `
+        <p><span class="badge-status ${badgeClass}">${esc(stRaw)}</span>
+          <strong>Field operator</strong></p>
+        <dl class="summary-grid">
+          <div><dt>Display name</dt><dd>${esc(op.display_name || '—')}</dd></div>
+          <div><dt>Area</dt><dd>${esc(op.area_label || '—')}</dd></div>
+          <div><dt>Accepting jobs</dt><dd>${op.accepting_new_jobs ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Tier prices</dt><dd>${tiers}</dd></div>
+        </dl>
+        <p class="muted" style="font-size:0.85rem;">Seller tools: <a class="link" href="seller-orders.html">Orders</a></p>`;
+    }
+
+    function renderPartnerSummary(root) {
+      var box = document.getElementById('partner-summary');
+      var p = root && root.partner ? root.partner : null;
+      if (!p) {
+        box.innerHTML = '<p class="muted">No delivery partner profile on this account yet.</p>' +
+          '<p style="margin-top:0.75rem;"><a class="btn" href="rider-kyc.html" style="text-decoration:none;display:inline-flex;"><i class="fas fa-id-card"></i> Start rider application (web)</a></p>';
+        return;
+      }
+      var st = p.status || '—';
+      var appLink = '<p class="muted" style="margin-top:0.75rem;">Need to submit or resubmit documents? Use the <a class="link" href="rider-kyc.html">web KYC form</a> (same API as the app) or the mobile app.</p>';
+      var extra = '';
+      if (st === 'pending' || p.application_locked) {
+        extra += '<p class="muted" style="margin-top:0.5rem;"><i class="fas fa-clock"></i> Application under review. Watch this page for status changes.</p>';
+      }
+      if (st === 'rejected') {
+        extra += '<p class="mini-err" style="margin-top:0.5rem;">' +
+          (p.resubmission_blocked ? 'Resubmission blocked. Contact support if this is unexpected. ' : '') +
+          (p.admin_review_note ? ('Admin note: ' + esc(p.admin_review_note)) : '') + '</p>';
+      }
+      if (st === 'suspended') {
+        extra += '<p class="mini-err" style="margin-top:0.5rem;">Partner profile suspended. Contact support.</p>';
+      }
+      if (p.can_submit_kyc && st !== 'pending') {
+        extra += '<p style="margin-top:0.5rem;"><a class="btn btn-ghost" href="rider-kyc.html" style="text-decoration:none;display:inline-flex;"><i class="fas fa-id-card"></i> Open rider KYC (web)</a></p>';
+      }
+      var debt = root.courier_recovery_debt_total_ngn;
+      var debtLine = debt != null && String(debt) !== ''
+        ? `<div><dt>Courier recovery debt (₦)</dt><dd>${esc(debt)}</dd></div>` : '';
+      var blockW = root.withdrawals_blocked_for_courier_recovery_debt
+        ? '<p class="mini-err" style="margin-top:0.5rem;">Wallet withdrawals may be blocked until courier recovery debt is cleared.</p>' : '';
+
+      box.innerHTML = `
+        <p><span class="badge-status ${partnerStatusClass(st)}">${esc(st)}</span> <strong>${esc(p.display_name || 'Delivery partner')}</strong></p>
+        <dl class="summary-grid">
+          <div><dt>Trust tier</dt><dd>${esc(p.trust_tier || '—')}</dd></div>
+          <div><dt>Completed jobs</dt><dd>${esc(p.completed_jobs != null ? p.completed_jobs : '—')}</dd></div>
+          <div><dt>Accepting jobs</dt><dd>${p.accepting_jobs ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Service radius (km)</dt><dd>${esc(p.service_radius_km != null ? p.service_radius_km : '—')}</dd></div>
+          <div><dt>Collateral capacity</dt><dd>${esc(p.collateral_capacity != null ? p.collateral_capacity : '—')}</dd></div>
+          <div><dt>Org</dt><dd>${esc(p.org_name || p.org_id || '—')}</dd></div>
+          ${debtLine}
+        </dl>
+        ${blockW}
+        ${extra}
+        ${appLink}`;
+    }
+
+    function renderDisputeSection(job) {
+      var id = job && job.id != null ? job.id : '';
+      var st = job && job.status != null ? job.status : '';
+      if (st === 'completed' || st === 'cancelled') return '';
+      return '<details class="dispute-wrap" data-job-id="' + esc(id) + '"><summary style="cursor:pointer;color:var(--accent);font-weight:600;font-size:0.88rem;margin-top:0.35rem;">Dispute / coordination</summary>' +
+        '<div class="dispute-panel-inner" style="margin-top:0.5rem;"></div></details>';
+    }
+
+    function renderDisputePanel(inner, jobId, jobStatus, coord) {
+      var msgs = (coord && coord.messages) ? coord.messages : [];
+      var threadRo = coord && coord.thread_read_only;
+      var html = '';
+      if (jobStatus === 'disputed') {
+        html += '<p class="muted" style="font-size:0.82rem;">Coordination thread' + (threadRo ? ' (read-only)' : '') + '.</p>';
+        html += '<ul style="list-style:none;padding:0;margin:0.5rem 0;max-height:220px;overflow:auto;">';
+        msgs.forEach(function (m) {
+          html += '<li style="margin-bottom:0.45rem;padding-bottom:0.45rem;border-bottom:1px solid rgba(255,255,255,0.08);"><strong>' + esc(m.author_username || '') + '</strong> · <span style="font-size:0.78rem;">' + esc(fmtWhen(m.created_at)) + '</span><br>' + esc(m.body || '') + '</li>';
+        });
+        html += '</ul>';
+        if (!threadRo) {
+          html += '<textarea class="hub-note-in" id="dispute-msg-' + esc(jobId) + '" style="width:100%;min-height:64px;margin-top:0.35rem;" placeholder="Message to other parties"></textarea>';
+          html += '<button type="button" class="btn btn-ghost dispute-send" data-job-id="' + esc(jobId) + '" style="margin-top:0.35rem;"><i class="fas fa-paper-plane"></i> Send</button>';
+        }
+      } else {
+        html += '<p class="muted" style="font-size:0.82rem;">Only open a dispute for a real delivery issue. This changes job state and may hold delivery fees.</p>';
+        html += '<input type="text" class="otp-in" id="dispute-reason-' + esc(jobId) + '" placeholder="Reason (optional)" style="max-width:280px;margin-top:0.35rem;" value="delivery_issue">';
+        html += '<textarea class="hub-note-in" id="dispute-desc-' + esc(jobId) + '" style="width:100%;min-height:72px;margin-top:0.35rem;" placeholder="Describe the issue (required)"></textarea>';
+        html += '<button type="button" class="btn btn-ghost dispute-open" data-job-id="' + esc(jobId) + '" style="margin-top:0.35rem;"><i class="fas fa-exclamation-triangle"></i> Open dispute</button>';
+      }
+      inner.innerHTML = html;
+    }
+
+    function renderJobDetails(job) {
+      var pkLat = job.pickup_latitude;
+      var pkLng = job.pickup_longitude;
+      var drLat = job.dropoff_latitude;
+      var drLng = job.dropoff_longitude;
+      if ((pkLat == null || pkLng == null || String(pkLat) === '' || String(pkLng) === '') &&
+          job.pickup_address && typeof job.pickup_address === 'object') {
+        pkLat = job.pickup_address.latitude != null ? job.pickup_address.latitude : pkLat;
+        pkLng = job.pickup_address.longitude != null ? job.pickup_address.longitude : pkLng;
+      }
+      var pk = mapsUrl(pkLat, pkLng, job.pickup_address);
+      var dr = mapsUrl(drLat, drLng, job.dropoff_address);
+      var pkL = pk ? '<a class="link" target="_blank" rel="noopener" href="' + esc(pk) + '">Open in Maps</a>' : '';
+      var drL = dr ? '<a class="link" target="_blank" rel="noopener" href="' + esc(dr) + '">Open in Maps</a>' : '';
+      var pickupLine = esc(formatRiderPickup(job));
+      var dropLine = esc(fmtAddr(job.dropoff_address));
+      var feeStr = fmtMoney(job.delivery_fee, job.currency);
+      var pkgStr = fmtMoney(job.package_value, job.currency);
+      var modePlain = esc(humanDeliveryMode(job.mode));
+      var otpPickup = job.pickup_otp_required ? 'Yes' : 'No';
+      var otpDrop = job.delivery_otp_required ? 'Yes' : 'No';
+      var fundNote = riderFundingNotePlain(job.driver_funding_note);
+      return `<details class="job-details">
+        <summary>Addresses &amp; timeline</summary>
+        <div class="addr-line"><strong>Pickup:</strong> ${pickupLine}${pkL ? ' · ' + pkL : ''}</div>
+        <div class="addr-line"><strong>Drop-off:</strong> ${dropLine}${drL ? ' · ' + drL : ''}</div>
+        <div class="muted" style="font-size:0.88rem;margin-top:0.5rem;line-height:1.45;">
+          Your fee: <strong>${esc(feeStr)}</strong> · Package value: ${esc(pkgStr)} · Type: ${modePlain}<br>
+          Pickup code from seller: ${otpPickup} · Delivery code from buyer: ${otpDrop}
+        </div>
+        ${fundNote ? '<p class="muted" style="margin-top:0.5rem;font-size:0.88rem;">' + esc(fundNote) + '</p>' : ''}
+        ${job.notes ? '<p class="muted" style="margin-top:0.35rem;font-size:0.88rem;"><strong>Notes from the app:</strong> ' + esc(job.notes) + '</p>' : ''}
+        <div class="muted" style="font-size:0.85rem;margin-top:0.55rem;line-height:1.5;">
+          <strong>Timeline</strong><br>
+          Created: ${esc(fmtWhen(job.created_at))}<br>
+          Accepted: ${esc(fmtWhen(job.accepted_at))}<br>
+          Picked up: ${esc(fmtWhen(job.pickup_verified_at))}<br>
+          Delivered: ${esc(fmtWhen(job.delivered_at))}
+        </div>
+      </details>`;
+    }
+
+    function renderJobRow(job, mode) {
+      var id = job && job.id != null ? job.id : '';
+      var st = job && job.status != null ? job.status : '';
+      var canAccept = mode === 'open' && job && job.can_bid_or_accept === true;
+      var blockReason = job && job.interaction_blocked_reason ? String(job.interaction_blocked_reason) : '';
+      var refLabel = esc(shortJobRef(id));
+      var statusHuman = esc(humanJobStatus(st));
+      var feeHuman = esc(fmtMoney(job.delivery_fee, job.currency));
+
+      var actions = '';
+      if (mode === 'open') {
+        actions += '<button type="button" class="btn accept-job" data-job-id="' + esc(id) + '" ' + (canAccept ? '' : 'disabled') + ' title="' + esc(blockReason) + '"><i class="fas fa-check"></i> Accept</button>';
+        if (!canAccept && blockReason) {
+          actions += ' <span class="muted" style="font-size:0.8rem;">(' + esc(blockReason) + ')</span>';
+        }
+      } else {
+        var hub = '';
+        if (st === 'accepted' || st === 'picked_up') {
+          hub = '<input type="text" class="hub-note-in" id="hub-note-' + esc(id) + '" placeholder="Hub note (optional)" maxlength="240">' +
+            '<button type="button" class="btn btn-ghost hub-scan-job" data-job-id="' + esc(id) + '"><i class="fas fa-warehouse"></i> Hub scan</button>';
+        }
+        actions +=
+          '<input type="text" class="otp-in" id="otp-pickup-' + esc(id) + '" placeholder="Pickup OTP" autocomplete="one-time-code">' +
+          '<button type="button" class="btn btn-ghost pickup-job" data-job-id="' + esc(id) + '"><i class="fas fa-box"></i> Pickup</button>' +
+          '<input type="text" class="otp-in" id="otp-deliver-' + esc(id) + '" placeholder="Deliver OTP" autocomplete="one-time-code">' +
+          '<button type="button" class="btn btn-ghost deliver-job" data-job-id="' + esc(id) + '"><i class="fas fa-flag-checkered"></i> Deliver</button>' +
+          hub;
+      }
+
+      var disputeBloc = (mode === 'mine') ? renderDisputeSection(job) : '';
+
+      return '<div class="job-row" data-job-id="' + esc(id) + '" data-status="' + esc(st) + '">' +
+        '<div><strong>' + refLabel + '</strong> — <span class="muted">' + statusHuman + '</span> · <span class="muted">Fee ' + feeHuman + '</span></div>' +
+        renderJobDetails(job) +
+        disputeBloc +
+        '<div class="job-actions">' + actions + '</div>' +
+        '<div class="job-inline-err mini-err"></div>' +
+        '</div>';
+    }
+
+    async function maybeGeoOpts() {
+      var cb = document.getElementById('attach-gps-proofs');
+      if (!cb || !cb.checked) return {};
+      return new Promise(function (resolve, reject) {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported in this browser'));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          function (pos) {
+            resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          },
+          function (err) {
+            reject(new Error(err && err.message ? err.message : 'Location permission denied or unavailable'));
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    async function loadPanels() {
+      showMain(true);
+      setPanelError('operator-status', '');
+      setPanelError('partner-status', '');
+      setPanelError('mine-status', '');
+      setPanelError('open-status', '');
+
+      var settled = await Promise.allSettled([
+        SuperAffiliateAPI.getCommerceOperatorMe(),
+        SuperAffiliateAPI.getCommerceDeliveryPartnerMe(),
+        SuperAffiliateAPI.getCommerceDeliveryJobsMine(),
+        SuperAffiliateAPI.getCommerceDeliveryJobsOpen(),
+      ]);
+
+      var fatal = null;
+      var op = settled[0];
+      if (op.status === 'fulfilled') {
+        document.getElementById('operator-json').textContent = JSON.stringify(op.value, null, 2);
+        renderOperatorSummary(op.value);
+      } else {
+        document.getElementById('operator-json').textContent = '';
+        document.getElementById('operator-summary').innerHTML = '';
+        var m0 = op.reason && op.reason.message ? op.reason.message : String(op.reason);
+        setPanelError('operator-status', m0);
+        if (m0.indexOf('Session expired') !== -1) fatal = m0;
+      }
+
+      var pr = settled[1];
+      if (pr.status === 'fulfilled') {
+        document.getElementById('partner-json').textContent = JSON.stringify(pr.value, null, 2);
+        renderPartnerSummary(pr.value);
+      } else {
+        document.getElementById('partner-json').textContent = '';
+        document.getElementById('partner-summary').innerHTML = '';
+        var m1 = pr.reason && pr.reason.message ? pr.reason.message : String(pr.reason);
+        setPanelError('partner-status', m1);
+        if (m1.indexOf('Session expired') !== -1) fatal = m1;
+      }
+
+      var mine = settled[2];
+      if (mine.status === 'fulfilled') {
+        var rows = (mine.value.results || []).map(function (j) { return renderJobRow(j, 'mine'); }).join('');
+        document.getElementById('mine-list').innerHTML = rows || '<p class="muted">No assigned jobs.</p>';
+      } else {
+        document.getElementById('mine-list').innerHTML = '';
+        var m2 = mine.reason && mine.reason.message ? mine.reason.message : String(mine.reason);
+        setPanelError('mine-status', m2);
+        if (m2.indexOf('Session expired') !== -1) fatal = m2;
+      }
+
+      var open = settled[3];
+      if (open.status === 'fulfilled') {
+        var rowsO = (open.value.results || []).map(function (j) { return renderJobRow(j, 'open'); }).join('');
+        document.getElementById('open-list').innerHTML = rowsO || '<p class="muted">No open broadcasts in range (or list filtered by eligibility).</p>';
+        if (open.value.meta) {
+          var meta = open.value.meta;
+          var hint = document.createElement('p');
+          hint.className = 'muted';
+          hint.style.fontSize = '0.8rem';
+          hint.style.marginTop = '0.75rem';
+          hint.textContent = 'About this list: ' +
+            (meta.open_broadcast_count != null ? meta.open_broadcast_count + ' open nearby. ' : '') +
+            (meta.your_delivery_limit != null ? 'You can take up to ' + meta.your_delivery_limit + ' at once.' : '');
+          document.getElementById('open-list').appendChild(hint);
+        }
+      } else {
+        document.getElementById('open-list').innerHTML = '';
+        var m3 = open.reason && open.reason.message ? open.reason.message : String(open.reason);
+        setPanelError('open-status', m3);
+        if (m3.indexOf('Session expired') !== -1) fatal = m3;
+      }
+
+      if (fatal) {
+        showMain(false, fatal);
+        return;
+      }
+      showMain(false);
+    }
+
+    document.getElementById('page-retry').addEventListener('click', loadPanels);
+
+    document.getElementById('mine-list').addEventListener('toggle', async function (e) {
+      var det = e.target;
+      if (!det.classList || !det.classList.contains('dispute-wrap') || !det.open) return;
+      var inner = det.querySelector('.dispute-panel-inner');
+      if (!inner || inner.getAttribute('data-loaded') === '1') return;
+      var jobId = det.getAttribute('data-job-id');
+      var row = det.closest('.job-row');
+      var jobStatus = row ? (row.getAttribute('data-status') || '') : '';
+      inner.innerHTML = '<p class="muted">Loading…</p>';
+      try {
+        var coord = await SuperAffiliateAPI.getCommerceDeliveryJobDisputeThread(jobId);
+        inner.setAttribute('data-loaded', '1');
+        renderDisputePanel(inner, jobId, jobStatus, coord);
+      } catch (err) {
+        inner.innerHTML = '<p class="mini-err">' + esc(err.message || String(err)) + '</p>';
+      }
+    }, true);
+
+    document.getElementById('mine-list').addEventListener('click', async function (e) {
+      var ob = e.target.closest('.dispute-open');
+      if (ob) {
+        var jobId = ob.getAttribute('data-job-id');
+        var row = ob.closest('.job-row');
+        var errEl = row.querySelector('.job-inline-err');
+        errEl.textContent = '';
+        ob.disabled = true;
+        try {
+          var reasonEl = document.getElementById('dispute-reason-' + jobId);
+          var descEl = document.getElementById('dispute-desc-' + jobId);
+          var reason = (reasonEl && reasonEl.value.trim()) ? reasonEl.value.trim() : 'delivery_issue';
+          var desc = descEl ? descEl.value.trim() : '';
+          await SuperAffiliateAPI.postCommerceDeliveryJobDispute(jobId, { reason: reason, description: desc });
+          await loadPanels();
+        } catch (err) {
+          errEl.textContent = err.message || String(err);
+        } finally {
+          ob.disabled = false;
+        }
+        return;
+      }
+      var sd = e.target.closest('.dispute-send');
+      if (sd) {
+        var jobId2 = sd.getAttribute('data-job-id');
+        var row2 = sd.closest('.job-row');
+        var errEl2 = row2.querySelector('.job-inline-err');
+        errEl2.textContent = '';
+        var ta = document.getElementById('dispute-msg-' + jobId2);
+        var body = ta ? ta.value.trim() : '';
+        if (!body) {
+          errEl2.textContent = 'Enter a message.';
+          return;
+        }
+        sd.disabled = true;
+        try {
+          await SuperAffiliateAPI.postCommerceDeliveryDisputeMessage(jobId2, body);
+          var inner2 = row2.querySelector('.dispute-panel-inner');
+          inner2.removeAttribute('data-loaded');
+          inner2.innerHTML = '<p class="muted">Loading…</p>';
+          var coord2 = await SuperAffiliateAPI.getCommerceDeliveryJobDisputeThread(jobId2);
+          inner2.setAttribute('data-loaded', '1');
+          renderDisputePanel(inner2, jobId2, 'disputed', coord2);
+        } catch (err2) {
+          errEl2.textContent = err2.message || String(err2);
+        } finally {
+          sd.disabled = false;
+        }
+        return;
+      }
+      var hubBtn = e.target.closest('.hub-scan-job');
+      if (hubBtn) {
+        var jobIdHs = hubBtn.getAttribute('data-job-id');
+        var rowHs = hubBtn.closest('.job-row');
+        var errHs = rowHs.querySelector('.job-inline-err');
+        errHs.textContent = '';
+        hubBtn.disabled = true;
+        try {
+          var noteEl = document.getElementById('hub-note-' + jobIdHs);
+          var note = noteEl ? noteEl.value.trim() : '';
+          var geo = await maybeGeoOpts();
+          await SuperAffiliateAPI.postCommerceDeliveryJobHubScan(jobIdHs, note || 'Hub scan', geo);
+          await loadPanels();
+        } catch (err) {
+          errHs.textContent = err.message || String(err);
+        } finally {
+          hubBtn.disabled = false;
+        }
+        return;
+      }
+      var p = e.target.closest('.pickup-job');
+      var d = e.target.closest('.deliver-job');
+      if (!p && !d) return;
+      var jobIdPd = (p || d).getAttribute('data-job-id');
+      var rowPd = (p || d).closest('.job-row');
+      var errPd = rowPd.querySelector('.job-inline-err');
+      errPd.textContent = '';
+      try {
+        var geoPd = await maybeGeoOpts();
+        if (p) {
+          var otpP = document.getElementById('otp-pickup-' + jobIdPd).value.trim();
+          await SuperAffiliateAPI.postCommerceDeliveryJobPickup(jobIdPd, otpP, geoPd);
+        } else {
+          var otpD = document.getElementById('otp-deliver-' + jobIdPd).value.trim();
+          await SuperAffiliateAPI.postCommerceDeliveryJobDeliver(jobIdPd, otpD, geoPd);
+        }
+        await loadPanels();
+      } catch (err) {
+        errPd.textContent = err.message || String(err);
+      }
+    });
+
+    document.getElementById('open-list').addEventListener('click', async function (e) {
+      var btn = e.target.closest('.accept-job');
+      if (!btn || btn.disabled) return;
+      var jobId = btn.getAttribute('data-job-id');
+      var row = btn.closest('.job-row');
+      var errEl = row.querySelector('.job-inline-err');
+      errEl.textContent = '';
+      btn.disabled = true;
+      try {
+        await SuperAffiliateAPI.postCommerceDeliveryJobAccept(jobId);
+        await loadPanels();
+      } catch (err) {
+        errEl.textContent = err.message || String(err);
+        btn.disabled = false;
+      }
+    });
+
+    loadPanels();
+  </script>
+</body>
+</html>

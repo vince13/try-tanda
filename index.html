@@ -23,7 +23,9 @@
   <meta property="og:url" content="https://app.tanda.media">
   <meta property="og:title" content="Tanda – Video Commerce Reimagined for Africa">
   <meta property="og:description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Now available on Google Play Store with AI shopping assistant for hands-free shopping.">
-  <meta property="og:image" content="https://app.tanda.media/Tanda%20logo.png">
+  <meta property="og:image" content="https://app.tanda.media/tanda-og-fallback-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="Tanda">
   
   <!-- Twitter -->
@@ -31,7 +33,7 @@
   <meta name="twitter:url" content="https://app.tanda.media">
   <meta name="twitter:title" content="Tanda – Video Commerce Reimagined for Africa">
   <meta name="twitter:description" content="Tanda merges video engagement with commerce, creating seamless shopping experiences through short-form videos. Now available on Google Play Store with AI shopping assistant for hands-free shopping.">
-  <meta name="twitter:image" content="https://app.tanda.media/Tanda%20logo.webp">
+  <meta name="twitter:image" content="https://app.tanda.media/tanda-og-fallback-1200x630.png">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
@@ -43,7 +45,21 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="js/security-utils.js"></script>
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    (function redirectSignedInUsersToAppHome() {
+      try {
+        if (!window.SuperAffiliateAPI || !SuperAffiliateAPI.isAuthenticated()) return;
+        var q = new URLSearchParams(window.location.search || '');
+        if (q.get('marketing') === '1' || q.get('site') === '1') return;
+        var p = window.location.pathname || '';
+        var onLanding = p.endsWith('index.html') || p === '/' || p.endsWith('/');
+        if (onLanding) {
+          window.location.replace(SuperAffiliateAPI.getWebAppHomeHref());
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="js/ios-enhancements.js"></script>
   <style>
@@ -208,6 +224,11 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+
+    /* Shop + account move into the hamburger panel on small screens only */
+    #navMobileBundledLi {
+      display: none !important;
     }
 
     .nav-links {
@@ -649,12 +670,6 @@
       cursor: pointer;
       padding: 0.5rem;
       z-index: 1002;
-    }
-    
-    @media (max-width: 768px) {
-      .mobile-menu-btn {
-        display: block;
-      }
     }
 
     /* Hero Section */
@@ -1457,17 +1472,119 @@
       .nav {
         position: relative;
         overflow: visible !important;
+        gap: 0.35rem;
+        align-items: center;
       }
       
       .nav-main {
         position: static;
         overflow: visible !important;
+        flex: 0 1 auto;
+        min-width: 0;
+        width: auto;
+        justify-content: flex-end;
       }
-      
+
+      #navMobileBundledLi {
+        display: list-item !important;
+        list-style: none;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+      }
+
+      #navMobileBundledLi .nav-mobile-moved-host {
+        width: 100%;
+      }
+
+      #navMobileBundledLi .nav-auth {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: none;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        flex: none;
+        order: unset;
+      }
+
+      #navMobileBundledLi .nav-shop-link {
+        display: flex;
+        width: 100%;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 1rem;
+        margin: 0;
+        border: none !important;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-sizing: border-box;
+        font-weight: 600;
+      }
+
+      #navMobileBundledLi .nav-shop-link span {
+        display: inline;
+      }
+
+      #navMobileBundledLi #authNav.tanda-nav-container {
+        flex: none;
+        min-width: 0 !important;
+        max-width: none !important;
+        width: 100%;
+        overflow-x: visible;
+        overflow-y: visible;
+      }
+
+      #navMobileBundledLi .user-menu-wrapper,
+      #navMobileBundledLi .auth-nav-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        gap: 0 !important;
+        flex-wrap: nowrap;
+      }
+
+      #navMobileBundledLi .nav-link-btn,
+      #navMobileBundledLi .nav-link-btn:link,
+      #navMobileBundledLi .nav-link-btn:visited {
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 1rem !important;
+        margin: 0;
+        white-space: normal;
+      }
+
+      #navMobileBundledLi .nav-link-btn i {
+        width: 1.25rem;
+        text-align: center;
+      }
+
+      #navMobileBundledLi .user-menu-dropdown {
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      #navMobileBundledLi .user-menu-toggle {
+        width: 100%;
+        justify-content: space-between;
+        border-radius: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 1rem !important;
+      }
+
       .container {
         overflow: visible !important;
       }
-      
+
       .nav-links {
         display: none !important;
         position: absolute;
@@ -1487,6 +1604,17 @@
         margin-top: 1rem;
         opacity: 1;
         visibility: visible;
+      }
+
+      .mobile-menu-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        order: 3;
+        box-sizing: border-box;
       }
       
       .nav-links.show {
@@ -1583,53 +1711,6 @@
         border-left-color: var(--accent-color);
       }
 
-      .mobile-menu-btn {
-        display: block !important;
-        order: 3;
-      }
-
-      .nav-auth {
-        order: 2;
-        flex: 1;
-        justify-content: flex-end;
-        min-width: 0;
-      }
-
-      .nav-shop-link span {
-        display: none;
-      }
-
-      .nav-shop-link {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-      }
-
-      .nav-auth .user-menu-wrapper,
-      .nav-auth .auth-nav-buttons {
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        padding-right: 0.5rem;
-      }
-      
-      /* Ensure user menu dropdown can escape overflow on mobile */
-      .nav-auth .user-menu-dropdown {
-        overflow: visible !important;
-        position: relative !important;
-      }
-      
-      .nav-auth .user-menu-wrapper {
-        overflow: visible !important;
-      }
-
-      .nav-auth .user-menu-wrapper::-webkit-scrollbar,
-      .nav-auth .auth-nav-buttons::-webkit-scrollbar {
-        display: none;
-      }
-
       .nav-link-btn {
         padding: 0.5rem 0.75rem;
         font-size: 0.85rem;
@@ -1666,6 +1747,15 @@
         height: 18px;
         top: -6px;
         right: -6px;
+      }
+
+      @media (max-width: 520px) {
+        .logo-text {
+          display: none;
+        }
+        .logo {
+          margin-right: 0.25rem;
+        }
       }
 
       .hero-layout {
@@ -2086,6 +2176,9 @@
         </a>
         <div class="nav-main">
           <ul class="nav-links">
+            <li id="navMobileBundledLi" class="nav-mobile-bundled">
+              <div class="nav-mobile-moved-host" id="navMobileMovedHost" role="group" aria-label="Shop and account"></div>
+            </li>
             <li><a href="#features">Features</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
             <li class="dropdown">
@@ -2781,9 +2874,42 @@
     });
   </script>
   <script>
+    function placeIndexNavAuthForViewport() {
+      const mq = window.matchMedia('(max-width: 768px)');
+      const navMain = document.querySelector('.nav-main');
+      const navLinks = document.querySelector('.nav-main .nav-links');
+      const navAuth = document.querySelector('.nav-auth');
+      const host = document.getElementById('navMobileMovedHost');
+      if (!navMain || !navAuth || !host || !navLinks) return;
+
+      if (mq.matches) {
+        if (navAuth.parentElement !== host) {
+          host.appendChild(navAuth);
+        }
+      } else if (navAuth.parentElement !== navMain) {
+        navMain.insertBefore(navAuth, navLinks.nextSibling);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (window.SuperAffiliateAPI) {
         window.SuperAffiliateAPI.renderAuthNav('authNav');
+        if (typeof SuperAffiliateAPI.applyActiveNavState === 'function') {
+          SuperAffiliateAPI.applyActiveNavState();
+          setTimeout(() => SuperAffiliateAPI.applyActiveNavState(), 450);
+        }
+      }
+      placeIndexNavAuthForViewport();
+
+      let indexNavAuthResizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(indexNavAuthResizeTimer);
+        indexNavAuthResizeTimer = setTimeout(placeIndexNavAuthForViewport, 150);
+      });
+      try {
+        window.matchMedia('(max-width: 768px)').addEventListener('change', placeIndexNavAuthForViewport);
+      } catch (_) {
+        window.matchMedia('(max-width: 768px)').addListener(placeIndexNavAuthForViewport);
       }
 
       // Register Service Worker for PWA with update handling

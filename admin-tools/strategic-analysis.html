@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Tanda — Strategic analysis (admin)</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #3d8bfd;
+      --accent-dim: #2a5fad;
+      --phase-a: #34c759;
+      --phase-b: #5ac8fa;
+      --phase-c: #bf5af2;
+      --phase-d: #ff9f0a;
+      --fund: #ff453a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.35rem; letter-spacing: -0.02em; }
+    .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    .warn {
+      background: #3a2a1a;
+      border: 1px solid #6b4e2e;
+      color: #f5d4a8;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .nav-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.75rem;
+    }
+    .nav-tools a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+    .nav-tools a:hover { border-color: var(--accent); }
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 2rem 0 0.75rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: #cbd6e6; }
+    p { margin: 0 0 0.85rem; }
+    ul { margin: 0 0 1rem; padding-left: 1.25rem; }
+    li { margin-bottom: 0.35rem; }
+    strong { color: #fff; font-weight: 600; }
+    .toc { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+    .toc h2 { margin: 0 0 0.65rem; border: none; padding: 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .toc ul { list-style: none; padding: 0; margin: 0; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { color: var(--accent); text-decoration: none; font-size: 0.92rem; }
+    .toc a:hover { text-decoration: underline; }
+
+    .milestone-hero {
+      background: linear-gradient(145deg, #1a2740 0%, var(--panel) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 2rem;
+    }
+    .milestone-hero h2 { border: none; margin: 0 0 0.75rem; padding: 0; font-size: 1.2rem; }
+    .milestone-hero > p { color: var(--muted); font-size: 0.92rem; margin-bottom: 1rem; }
+
+    .track { display: grid; gap: 1rem; }
+    .phase-card {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 1rem 1.1rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .phase-card.fund { border-left: 4px solid var(--fund); }
+    .phase-card.a { border-left: 4px solid var(--phase-a); }
+    .phase-card.b { border-left: 4px solid var(--phase-b); }
+    .phase-card.c { border-left: 4px solid var(--phase-c); }
+    .phase-card.d { border-left: 4px solid var(--phase-d); }
+    .phase-card h3 { margin: 0 0 0.5rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      background: var(--border);
+      color: var(--text);
+    }
+    .phase-card ul { margin-bottom: 0; }
+    .phase-card .why { font-size: 0.82rem; color: var(--muted); margin-top: 0.65rem; font-style: italic; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0.75rem 0 1.25rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--panel); color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .layers { display: grid; gap: 0.65rem; margin: 0.75rem 0 1.25rem; }
+    .layer {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+    }
+    .layer strong { display: block; margin-bottom: 0.25rem; color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    blockquote {
+      margin: 1rem 0;
+      padding: 1rem 1.15rem;
+      border-left: 4px solid var(--accent);
+      background: var(--panel);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.95rem;
+      color: #d0dae8;
+    }
+    footer {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    @media print {
+      body { background: #fff; color: #111; }
+      .warn, .nav-tools { display: none; }
+      .phase-card, .milestone-hero, table, blockquote { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <script src="../js/super-affiliate-api.js?v=30"></script>
+  <script src="../js/tanda-admin-guard.js"></script>
+  <div class="wrap">
+    <h1>Tanda Social Commerce — Strategic Analysis</h1>
+    <p class="meta">Operating narrative (updated). Source: <code>zNEEDED/Manus Analysis/TANDA_STRATEGIC_ANALYSIS_UPDATED_MAR2026.md</code> · March 21, 2026</p>
+
+    <div class="warn">
+      <strong>Admin / internal only.</strong> Do not expose on public hosting without access control. This page summarizes positioning, facts, and milestones tied to what is built plus fundraising.
+    </div>
+
+    <nav class="nav-tools" aria-label="Admin tools">
+      <a href="investor-update-generator.html">Investor update generator</a>
+      <a href="README.md">Admin-tools README</a>
+    </nav>
+
+    <nav class="toc" aria-label="On this page">
+      <h2>On this page</h2>
+      <ul>
+        <li><a href="#integrated-milestones">Integrated milestones (product + unions + fundraising)</a></li>
+        <li><a href="#executive-summary">Executive summary</a></li>
+        <li><a href="#facts">Corrected facts</a></li>
+        <li><a href="#system">Holistic system view</a></li>
+        <li><a href="#competitive">Competitive positioning</a></li>
+        <li><a href="#phases">Phase A–D (detailed)</a></li>
+        <li><a href="#old-tactics">Old PDF tactics to drop</a></li>
+        <li><a href="#kpi">KPI staging</a></li>
+        <li><a href="#fundraising-blurb">Fundraising positioning blurb</a></li>
+      </ul>
+    </nav>
+
+    <section class="milestone-hero" id="integrated-milestones">
+      <h2>Integrated milestones to pursue</h2>
+      <p>Single track aligned with <strong>what is already built</strong> (full-stack video + commerce + payments + affiliates + analytics), <strong>union-led distribution</strong>, and <strong>fundraising</strong> ($500k for 10% — verify cap table with counsel). Timelines align with <strong>April 2026 MVP rollout</strong> as the anchor checkpoint.</p>
+
+      <div class="track">
+        <div class="phase-card fund">
+          <h3><span class="badge" style="background:#5c2a28;color:#ffb4ab">Fundraising</span> Ongoing until close</h3>
+          <ul>
+            <li>Finalize <strong>exact public ask line</strong> and data-room consistency ($500k / 10% / use of funds).</li>
+            <li>Publish internal <strong>definitions</strong> for “active,” cohorts (pre-launch vs post-open), and MOU attribution so every update matches the deck.</li>
+            <li><strong>Weekly partner updates</strong> (FasterCapital, etc.) + press links pipeline; no conflicting metrics across channels.</li>
+            <li>Prepare <strong>diligence pack</strong>: demo script, architecture one-pager, payment &amp; payout flows, sample metrics export.</li>
+          </ul>
+          <p class="why">Effect: faster “yes” when investors see coherent numbers and a repeatable story.</p>
+        </div>
+
+        <div class="phase-card a">
+          <h3><span class="badge" style="background:#1f4d2e;color:#a8e6bf">Phase A</span> Public-open readiness — days to few weeks</h3>
+          <ul>
+            <li><strong>Core journey QA:</strong> install → signup → feed → product tag → cart → Paystack (primary rail) → order confirmation; creator/affiliate path if part of union narrative.</li>
+            <li><strong>Observability:</strong> crash-free sessions, payment success rate, API latency — thresholds agreed internally.</li>
+            <li><strong>Support &amp; trust:</strong> clear path for failed payment / orders; liaison path with union contacts (manual SLA OK initially).</li>
+            <li><strong>Investor demo script:</strong> fixed 5-min + 15-min deep dive on known builds.</li>
+          </ul>
+          <p class="why">Effect: removes “is it real?” friction during diligence and public open.</p>
+        </div>
+
+        <div class="phase-card b">
+          <h3><span class="badge" style="background:#1a3d52;color:#9fd4ff">Phase B</span> Union-coordinated density — 30–120 days (overlaps A)</h3>
+          <ul>
+            <li><strong>City playbooks:</strong> one-pager per hub — who onboards sellers/creators, how testers convert to paying users, how disputes escalate.</li>
+            <li><strong>Supply + demand in lockstep:</strong> SME/creator onboarding matched to buyer campaigns so the feed stays credible.</li>
+            <li><strong>Attribution:</strong> union / campaign codes or honest staff-assisted signup so CAC and activation are measurable, not blended.</li>
+            <li>Steer programs toward the <strong>April 2026 MVP rollout</strong> milestone (structured density, not vanity downloads).</li>
+          </ul>
+          <p class="why">Effect: distribution story that does not depend only on paid ads.</p>
+        </div>
+
+        <div class="phase-card c">
+          <h3><span class="badge" style="background:#3d2a52;color:#e0b8ff">Phase C</span> Investor-grade metrics — continuous (report monthly)</h3>
+          <ul>
+            <li><strong>Activation:</strong> first meaningful action in 24–72h by cohort.</li>
+            <li><strong>Engagement:</strong> DAU/WAU/MAU, sessions, D1/D7/D30 retention.</li>
+            <li><strong>Commerce:</strong> GMV, orders, AOV, video-to-product tap, cart-to-paid, refunds if tracked.</li>
+            <li><strong>Creator economics:</strong> active sellers/posters, GMV per active creator, payout success &amp; time-to-pay.</li>
+            <li><strong>Trust:</strong> dispute rate, CS response, NPS or lightweight in-app signals.</li>
+          </ul>
+          <p class="why">Effect: traction shown as cohorts and conversion, not slogans.</p>
+        </div>
+
+        <div class="phase-card d">
+          <h3><span class="badge" style="background:#4d3a1a;color:#ffd699">Phase D</span> After $500k close — not day one</h3>
+          <ul>
+            <li><strong>Select hires</strong> only against documented bottlenecks (e.g. union ops, seller success, senior payments/backend).</li>
+            <li><strong>Logistics / cross-border</strong> only after domestic unit economics and SLAs are stable.</li>
+            <li><strong>AI local languages</strong> driven by support load and conversion data, not slide filler.</li>
+          </ul>
+          <p class="why">Effect: capital deploys on proof, not generic scaling.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="executive-summary">
+      <h2>1. Executive summary</h2>
+      <p>Tanda is <strong>live on Google Play</strong>, <strong>release-ready for broad distribution</strong>, and completing final pre-open testing. The platform is not an idea-stage wedge: it is a <strong>full-stack</strong> short-form video + commerce system (Flutter client, Django API, wallets, payments, orders, affiliates/product tagging, analytics, and supporting services) built for <strong>emerging-market checkout</strong>, not just content.</p>
+      <p><strong>Distribution</strong> is structurally different from a pure consumer growth playbook. Tanda has <strong>strategic MOUs with market unions</strong> across Nigeria — <strong>four in Abuja</strong>, <strong>four in Lagos</strong>, <strong>one in Enugu (negotiation ongoing)</strong>, plus active discussions in other major markets. That is a <strong>B2B2C route to density</strong> (trusted aggregators, repeatable onboarding, localized trust) that generic “UGC bounty / 50k downloads” tactics do not reflect.</p>
+      <p><strong>Fundraising framing:</strong> <strong>$500,000 for 10%</strong> implies a <strong>$5M pre-money</strong> headline for investor conversations (verify cap table and option pool with counsel before circulating).</p>
+      <p><strong>Near-term north star:</strong> Open the app to the public with <strong>stable core journeys</strong> (install → feed → tag/shop → pay → fulfill → payout), <strong>union-coordinated rollout</strong> toward the <strong>April 2026 MVP rollout milestone</strong>, and <strong>investor-grade metrics</strong> that map to the real product surface area — not vanity download counts.</p>
+    </section>
+
+    <section id="facts">
+      <h2>2. Corrected current facts</h2>
+      <p>Replace outdated PDF traction with the following. Any external number should trace to <strong>definitions</strong> and <strong>cohort labels</strong>.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Accurate (Mar 2026)</th>
+            <th>Do not use (old PDF)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Store status</td>
+            <td>Live on Play; opening to all <strong>after final test</strong></td>
+            <td>“Strong organic demand” without qualification</td>
+          </tr>
+          <tr>
+            <td>User base</td>
+            <td><strong>~1,000</strong> pre-launch testers</td>
+            <td>16,000+ waitlist</td>
+          </tr>
+          <tr>
+            <td>Engagement</td>
+            <td><strong>&gt;60%</strong> active/engaged among testers</td>
+            <td>Not stated</td>
+          </tr>
+          <tr>
+            <td>SMEs / influencers</td>
+            <td><strong>Use live data only</strong> — not verified in this doc</td>
+            <td>1,400+ SMEs, 98 influencers</td>
+          </tr>
+          <tr>
+            <td>Team</td>
+            <td><strong>No new hire</strong> (capital-constrained)</td>
+            <td>Implied scale tactics needing headcount</td>
+          </tr>
+          <tr>
+            <td>Press / distribution</td>
+            <td><strong>Ongoing</strong></td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>Union MOUs</td>
+            <td><strong>Abuja:</strong> Sept + Oct 2025; <strong>Lagos:</strong> Nov + Dec 2025; <strong>Enugu:</strong> ongoing</td>
+            <td>Not mentioned</td>
+          </tr>
+          <tr>
+            <td>Rollout milestone</td>
+            <td><strong>MVP rollout milestone: April 2026</strong></td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="system">
+      <h2>3. Holistic view of the system</h2>
+      <p>Tanda’s moat is <strong>integration</strong>, not a single feature. Siloed tactics (e.g. raw download campaigns) only work if they plug into attribution, checkout, support, and union-led onboarding.</p>
+      <div class="layers">
+        <div class="layer"><strong>Attention layer</strong> Short-form video feed, creation, distribution hooks (including cross-platform publishing where implemented).</div>
+        <div class="layer"><strong>Commerce layer</strong> Product catalog, tagging on video, cart/checkout, orders, seller/affiliate flows.</div>
+        <div class="layer"><strong>Money layer</strong> Wallets, local payments, commissions/payouts, fraud and reconciliation discipline.</div>
+        <div class="layer"><strong>Trust layer</strong> Escrow/disputes, verification tiers, moderation — whatever is live must be operationally staffed (even lightly).</div>
+        <div class="layer"><strong>Growth layer</strong> Notifications, seeding/engagement tooling, analytics — closing the loop from marketing → activation → purchase → repeat.</div>
+      </div>
+    </section>
+
+    <section id="competitive">
+      <h2>4. Competitive landscape</h2>
+      <p>Regional/specialized players (category-focused apps, live-shopping-first, reseller infrastructure, WhatsApp-first commerce) each win a <strong>slice</strong>. Tanda’s positioning: <strong>video + distributed discovery + local commerce infrastructure + creator/affiliate economics</strong> in one product, <strong>Africa-first</strong>. Fact-check competitor names and claims before external use.</p>
+    </section>
+
+    <section id="phases">
+      <h2>5. Milestone map (detail)</h2>
+      <p>Phased outcomes tied to product readiness, union GTM, and fundraising evidence. Timelines are relative to <strong>public open</strong>; calendar aligns to <strong>April 2026 MVP rollout</strong>.</p>
+
+      <h3>Phase A — Public-open readiness (days–few weeks)</h3>
+      <p><strong>Goal:</strong> No embarrassing breakage on paths investors and unions will test.</p>
+      <ul>
+        <li><strong>Core journey QA:</strong> Cold install → signup → feed → product tag → cart → primary payment rail → order confirmation; creator/affiliate path if part of the union story.</li>
+        <li><strong>Observability:</strong> Error budgets, crash-free sessions, payment success rate, API latency — definitions published internally.</li>
+        <li><strong>Support &amp; trust:</strong> Clear in-app path for failed payment / order issues; basic SLA with union liaisons (manual at first is OK).</li>
+        <li><strong>Investor demo script:</strong> 5-minute path + 15-minute deep dive, same builds.</li>
+      </ul>
+      <p><em>Fundraising effect:</em> Removes “is it real?” diligence friction.</p>
+
+      <h3>Phase B — Union-coordinated density (30–120 days, overlapping A)</h3>
+      <p><strong>Goal:</strong> Attributed growth and repeat behavior in a small number of geographies.</p>
+      <ul>
+        <li><strong>Union playbooks:</strong> One-pager per city — who activates sellers/creators, how testers become paid users, how disputes escalate.</li>
+        <li><strong>Supply in lockstep:</strong> SME/creator onboarding matched to buyer campaigns so the feed does not feel empty.</li>
+        <li><strong>Measurement:</strong> Union ID / campaign code / staff-assisted signup — honest and implementable — so CAC and activation are real.</li>
+      </ul>
+      <p><em>Fundraising effect:</em> Shows distribution beyond paid ads alone.</p>
+
+      <h3>Phase C — Investor-grade metrics (continuous, report monthly)</h3>
+      <p><strong>Goal:</strong> Metrics that match stage (~1k pre-launch → post-open cohorts).</p>
+      <ul>
+        <li><strong>Activation:</strong> % completing first meaningful action within 24–72h; split pre-launch vs post-open.</li>
+        <li><strong>Engagement:</strong> DAU/WAU/MAU, session length, retention D1/D7/D30 by cohort.</li>
+        <li><strong>Commerce:</strong> GMV, orders, AOV, video-to-product tap, cart-to-paid, refund/chargeback proxy if available.</li>
+        <li><strong>Creator economics:</strong> Active posters, GMV per active seller/affiliate, payout success and time-to-pay.</li>
+        <li><strong>Trust:</strong> Dispute rate, CS response time, NPS or in-app thumbs where applicable.</li>
+      </ul>
+      <p><em>Fundraising effect:</em> Replaces vague traction with cohorts and conversion.</p>
+
+      <h3>Phase D — Post-round scale (after $500k close — not day one)</h3>
+      <p><strong>Goal:</strong> Deploy capital against proven bottlenecks only.</p>
+      <ul>
+        <li><strong>Select hires</strong> (currently no new hire): e.g. ops/partnerships for unions, seller success, senior backend/payments after the queue is documented.</li>
+        <li><strong>Logistics / cross-border:</strong> Only when domestic unit economics and SLAs are stable.</li>
+        <li><strong>AI local languages:</strong> Align with support load and conversion data, not vanity roadmap.</li>
+      </ul>
+      <p><em>Fundraising effect:</em> Capital efficiency and credibility.</p>
+    </section>
+
+    <section id="old-tactics">
+      <h2>6. What to drop or rewrite from the old PDF tactics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Old suggestion</th>
+            <th>Why weak for Tanda</th>
+            <th>Better replacement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>UGC bounty 1,000 reviews / 90 days</td>
+            <td>Costly, weak attribution; hurts quality at open</td>
+            <td>Union-sourced structured testimonials; measure conversion impact</td>
+          </tr>
+          <tr>
+            <td>WhatsApp magic links</td>
+            <td>Only if mapped to your checkout + attribution</td>
+            <td>Deep links + union onboarding; WhatsApp as handoff</td>
+          </tr>
+          <tr>
+            <td>Influencer kits for “98 influencers”</td>
+            <td>Wrong counts</td>
+            <td>Templates + MOU partner kits for verified cohorts</td>
+          </tr>
+          <tr>
+            <td>Download &amp; earn 50k downloads</td>
+            <td>Installs ≠ purchases; weak diligence story</td>
+            <td>Referral within union networks with caps and fraud controls</td>
+          </tr>
+          <tr>
+            <td>Year-1 MAU 100k / GMV $10M</td>
+            <td>Arbitrary without assumptions</td>
+            <td>Bridge targets tied to union cities + post-open cohorts</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="kpi">
+      <h2>7. KPI appendix — staged targets</h2>
+      <p>Lock numbers in your financial model; structurally:</p>
+      <ul>
+        <li><strong>Pre-open:</strong> Tester engagement (&gt;60% — keep methodology), crash-free rate, payment success on test orders.</li>
+        <li><strong>0–3 months post-open:</strong> Cohort retention, union-attributed signups %, first purchase rate, repeat purchase in pilot cities.</li>
+        <li><strong>6–12 months:</strong> Expansion cities, GMV growth, creator payout volume, contribution margin after payment/dispute costs.</li>
+      </ul>
+    </section>
+
+    <section id="fundraising-blurb">
+      <h2>8. One-paragraph fundraising positioning</h2>
+      <blockquote>
+        Tanda is a Play Store–live, full-stack video commerce platform for emerging markets — checkout, escrow, and payouts built in, not bolted on. We’ve validated strong engagement among ~1,000 controlled testers and are opening broadly after final QA. Our go-to-market is anchored in strategic MOUs with Nigerian market unions (Abuja, Lagos, Enugu in progress), giving us trusted, repeatable distribution into dense buyer–seller communities. We are raising $500,000 for 10% to fund disciplined rollout to the April 2026 MVP milestone, instrumented metrics, and operational excellence — not experimental growth hacks.
+      </blockquote>
+    </section>
+
+    <section id="file-note">
+      <h2>9. File note</h2>
+      <p>The original Manus <strong>PDF</strong> remains archival. This HTML mirrors the <strong>operating</strong> markdown analysis. When exporting a new PDF for investors, replace outdated slides with corrected facts and the milestone map (Sections 2 and 5–6 of the source doc).</p>
+    </section>
+
+    <footer>
+      Internal admin review · Keep in sync with <code>TANDA_STRATEGIC_ANALYSIS_UPDATED_MAR2026.md</code> when strategy changes.
+    </footer>
+  </div>
+</body>
+</html>

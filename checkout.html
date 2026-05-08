@@ -155,22 +155,6 @@
       grid-template-columns: 2fr 1fr;
       gap: 2rem;
     }
-    
-    /* In mobile, reorder so summary (with button) appears first */
-    @media (max-width: 768px) {
-      .checkout-layout {
-        display: flex;
-        flex-direction: column;
-      }
-      
-      .checkout-layout > div:first-child {
-        order: 2; /* Form appears second */
-      }
-      
-      .checkout-layout .summary {
-        order: 1; /* Summary appears first */
-      }
-    }
 
     .card {
       background: var(--bg-card);
@@ -622,6 +606,44 @@
       padding-left: 0.5rem;
       padding-right: 0.5rem;
     }
+      
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body {
+        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Above shopping-assistant (z~10055) and nav chrome so toasts are never covered */
+    .checkout-toast {
+      position: fixed;
+      z-index: 100600;
+      top: max(1rem, env(safe-area-inset-top, 0px));
+      right: max(1rem, env(safe-area-inset-right, 0px));
+      left: auto;
+      max-width: min(420px, calc(100vw - 2rem));
+      padding: 0.9rem 1.25rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.35;
+      animation: checkoutToastIn 0.2s ease;
+    }
+
+    .checkout-toast.success {
+      background: #00b8b0;
+      color: #001a18;
+    }
+
+    .checkout-toast.error {
+      background: #ff0050;
+      color: #fff;
+    }
+
+    @keyframes checkoutToastIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     .loading {
       text-align: center;
@@ -630,6 +652,12 @@
     }
 
     @media (max-width: 768px) {
+      @supports (padding: env(safe-area-inset-bottom)) {
+        body {
+          padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+        }
+      }
+
       body {
         padding: 1rem;
       }
@@ -645,8 +673,17 @@
       }
 
       .checkout-layout {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 1.5rem;
+      }
+
+      .checkout-layout > div:first-child {
+        order: 2;
+      }
+
+      .checkout-layout .summary {
+        order: 1;
       }
 
       .card {
@@ -693,7 +730,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Checkout – shipping and payment.">
   <div class="header">
     <h1 class="title">Checkout</h1>
     <div class="nav" id="authNav"></div>
@@ -744,8 +781,17 @@
                   </div>
                   <div class="form-group">
                     <label for="shipping-state">State</label>
-                    <input type="text" id="shipping-state" required>
+                    <input type="text" id="shipping-state" required placeholder="e.g. Ebonyi">
                   </div>
+                </div>
+                <div class="form-group" id="shipping-lga-group" style="display: none;">
+                  <label for="shipping-lga">LGA (Local Government Area)</label>
+                  <select id="shipping-lga">
+                    <option value="">Enter state first…</option>
+                  </select>
+                  <small style="display: block; margin-top: 0.35rem; color: var(--text-secondary); font-size: 0.82rem;">
+                    Required for Nigeria. Use the list for your state (same as Tanda address reference).
+                  </small>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
@@ -815,7 +861,8 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     let cartData = null;
     let shippingAddresses = [];
@@ -852,6 +899,94 @@
       return true;
     }
 
+    let checkoutLgaReloadTimer = null;
+
+    function isCheckoutNigeriaCountry() {
+      const v = (document.getElementById('shipping-country')?.value || '').trim().toLowerCase();
+      return v === 'nigeria' || v === 'ng';
+    }
+
+    function scheduleCheckoutLgaReload() {
+      clearTimeout(checkoutLgaReloadTimer);
+      checkoutLgaReloadTimer = setTimeout(() => {
+        refreshLgasForCheckout();
+      }, 420);
+    }
+
+    function updateCheckoutLgaVisibility() {
+      const g = document.getElementById('shipping-lga-group');
+      const sel = document.getElementById('shipping-lga');
+      if (!g || !sel) return;
+      if (isCheckoutNigeriaCountry()) {
+        g.style.display = 'block';
+        sel.setAttribute('required', 'required');
+        refreshLgasForCheckout();
+      } else {
+        g.style.display = 'none';
+        sel.removeAttribute('required');
+        sel.innerHTML = '';
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = '—';
+        sel.appendChild(ph);
+      }
+    }
+
+    async function refreshLgasForCheckout() {
+      const sel = document.getElementById('shipping-lga');
+      const stateEl = document.getElementById('shipping-state');
+      if (!sel || !stateEl || !isCheckoutNigeriaCountry()) return;
+      const state = stateEl.value.trim();
+      if (!state) {
+        sel.innerHTML = '';
+        const o = document.createElement('option');
+        o.value = '';
+        o.textContent = 'Enter your state first…';
+        sel.appendChild(o);
+        return;
+      }
+      const prev = sel.value;
+      sel.innerHTML = '';
+      const loading = document.createElement('option');
+      loading.value = '';
+      loading.textContent = 'Loading LGAs…';
+      sel.appendChild(loading);
+      try {
+        const data = await SuperAffiliateAPI.apiRequest(
+          '/commerce/shipping/address-reference/nigeria/lgas/?state=' + encodeURIComponent(state),
+          { method: 'GET' }
+        );
+        const lgas = data.lgas || [];
+        sel.innerHTML = '';
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = lgas.length ? 'Select LGA…' : 'No LGAs — check state spelling';
+        sel.appendChild(ph);
+        for (const lga of lgas) {
+          const opt = document.createElement('option');
+          opt.value = lga;
+          opt.textContent = lga;
+          sel.appendChild(opt);
+        }
+        if (prev && [...sel.options].some((o) => o.value === prev)) {
+          sel.value = prev;
+        }
+      } catch (e) {
+        sel.innerHTML = '';
+        const err = document.createElement('option');
+        err.value = '';
+        err.textContent = 'Could not load LGAs';
+        sel.appendChild(err);
+      }
+    }
+
+    (function wireCheckoutLgaInputs() {
+      const st = document.getElementById('shipping-state');
+      const co = document.getElementById('shipping-country');
+      if (st) st.addEventListener('input', scheduleCheckoutLgaReload);
+      if (co) co.addEventListener('input', updateCheckoutLgaVisibility);
+    })();
+
     async function loadCart() {
       try {
         const response = await SuperAffiliateAPI.getCart();
@@ -880,7 +1015,8 @@
             'shipping-address',
             'shipping-city',
             'shipping-state',
-            'shipping-country'
+            'shipping-country',
+            'shipping-lga'
           ];
           requiredFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -918,12 +1054,14 @@
           // Reset shipping cost when no address is selected
           currentShippingCost = 0;
           updateOrderTotals();
+          updateCheckoutLgaVisibility();
         }
       } catch (error) {
         console.error('Error loading shipping addresses:', error);
         // If error, show new address form as fallback
         document.getElementById('address-selection-section').style.display = 'none';
         document.getElementById('new-address-form').style.display = 'block';
+        updateCheckoutLgaVisibility();
       }
     }
 
@@ -937,7 +1075,7 @@
       newAddressForm.style.display = 'none';
       
       // Remove required attributes from new address form fields when selection is shown
-      const newAddressFields = newAddressForm.querySelectorAll('input[required], textarea[required]');
+      const newAddressFields = newAddressForm.querySelectorAll('input[required], textarea[required], select[required]');
       newAddressFields.forEach(field => {
         field.removeAttribute('required');
       });
@@ -962,7 +1100,7 @@
           <div class="address-option-details">
             <div>${address.phone_number}</div>
             <div>${address.street_address}${address.apartment_suite ? ', ' + address.apartment_suite : ''}</div>
-            <div>${address.city}, ${address.state}${address.postal_code ? ' ' + address.postal_code : ''}</div>
+            <div>${address.city}${address.lga ? ', ' + address.lga : ''}, ${address.state}${address.postal_code ? ' ' + address.postal_code : ''}</div>
             <div>${address.country}</div>
           </div>
         </div>
@@ -1010,7 +1148,11 @@
           field.setAttribute('required', 'required');
         }
       });
-    }
+      const lgaSel = document.getElementById('shipping-lga');
+      if (lgaSel && isCheckoutNigeriaCountry()) {
+        lgaSel.setAttribute('required', 'required');
+      }
+      updateCheckoutLgaVisibility();
 
     function displayOrderSummary(data) {
       const items = data.items || [];
@@ -1463,6 +1605,18 @@
             return;
           }
 
+          const countryLower = country.toLowerCase();
+          const isNgAddr = countryLower === 'nigeria' || countryLower === 'ng';
+          if (isNgAddr) {
+            const lgaVal = (document.getElementById('shipping-lga')?.value || '').trim();
+            if (!lgaVal) {
+              showToast('Please select an LGA for Nigerian addresses.', 'error');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-lock"></i> Complete Order';
+              return;
+            }
+          }
+
         // Create new shipping address
         const shippingAddressData = {
           full_name: document.getElementById('shipping-full-name').value,
@@ -1473,6 +1627,9 @@
           country: document.getElementById('shipping-country').value,
           postal_code: document.getElementById('shipping-postal-code').value || '',
         };
+        if (isNgAddr) {
+          shippingAddressData.lga = document.getElementById('shipping-lga').value.trim();
+        }
 
         try {
           const addressResponse = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/', {
@@ -1505,7 +1662,7 @@
           payment_method: document.querySelector('input[name="payment_method"]:checked').value,
           // Explicitly set callback URL so Paystack redirects back to the same origin
           // (works for both localhost and production like https://app.tanda.media)
-          callback_url: `${window.location.origin}/payment-callback.html`,
+          callback_url: SuperAffiliateAPI.getPaymentCallbackUrl(),
         };
         
         // Only include shipping address and methods for non-digital-only carts
@@ -1590,18 +1747,10 @@
     }
 
     function showToast(message, type) {
+      document.querySelectorAll('.checkout-toast').forEach((el) => el.remove());
       const toast = document.createElement('div');
-      toast.style.cssText = `
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        background: ${type === 'success' ? '#00f2ea' : '#ff0050'};
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
-      `;
+      toast.className = `checkout-toast ${type === 'success' ? 'success' : 'error'}`;
+      toast.setAttribute('role', 'status');
       toast.textContent = message;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);

@@ -1,5 +1,5 @@
 // Service Worker for Tanda Web App
-const CACHE_NAME = 'tanda-web-v3'; // Updated version to force cache refresh
+const CACHE_NAME = 'tanda-web-v4'; // bump when precache URLs change (e.g. super-affiliate-api.js)
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,7 +11,7 @@ const urlsToCache = [
   '/orders.html',
   '/analytics.html',
   '/search.html',
-    '/js/super-affiliate-api.js?v=3',
+    '/js/super-affiliate-api.js?v=30',
   '/Tanda logo.png',
   '/Tanda logo.webp',
   '/favicon-192x192.png',

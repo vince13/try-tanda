@@ -95,6 +95,34 @@
       flex-wrap: nowrap;
     }
 
+    @media (max-width: 768px) {
+      .header {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        max-width: 100%;
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+      }
+      .header::-webkit-scrollbar {
+        display: none;
+      }
+      .header .title {
+        flex-shrink: 0;
+        max-width: 52vw;
+      }
+      .header .nav,
+      .header #authNav {
+        flex-shrink: 0;
+      }
+      .header .auth-nav-buttons,
+      .header .user-menu-wrapper {
+        flex-wrap: nowrap !important;
+      }
+    }
+
     .title {
       font-size: 1.8rem;
       background: var(--primary-gradient);
@@ -110,19 +138,6 @@
       justify-content: flex-end;
       gap: 0.5rem;
       min-width: 0; /* allow auth strip to shrink without wrapping */
-    }
-
-    .nav a {
-      text-decoration: none;
-      color: var(--text-primary);
-      background: rgba(255,255,255,0.08);
-      padding: 0.75rem 1rem;
-      border-radius: 0.75rem;
-      margin-left: 0.5rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 0 0 auto;
     }
 
     .container {
@@ -144,7 +159,7 @@
 
     .row { margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600; }
-    input[type="file"], textarea {
+    textarea {
       width: 100%;
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.12);
@@ -154,6 +169,68 @@
       font-size: 1rem;
     }
     textarea { min-height: 110px; resize: vertical; }
+
+    /* Hidden native file input — custom label/buttons match app chrome (mobile-friendly). */
+    .file-input-native {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .file-picker {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+    .file-picker-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    @media (min-width: 520px) {
+      .file-picker-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+    }
+    .file-input-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.95rem 1.15rem;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+      text-align: center;
+      min-height: 48px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .file-input-label:hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(0, 242, 234, 0.35);
+    }
+    .file-name-hint {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .btn-record {
+      margin: 0;
+    }
 
     .actions {
       display: flex;
@@ -196,11 +273,15 @@
       display: none;
     }
 
-    .result a { color: var(--accent-color); text-decoration: none; }
+    .result.error {
+      border-color: rgba(255, 0, 80, 0.35);
+      background: rgba(255, 0, 80, 0.08);
+    }
 
     @media (max-width: 768px) {
       body { 
-        padding: 1rem; 
+        padding: 1rem;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
       }
 
       .header { 
@@ -218,28 +299,31 @@
         padding: 1.25rem; 
       }
 
-      .btn { 
+      .btn,
+      .file-input-label { 
         width: 100%; 
         min-width: unset; 
       }
 
       .nav { 
         width: 100%; 
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
       }
+      .nav::-webkit-scrollbar { display: none; }
 
-      .nav a { 
-        margin-left: 0;
-        flex: 1;
-        justify-content: center;
+      .nav > * {
+        flex-shrink: 0;
       }
 
       .row {
         margin-bottom: 1.5rem;
       }
 
-      input[type="file"],
       textarea {
-        font-size: 0.95rem;
+        font-size: 16px;
       }
     }
 
@@ -262,23 +346,29 @@
   <div class="header">
     <div class="title"><i class="fas fa-cloud-upload-alt"></i> Upload Video</div>
     <div class="nav">
-      <a href="index.html"><i class="fas fa-home"></i> Home</a>
+      <a href="feed.html" class="nav-link-btn" aria-label="Home"><i class="fas fa-home"></i> Home</a>
       <div id="authNav" class="tanda-nav-container"></div>
     </div>
   </div>
 
   <div class="container">
     <p class="hint">
-      This is the **iOS-friendly** web upload. Keep videos under ~50MB for now.
+      This is the <strong>iOS-friendly</strong> web upload. Keep videos under ~50MB for now.
     </p>
 
     <div class="row">
       <label for="videoFile">Video file</label>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-        <input id="videoFile" type="file" accept="video/*" style="flex: 1; min-width: 200px;" />
-        <button type="button" onclick="openCamera()" class="btn" style="flex-shrink: 0; margin: 0;">
-          <i class="fas fa-camera"></i> Record Video
-        </button>
+      <div class="file-picker">
+        <input id="videoFile" type="file" accept="video/*" class="file-input-native" />
+        <span id="videoFileName" class="file-name-hint">No file selected yet</span>
+        <div class="file-picker-actions">
+          <label for="videoFile" class="file-input-label">
+            <i class="fas fa-folder-open"></i> Choose video
+          </label>
+          <button type="button" onclick="openCamera()" class="btn btn-record secondary" style="min-width: unset;">
+            <i class="fas fa-camera"></i> Record Video
+          </button>
+        </div>
       </div>
     </div>
 
@@ -303,14 +393,26 @@
     <div class="result" id="result"></div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
-    SuperAffiliateAPI.renderAuthNav('authNav');
-
-    // Require auth
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html';
+      const here = (window.location.pathname.split('/').pop() || 'upload.html') + window.location.search;
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
     }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (typeof SuperAffiliateAPI.applyActiveNavState === 'function') {
+      SuperAffiliateAPI.applyActiveNavState();
+      setTimeout(() => SuperAffiliateAPI.applyActiveNavState(), 450);
+    }
+
+    function updateVideoFileLabel() {
+      const inp = document.getElementById('videoFile');
+      const el = document.getElementById('videoFileName');
+      if (!inp || !el) return;
+      const f = inp.files && inp.files[0];
+      el.textContent = f ? (f.name + ' (' + Math.round(f.size / (1024 * 1024) * 10) / 10 + ' MB)') : 'No file selected yet';
+    }
+    document.getElementById('videoFile')?.addEventListener('change', updateVideoFileLabel);
 
     async function upload() {
       const file = document.getElementById('videoFile').files?.[0];
@@ -320,6 +422,7 @@
       const result = document.getElementById('result');
 
       result.style.display = 'none';
+      result.classList.remove('error');
 
       if (!file) {
         showToast('Please select a video file.', 'error');
@@ -333,6 +436,7 @@
         const res = await SuperAffiliateAPI.publishVideo({ file, caption, isPublic: true });
         showToast('✅ Video published!', 'success');
 
+        result.classList.remove('error');
         result.style.display = 'block';
         result.innerHTML = `
           <div style="font-weight:800; margin-bottom:0.5rem;">Published successfully</div>
@@ -343,6 +447,24 @@
         `;
       } catch (e) {
         showToast(e.message || 'Upload failed', 'error');
+        result.classList.add('error');
+        result.style.display = 'block';
+        result.innerHTML = '';
+        const titleEl = document.createElement('div');
+        titleEl.style.fontWeight = '800';
+        titleEl.style.marginBottom = '0.5rem';
+        titleEl.textContent = 'Upload failed';
+        const msgEl = document.createElement('p');
+        msgEl.style.color = 'rgba(255,255,255,0.85)';
+        msgEl.style.marginBottom = '0.5rem';
+        msgEl.textContent = e.message || 'Something went wrong.';
+        const hintEl = document.createElement('p');
+        hintEl.style.fontSize = '0.9rem';
+        hintEl.style.color = 'var(--text-secondary, #ccc)';
+        hintEl.textContent = 'Check your connection or file size, adjust if needed, then tap Publish Video again.';
+        result.appendChild(titleEl);
+        result.appendChild(msgEl);
+        result.appendChild(hintEl);
       } finally {
         btn.disabled = false;
         progress.style.display = 'none';

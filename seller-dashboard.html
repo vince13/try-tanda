@@ -99,6 +99,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      margin: 0;
     }
 
     .nav {
@@ -107,21 +108,29 @@
       gap: 0.5rem;
     }
     
-    /* Mobile: Add horizontal scroll to nav items - same as profile.html */
     @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
       .nav {
         gap: 0.25rem;
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
       
       .nav::-webkit-scrollbar {
         display: none;
       }
+
+      .nav > * {
+        flex-shrink: 0;
+      }
       
-      /* Ensure user menu dropdown can escape overflow on mobile */
       .nav .user-menu-dropdown {
         overflow: visible !important;
         position: relative !important;
@@ -130,12 +139,76 @@
       .nav .user-menu-wrapper {
         overflow: visible !important;
       }
+
+      body {
+        padding: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
     }
     
     @media (max-width: 480px) {
       .nav {
         gap: 0.15rem;
       }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .quick-actions-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-actions-row .btn,
+    .quick-actions-row a.btn,
+    .quick-actions-row a.btn-secondary {
+      flex: 1 1 auto;
+      min-width: min(100%, 200px);
+      justify-content: center;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 640px) {
+      .quick-actions-row {
+        flex-direction: column;
+      }
+      .quick-actions-row .btn,
+      .quick-actions-row a.btn,
+      .quick-actions-row a.btn-secondary {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .shop-info-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+      }
+
+      .shop-info-header .btn-secondary {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .dashboard-load-error {
+      text-align: center;
+      padding: 3rem 1.25rem;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .dashboard-load-error h2 {
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
     }
 
     .container {
@@ -210,7 +283,10 @@
       cursor: pointer;
       transition: all 0.3s ease;
       text-decoration: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     .btn:hover {
@@ -264,16 +340,6 @@
       background: rgba(244, 67, 54, 0.2);
       color: #f44336;
     }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 1rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
 <body>
@@ -288,7 +354,21 @@
       <p>Loading dashboard...</p>
     </div>
 
+    <div id="dashboard-load-error" class="dashboard-load-error" role="alert">
+      <h2><i class="fas fa-exclamation-circle" style="color: #f44336;"></i> Couldn't load dashboard</h2>
+      <p>Check your connection and try again.</p>
+      <button type="button" class="btn" id="dashboard-retry-btn">Try again</button>
+    </div>
+
     <div id="dashboard-section" style="display: none;">
+      <div id="field-operator-banner" class="card" style="display: none; border-color: rgba(0, 242, 234, 0.35); background: rgba(0, 242, 234, 0.06);">
+        <h2 class="card-title" style="margin-bottom: 0.75rem; font-size: 1.25rem;">Field operator</h2>
+        <p style="color: #aaa; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.85rem;">Pilot logistics tools are available on web (org roster, jobs, same APIs as the app).</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+          <a href="delivery-org-hub.html" class="btn btn-secondary"><i class="fas fa-truck-field"></i> Org logistics</a>
+          <a href="driver-dashboard.html" class="btn btn-secondary"><i class="fas fa-motorcycle"></i> Delivery console</a>
+        </div>
+      </div>
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -315,7 +395,7 @@
 
       <!-- Profile Info -->
       <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div class="shop-info-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h2 class="card-title" style="margin: 0;">Shop Information</h2>
           <button class="btn btn-secondary" id="edit-shop-info-btn" onclick="window.location.href='become-seller.html?edit=true'" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
             <i class="fas fa-edit"></i> Edit Shop Info
@@ -327,12 +407,15 @@
       <!-- Quick Actions -->
       <div class="card">
         <h2 class="card-title">Quick Actions</h2>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="quick-actions-row">
           <a href="add-product.html" class="btn">
             <i class="fas fa-plus-circle"></i> Add Product
           </a>
+          <a href="products.html?my=true" class="btn btn-secondary">
+            <i class="fas fa-boxes-stacked"></i> My Products
+          </a>
           <a href="#" id="my-storefront-link" class="btn btn-secondary">
-            <i class="fas fa-box"></i> My Storefront
+            <i class="fas fa-store"></i> My Storefront
           </a>
           <a href="seller-orders.html" class="btn btn-secondary">
             <i class="fas fa-shopping-bag"></i> Customer Orders
@@ -340,15 +423,25 @@
           <a href="seller-shipping.html" class="btn btn-secondary">
             <i class="fas fa-truck"></i> Shipping Methods
           </a>
+          <a href="seller-instant-checkout.html" class="btn btn-secondary">
+            <i class="fas fa-bolt"></i> Instant checkout
+          </a>
+          <a href="village-hub.html" class="btn btn-secondary">
+            <i class="fas fa-people-group"></i> Village Batches
+          </a>
           <a href="analytics.html" class="btn btn-secondary">
             <i class="fas fa-chart-line"></i> View Analytics
           </a>
         </div>
+        <p style="margin: 1rem 0 0; font-size: 0.88rem; color: #aaa; line-height: 1.45; max-width: 42rem;">
+          <i class="fas fa-info-circle" style="color: #00f2ea;"></i>
+          Share listing links manually from <strong>My Products</strong> (copy per product). Tanda does not send bulk buyer messages for you.
+        </p>
       </div>
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -359,20 +452,41 @@
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
 
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function setDashboardLoading(isLoading) {
+      const loadEl = document.getElementById('loading-section');
+      const errEl = document.getElementById('dashboard-load-error');
+      if (isLoading) {
+        if (errEl) errEl.style.display = 'none';
+        if (loadEl) loadEl.style.display = 'block';
+      }
+    }
+
+    document.getElementById('dashboard-retry-btn')?.addEventListener('click', () => loadDashboard());
+
     async function loadDashboard() {
+      setDashboardLoading(true);
+      document.getElementById('dashboard-section').style.display = 'none';
       try {
         // Load seller profile
         const profile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
 
-        // Update "My Products" to point to public storefront (/shops/<slug>)
+        // Public storefront: shops/index.html?slug= (works on static file hosting)
         try {
           const a = document.getElementById('my-storefront-link');
           if (a) {
             if (profile && profile.slug) {
-              const slug = encodeURIComponent(profile.slug);
-              a.href = `/shops/${slug}`;
+              const root = SuperAffiliateAPI.getPathToSiteRoot();
+              a.href = root + 'shops/?slug=' + encodeURIComponent(profile.slug);
+              a.removeAttribute('title');
             } else {
-              a.href = 'products.html?my=true'; // fallback
+              a.href = 'products.html?my=true';
               a.title = 'Storefront link not available yet';
             }
           }
@@ -395,30 +509,43 @@
         const statusText = profile.status === 'approved' ? 'Approved' : 
                           profile.status === 'pending' ? 'Pending' : 'Rejected';
 
+        const shopName = escapeHtml(profile.shop_name || 'N/A');
+        const shopDesc = profile.shop_description ? escapeHtml(profile.shop_description) : '';
+        const bizType = profile.business_type ? escapeHtml(profile.business_type) : '';
+
         document.getElementById('profile-info').innerHTML = `
           <div style="display: grid; gap: 1rem;">
             <div>
-              <strong>Shop Name:</strong> ${profile.shop_name || 'N/A'}
+              <strong>Shop Name:</strong> ${shopName}
             </div>
             <div>
               <strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
-            ${profile.shop_description ? `<div><strong>Description:</strong> ${profile.shop_description}</div>` : ''}
-            ${profile.business_type ? `<div><strong>Business Type:</strong> ${profile.business_type}</div>` : ''}
+            ${shopDesc ? `<div><strong>Description:</strong> ${shopDesc}</div>` : ''}
+            ${bizType ? `<div><strong>Business Type:</strong> ${bizType}</div>` : ''}
           </div>
         `;
 
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('dashboard-load-error').style.display = 'none';
         document.getElementById('dashboard-section').style.display = 'block';
+
+        try {
+          const op = await SuperAffiliateAPI.getCommerceOperatorMe();
+          const banner = document.getElementById('field-operator-banner');
+          const approvedOp = op && op.is_operator === true && op.operator_status === 'approved';
+          if (banner) {
+            banner.style.display = approvedOp ? 'block' : 'none';
+          }
+        } catch (_) {
+          const banner = document.getElementById('field-operator-banner');
+          if (banner) banner.style.display = 'none';
+        }
       } catch (error) {
         console.error('Error loading dashboard:', error);
-        document.getElementById('loading-section').innerHTML = `
-          <div style="color: #f44336;">
-            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <p>Failed to load dashboard. Please try again.</p>
-            <button class="btn" onclick="location.reload()" style="margin-top: 1rem;">Retry</button>
-          </div>
-        `;
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('dashboard-section').style.display = 'none';
+        document.getElementById('dashboard-load-error').style.display = 'block';
       }
     }
 

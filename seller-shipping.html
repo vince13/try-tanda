@@ -73,6 +73,63 @@
       .nav::-webkit-scrollbar {
         display: none;
       }
+
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+      
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .nav > * {
+      flex-shrink: 0;
+    }
+
+    .shipping-methods-load-error {
+      display: none;
+      text-align: center;
+      padding: 2.5rem 1.25rem;
+      color: var(--text-secondary);
+      background: rgba(255, 0, 80, 0.06);
+      border: 1px solid rgba(255, 0, 80, 0.25);
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .shipping-methods-load-error h3 {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .shipping-methods-load-error .shipping-methods-load-error-detail {
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      opacity: 0.95;
+    }
+
+    .shipping-methods-load-error .btn-retry {
+      padding: 0.65rem 1.25rem;
+      min-height: 44px;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--primary-gradient);
+      color: white;
     }
 
     .container {
@@ -459,6 +516,14 @@
         </button>
       </div>
 
+      <div id="shipping-methods-load-error" class="shipping-methods-load-error" role="alert">
+        <h3><i class="fas fa-plug"></i> Couldn't load shipping methods</h3>
+        <p id="shipping-methods-load-error-detail" class="shipping-methods-load-error-detail">Check your connection and try again.</p>
+        <button type="button" class="btn-retry" id="shipping-methods-load-retry">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+      </div>
+
       <div id="loading-section" class="loading">
         <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
         <p>Loading shipping methods...</p>
@@ -558,14 +623,37 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let currentMethodId = null;
     let currentSellerProfile = null;
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html';
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function hideShippingMethodsLoadError() {
+      const err = document.getElementById('shipping-methods-load-error');
+      if (err) err.style.display = 'none';
+    }
+
+    function showShippingMethodsLoadError(message) {
+      const err = document.getElementById('shipping-methods-load-error');
+      const detail = document.getElementById('shipping-methods-load-error-detail');
+      const methodsSection = document.getElementById('methods-section');
+      const loadEl = document.getElementById('loading-section');
+      if (detail) detail.textContent = message || 'Check your connection and try again.';
+      if (methodsSection) methodsSection.style.display = 'none';
+      if (loadEl) loadEl.style.display = 'none';
+      if (err) err.style.display = 'block';
     }
 
     // Render auth nav (suppress 404 errors for optional endpoints)
@@ -574,6 +662,10 @@
     } catch (error) {
       console.warn('Navigation rendering warning (non-critical):', error);
     }
+
+    document.getElementById('shipping-methods-load-retry').addEventListener('click', () => {
+      loadMethods();
+    });
 
     // Check if user is a seller
     async function checkSellerStatus() {
@@ -622,32 +714,34 @@
 
     // Load shipping methods
     async function loadMethods() {
-      try {
-        // First check if user is a seller
-        const isSeller = await checkSellerStatus();
-        if (!isSeller) {
-          document.getElementById('loading-section').style.display = 'none';
-          return;
-        }
+      const loadEl = document.getElementById('loading-section');
+      hideShippingMethodsLoadError();
+      loadEl.style.display = 'block';
+      document.getElementById('methods-section').style.display = 'none';
 
+      const isSeller = await checkSellerStatus();
+      if (!isSeller) {
+        loadEl.style.display = 'none';
+        return;
+      }
+
+      try {
         const response = await SuperAffiliateAPI.apiRequest('/commerce/seller/shipping/methods/');
-        // Handle both array and paginated response formats
-        const methods = Array.isArray(response) 
-          ? response 
+        const methods = Array.isArray(response)
+          ? response
           : (response.results || response.data || []);
         displayMethods(methods);
       } catch (error) {
         console.error('Error loading methods:', error);
-        // Check if it's a 404 (seller not found) or other error
         if (error.message && (error.message.includes('404') || error.message.includes('Not Found'))) {
           showAlert('You need to be a seller to manage shipping methods. Please register as a seller first.', 'error');
           setTimeout(() => {
             window.location.href = 'become-seller.html';
           }, 2000);
         } else {
-          showAlert('Failed to load shipping methods. Please try again.', 'error');
+          showShippingMethodsLoadError(error.message || 'Failed to load shipping methods.');
         }
-        document.getElementById('loading-section').style.display = 'none';
+        loadEl.style.display = 'none';
       }
     }
 
@@ -656,16 +750,16 @@
       const loadingSection = document.getElementById('loading-section');
       const methodsSection = document.getElementById('methods-section');
 
+      hideShippingMethodsLoadError();
       loadingSection.style.display = 'none';
       methodsSection.style.display = 'block';
 
-      // Ensure methods is an array
+      const list = Array.isArray(methods) ? methods : [];
       if (!Array.isArray(methods)) {
         console.error('Methods is not an array:', methods);
-        methods = [];
       }
 
-      if (!methods || methods.length === 0) {
+      if (!list.length) {
         listContainer.innerHTML = `
           <div class="empty-state">
             <i class="fas fa-truck"></i>
@@ -676,12 +770,12 @@
         return;
       }
 
-      listContainer.innerHTML = methods.map(method => `
+      listContainer.innerHTML = list.map(method => `
         <div class="method-item ${!method.is_active ? 'inactive' : ''}">
           <div class="method-header">
             <div class="method-info">
               <h3>
-                ${method.name}
+                ${escapeHtml(method.name || '')}
                 <span class="status-badge ${method.is_active ? 'status-active' : 'status-inactive'}">
                   ${method.is_active ? 'Active' : 'Inactive'}
                 </span>
@@ -730,7 +824,7 @@
           </div>
           ${method.description ? `
             <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary);">
-              ${method.description}
+              ${escapeHtml(method.description)}
             </div>
           ` : ''}
         </div>
@@ -929,10 +1023,12 @@
       const container = document.getElementById('alert-container');
       const alert = document.createElement('div');
       alert.className = `alert alert-${type}`;
-      alert.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-      `;
+      const icon = document.createElement('i');
+      icon.className = `fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}`;
+      const span = document.createElement('span');
+      span.textContent = message;
+      alert.appendChild(icon);
+      alert.appendChild(span);
       container.innerHTML = '';
       container.appendChild(alert);
       

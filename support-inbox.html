@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Support inbox - Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+      --err: #ff6b8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; gap: 0.25rem; scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.05rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-sm { padding: 0.45rem 0.85rem; font-size: 0.85rem; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .banner-err { color: var(--err); }
+    .badge {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.35rem;
+      background: rgba(0,242,234,0.15);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    a.link { color: var(--accent); }
+    .inbox-card {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.65rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+      background: rgba(0,0,0,0.2);
+    }
+    .inbox-card:last-child { margin-bottom: 0; }
+    .inbox-actions, .inbox-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.65rem;
+    }
+    .inbox-form-row label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.78rem; color: var(--muted); }
+    select.inbox-sel, textarea.inbox-ta {
+      padding: 0.45rem 0.6rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.88rem;
+      min-width: 140px;
+    }
+    textarea.inbox-ta {
+      width: 100%;
+      max-width: 420px;
+      min-height: 64px;
+      resize: vertical;
+    }
+    .row-err { font-size: 0.82rem; color: var(--err); margin-top: 0.5rem; min-height: 1.1rem; }
+    @media (max-width: 768px) {
+      .inbox-form-row { flex-direction: column; align-items: stretch; }
+      .inbox-form-row label { width: 100%; }
+      select.inbox-sel, textarea.inbox-ta { max-width: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-inbox"></i> Support inbox</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="gate-loading" class="muted" style="text-align:center; padding: 2rem;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+      <p style="margin-top: 0.75rem;">Checking access…</p>
+    </div>
+
+    <div id="gate-denied" class="card" style="display: none;">
+      <h2>No support desk access</h2>
+      <p class="muted">This inbox is for users in the <strong>support_agent</strong> or <strong>support_admin</strong> Django groups (not the same as general web admin). If you need help as a buyer or seller, use <a class="link" href="help-support.html">Help &amp; support</a>.</p>
+    </div>
+
+    <div id="gate-main" style="display: none;">
+      <div class="card">
+        <h2>Queue</h2>
+        <p id="access-summary" class="muted" style="margin-bottom: 1rem;"></p>
+        <div class="tabs" id="scope-tabs"></div>
+        <div id="inbox-loading" class="muted" style="display:none; margin-bottom:0.75rem;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+        <div id="inbox-error" class="banner-err" style="display:none; margin-bottom:0.75rem;"></div>
+        <div id="inbox-list"></div>
+        <button type="button" class="btn btn-ghost" id="inbox-retry" style="margin-top: 1rem; display:none;"><i class="fas fa-redo"></i> Try again</button>
+      </div>
+
+      <p class="muted" style="font-size: 0.85rem;">Escalated human tickets only. Use <strong>Open in Help</strong> to read and reply in-thread (you are added as a participant when you claim). Status and priority call the same APIs as the mobile support desk.</p>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    const STATUSES = ['open', 'assigned', 'in_progress', 'waiting_user', 'resolved', 'closed'];
+    const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+
+    let accessLevel = 'none';
+    let currentScope = 'mine';
+    let currentUsername = '';
+
+    function optGroup(values, selected) {
+      return values.map(function (v) {
+        return '<option value="' + esc(v) + '"' + (v === selected ? ' selected' : '') + '>' + esc(v) + '</option>';
+      }).join('');
+    }
+
+    function helpUrl(cid) {
+      return 'help-support.html?conversation=' + encodeURIComponent(String(cid));
+    }
+
+    function renderItem(it) {
+      var cid = it.conversation_id;
+      var agent = it.assigned_agent;
+      var unassigned = !agent;
+      var mine = agent && currentUsername && agent === currentUsername;
+      var term = it.status === 'resolved' || it.status === 'closed';
+
+      var openHelp = '<a class="btn btn-ghost btn-sm" style="text-decoration:none;" href="' + esc(helpUrl(cid)) + '"><i class="fas fa-comments"></i> Open in Help</a>';
+
+      var claimUnassign = '';
+      if (term) {
+        if (mine || accessLevel === 'admin') {
+          claimUnassign += '<button type="button" class="btn btn-ghost btn-sm unassign-btn" data-cid="' + esc(cid) + '"><i class="fas fa-user-minus"></i> Unassign</button>';
+        }
+        claimUnassign += '<button type="button" class="btn btn-sm reopen-btn" data-cid="' + esc(cid) + '"><i class="fas fa-undo"></i> Reopen</button>';
+      } else {
+        if (unassigned) {
+          claimUnassign += '<button type="button" class="btn btn-sm claim-btn" data-cid="' + esc(cid) + '"><i class="fas fa-hand-paper"></i> Claim</button>';
+        }
+        if (agent && (mine || accessLevel === 'admin')) {
+          claimUnassign += '<button type="button" class="btn btn-ghost btn-sm unassign-btn" data-cid="' + esc(cid) + '"><i class="fas fa-user-minus"></i> Unassign</button>';
+        }
+      }
+
+      var lastSender = it.last_message && it.last_message.sender ? it.last_message.sender : '';
+      var lastContent = it.last_message && it.last_message.content ? it.last_message.content : '';
+
+      var workflow = '';
+      if (!term) {
+        workflow = `
+        <div class="inbox-form-row">
+          <label>Status
+            <select class="inbox-sel status-sel" data-cid="${esc(cid)}">${optGroup(STATUSES, it.status || 'open')}</select>
+          </label>
+          <label>Priority
+            <select class="inbox-sel priority-sel" data-cid="${esc(cid)}">${optGroup(PRIORITIES, it.priority || 'medium')}</select>
+          </label>
+          <button type="button" class="btn apply-btn btn-sm" data-cid="${esc(cid)}"><i class="fas fa-save"></i> Apply</button>
+        </div>
+        <div class="inbox-form-row" style="flex-direction:column;align-items:stretch;">
+          <label>Resolution notes (optional)
+            <textarea class="inbox-ta res-notes" data-cid="${esc(cid)}" placeholder="Notes when resolving or closing…"></textarea>
+          </label>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+            <button type="button" class="btn resolve-btn btn-sm" data-cid="${esc(cid)}"><i class="fas fa-check-circle"></i> Mark resolved</button>
+            <button type="button" class="btn btn-ghost close-ticket-btn btn-sm" data-cid="${esc(cid)}"><i class="fas fa-times-circle"></i> Close ticket</button>
+          </div>
+        </div>`;
+      }
+
+      return `<div class="inbox-card" data-cid="${esc(cid)}">
+        <div><strong>#${esc(cid)}</strong> — ${esc(it.subject || '')} <span class="badge">${esc(it.priority || '')}</span> <span class="badge">${esc(it.status || '')}</span></div>
+        <div class="muted" style="font-size:0.82rem; margin-top:0.35rem;"><span data-label="User">${esc(it.user || '')}</span> · <span data-label="Agent">${esc(it.assigned_agent || '—')}</span></div>
+        <div class="muted" style="font-size:0.82rem; margin-top:0.25rem;">Last: ${esc(lastSender)} — ${esc(lastContent)}</div>
+        <div class="inbox-actions">${claimUnassign}${openHelp}</div>
+        ${workflow}
+        <div class="row-err" aria-live="polite"></div>
+      </div>`;
+    }
+
+    function renderTabs() {
+      var tabs = document.getElementById('scope-tabs');
+      var scopes = accessLevel === 'admin'
+        ? ['mine', 'unassigned', 'all', 'closed']
+        : ['mine', 'unassigned', 'closed'];
+      tabs.innerHTML = scopes.map(function (s) {
+        return '<button type="button" class="btn ' + (s === currentScope ? '' : 'btn-ghost') + '" data-scope="' + esc(s) + '">' + esc(s) + '</button>';
+      }).join('');
+    }
+
+    function cardErr(card, msg) {
+      var el = card.querySelector('.row-err');
+      if (el) el.textContent = msg || '';
+    }
+
+    async function loadInbox() {
+      var loading = document.getElementById('inbox-loading');
+      var err = document.getElementById('inbox-error');
+      var list = document.getElementById('inbox-list');
+      var retry = document.getElementById('inbox-retry');
+      loading.style.display = 'block';
+      err.style.display = 'none';
+      err.textContent = '';
+      retry.style.display = 'none';
+      list.innerHTML = '';
+      try {
+        var r = await SuperAffiliateAPI.getSupportInbox(currentScope);
+        var items = r.items || [];
+        if (!items.length) {
+          list.innerHTML = '<p class="muted">No items in this queue.</p>';
+        } else {
+          list.innerHTML = items.map(renderItem).join('');
+        }
+      } catch (e) {
+        err.style.display = 'block';
+        err.textContent = e.message || String(e);
+        retry.style.display = 'inline-flex';
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    document.getElementById('scope-tabs').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-scope]');
+      if (!b) return;
+      currentScope = b.getAttribute('data-scope');
+      renderTabs();
+      loadInbox();
+    });
+
+    document.getElementById('inbox-retry').addEventListener('click', loadInbox);
+
+    document.getElementById('inbox-list').addEventListener('click', async function (e) {
+      var card = e.target.closest('.inbox-card');
+      if (!card) return;
+      var cid = card.getAttribute('data-cid');
+      if (!cid) return;
+
+      var claim = e.target.closest('.claim-btn');
+      var unassign = e.target.closest('.unassign-btn');
+      var reopen = e.target.closest('.reopen-btn');
+      var apply = e.target.closest('.apply-btn');
+      var resolve = e.target.closest('.resolve-btn');
+      var closeT = e.target.closest('.close-ticket-btn');
+
+      if (!claim && !unassign && !reopen && !apply && !resolve && !closeT) return;
+
+      cardErr(card, '');
+      var btn = e.target.closest('button');
+      if (btn) btn.disabled = true;
+
+      try {
+        if (claim) {
+          await SuperAffiliateAPI.postSupportAssign(cid, 'assign');
+        } else if (unassign) {
+          await SuperAffiliateAPI.postSupportAssign(cid, 'unassign');
+        } else if (reopen) {
+          await SuperAffiliateAPI.postSupportStatus(cid, { status: 'open' });
+        } else if (apply) {
+          var st = card.querySelector('.status-sel');
+          var pr = card.querySelector('.priority-sel');
+          await SuperAffiliateAPI.postSupportStatus(cid, {
+            status: st ? st.value : '',
+            priority: pr ? pr.value : '',
+          });
+        } else if (resolve) {
+          var ta = card.querySelector('.res-notes');
+          var notes = ta ? ta.value.trim() : '';
+          await SuperAffiliateAPI.postSupportStatus(cid, {
+            status: 'resolved',
+            resolution_notes: notes || undefined,
+          });
+        } else if (closeT) {
+          var ta2 = card.querySelector('.res-notes');
+          var notes2 = ta2 ? ta2.value.trim() : '';
+          await SuperAffiliateAPI.postSupportStatus(cid, {
+            status: 'closed',
+            resolution_notes: notes2 || undefined,
+          });
+        }
+        await loadInbox();
+        try {
+          var r2 = await SuperAffiliateAPI.getSupportAccess();
+          var counts = r2.unread_counts || {};
+          document.getElementById('access-summary').innerHTML =
+            'Signed in as support: <span class="badge">' + esc(accessLevel) + '</span>. ' +
+            'Escalated — unassigned: ' + esc(counts.unassigned != null ? counts.unassigned : '—') +
+            ', mine: ' + esc(counts.mine != null ? counts.mine : '—') + '.';
+        } catch (_) { /* ignore */ }
+      } catch (err) {
+        cardErr(card, err.message || String(err));
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    (async function init() {
+      try {
+        var me = await SuperAffiliateAPI.getCurrentUser();
+        currentUsername = me && me.username ? String(me.username).trim() : '';
+      } catch (_) {
+        currentUsername = '';
+      }
+
+      try {
+        var r = await SuperAffiliateAPI.getSupportAccess();
+        accessLevel = r.support_access || 'none';
+        document.getElementById('gate-loading').style.display = 'none';
+
+        if (accessLevel === 'none') {
+          document.getElementById('gate-denied').style.display = 'block';
+          return;
+        }
+
+        document.getElementById('gate-main').style.display = 'block';
+        var counts = r.unread_counts || {};
+        document.getElementById('access-summary').innerHTML =
+          'Signed in as support: <span class="badge">' + esc(accessLevel) + '</span>. ' +
+          'Escalated queues — unassigned: ' + esc(counts.unassigned != null ? counts.unassigned : '—') +
+          ', mine: ' + esc(counts.mine != null ? counts.mine : '—') + '.';
+
+        renderTabs();
+        await loadInbox();
+      } catch (e) {
+        document.getElementById('gate-loading').style.display = 'none';
+        document.getElementById('gate-denied').style.display = 'block';
+        var gp = document.getElementById('gate-denied').querySelector('p');
+        if (gp) gp.appendChild(document.createTextNode(' (' + (e.message || String(e)) + ')'));
+      }
+    })();
+  </script>
+</body>
+</html>

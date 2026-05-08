@@ -120,6 +120,10 @@
       .nav::-webkit-scrollbar {
         display: none;
       }
+
+      .nav > * {
+        flex-shrink: 0;
+      }
       
       /* Ensure user menu dropdown can escape overflow on mobile */
       .nav .user-menu-dropdown {
@@ -222,6 +226,27 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
+    .affiliate-load-error {
+      display: none;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(244, 67, 54, 0.35);
+      margin-bottom: 1.5rem;
+    }
+    .affiliate-load-error h2 {
+      color: #ff8a80;
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+    .affiliate-load-error-detail {
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
     .loading {
       text-align: center;
       padding: 4rem 2rem;
@@ -283,6 +308,21 @@
   </div>
 
   <div class="container">
+    <div id="affiliate-load-error" class="affiliate-load-error" role="alert">
+      <h2><i class="fas fa-plug"></i> Couldn’t load dashboard</h2>
+      <p id="affiliate-load-error-detail" class="affiliate-load-error-detail">Check your connection and try again.</p>
+      <button type="button" class="btn" id="affiliate-load-retry">Try again</button>
+    </div>
+
+    <div id="affiliate-no-profile" class="card" style="display: none;">
+      <h2 class="card-title" style="color: var(--accent-color);">No affiliate profile yet</h2>
+      <p style="color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+        This account doesn’t have an approved commerce affiliate application. You can apply to promote products and track commissions on the web.
+      </p>
+      <a href="become-affiliate.html" class="btn"><i class="fas fa-user-plus"></i> Become an affiliate</a>
+      <a href="feed.html" class="btn btn-secondary" style="margin-left: 0.5rem;"><i class="fas fa-play"></i> Feed</a>
+    </div>
+
     <div id="loading-section" class="loading">
       <div class="spinner"></div>
       <p>Loading dashboard...</p>
@@ -329,31 +369,83 @@
           <a href="analytics.html" class="btn btn-secondary">
             <i class="fas fa-chart-line"></i> View Analytics
           </a>
+          <a href="wallet.html" class="btn btn-secondary">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <template id="affiliate-loading-template">
+    <div class="spinner"></div>
+    <p>Loading dashboard...</p>
+  </template>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+      const here = (window.location.pathname.split('/').pop() || 'affiliate-dashboard.html') + window.location.search;
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(here);
     }
 
     // Render auth nav
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
 
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function showAffiliateLoadError(msg) {
+      const err = document.getElementById('affiliate-load-error');
+      const det = document.getElementById('affiliate-load-error-detail');
+      const load = document.getElementById('loading-section');
+      const dash = document.getElementById('dashboard-section');
+      const noProf = document.getElementById('affiliate-no-profile');
+      if (noProf) noProf.style.display = 'none';
+      if (det) det.textContent = msg || 'Check your connection and try again.';
+      if (load) load.style.display = 'none';
+      if (dash) dash.style.display = 'none';
+      if (err) err.style.display = 'block';
+    }
+
+    function hideAffiliateLoadError() {
+      const err = document.getElementById('affiliate-load-error');
+      if (err) err.style.display = 'none';
+    }
+
+    function resetAffiliateLoading() {
+      hideAffiliateLoadError();
+      const noProf = document.getElementById('affiliate-no-profile');
+      if (noProf) noProf.style.display = 'none';
+      const load = document.getElementById('loading-section');
+      const tpl = document.getElementById('affiliate-loading-template');
+      const dash = document.getElementById('dashboard-section');
+      if (dash) dash.style.display = 'none';
+      if (load && tpl) {
+        load.innerHTML = tpl.innerHTML;
+        load.style.display = 'block';
+      }
+    }
+
     async function loadDashboard() {
+      resetAffiliateLoading();
       try {
-        // Load affiliate profile
         const profile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
-        
-        // Load affiliate stats
+        if (!profile || !profile.id) {
+          document.getElementById('loading-section').style.display = 'none';
+          hideAffiliateLoadError();
+          document.getElementById('affiliate-no-profile').style.display = 'block';
+          return;
+        }
+
         const stats = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/stats/');
 
-        // Display stats
         document.getElementById('total-commission').textContent = 
           `₦${parseFloat(stats.total_commission || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
         document.getElementById('total-sales').textContent = stats.total_sales || 0;
@@ -361,11 +453,14 @@
         document.getElementById('conversion-rate').textContent = 
           `${parseFloat(stats.conversion_rate || 0).toFixed(2)}%`;
 
-        // Display profile info
         const statusClass = profile.status === 'approved' ? 'status-approved' : 
                            profile.status === 'pending' ? 'status-pending' : 'status-rejected';
         const statusText = profile.status === 'approved' ? 'Approved' : 
                           profile.status === 'pending' ? 'Pending' : 'Rejected';
+
+        const tier = escapeHtml(profile.tier || 'Basic');
+        const niche = profile.niche ? escapeHtml(profile.niche) : '';
+        const bio = profile.bio ? escapeHtml(profile.bio) : '';
 
         document.getElementById('profile-info').innerHTML = `
           <div style="display: grid; gap: 1rem;">
@@ -373,26 +468,26 @@
               <strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
             <div>
-              <strong>Tier:</strong> ${profile.tier || 'Basic'}
+              <strong>Tier:</strong> ${tier}
             </div>
-            ${profile.niche ? `<div><strong>Niche:</strong> ${profile.niche}</div>` : ''}
-            ${profile.bio ? `<div><strong>Bio:</strong> ${profile.bio}</div>` : ''}
+            ${niche ? `<div><strong>Niche:</strong> ${niche}</div>` : ''}
+            ${bio ? `<div><strong>Bio:</strong> ${bio}</div>` : ''}
           </div>
         `;
 
         document.getElementById('loading-section').style.display = 'none';
+        hideAffiliateLoadError();
+        const noProfOk = document.getElementById('affiliate-no-profile');
+        if (noProfOk) noProfOk.style.display = 'none';
         document.getElementById('dashboard-section').style.display = 'block';
       } catch (error) {
         console.error('Error loading dashboard:', error);
-        document.getElementById('loading-section').innerHTML = `
-          <div style="color: #f44336;">
-            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <p>Failed to load dashboard. Please try again.</p>
-            <button class="btn" onclick="location.reload()" style="margin-top: 1rem;">Retry</button>
-          </div>
-        `;
+        const msg = error && error.message ? error.message : 'Failed to load dashboard.';
+        showAffiliateLoadError(msg);
       }
     }
+
+    document.getElementById('affiliate-load-retry')?.addEventListener('click', () => loadDashboard());
 
     loadDashboard();
   </script>

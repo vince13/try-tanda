@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#030305">
+  <title>Immersive shop – Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --accent: #00f2ea;
+      --grad: linear-gradient(135deg, #ff0050, #00f2ea);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body.discover-page {
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, system-ui, sans-serif;
+      background: #030305;
+      color: #fff;
+    }
+    .disc-chrome {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 12px;
+      padding-left: calc(12px + env(safe-area-inset-left, 0px));
+      padding-right: calc(12px + env(safe-area-inset-right, 0px));
+      background: linear-gradient(180deg, rgba(3,3,5,0.9), rgba(3,3,5,0.2));
+      pointer-events: none;
+    }
+    .disc-chrome > * { pointer-events: auto; }
+    .disc-chrome a, .disc-chrome button {
+      color: #fff;
+      text-decoration: none;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      border-radius: 10px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .disc-chrome .disc-title {
+      font-weight: 800;
+      font-size: 1rem;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      flex: 1;
+      text-align: center;
+    }
+    .disc-chrome .disc-counter { font-size: 0.78rem; color: rgba(255,255,255,0.65); }
+    #authNav { pointer-events: auto; transform: scale(0.92); transform-origin: right center; max-width: 50%; }
+    .disc-reel {
+      height: 100dvh;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      scrollbar-width: none;
+    }
+    .disc-reel::-webkit-scrollbar { display: none; }
+    /* One slide = centered phone frame (parity with instant-shop.html) */
+    .disc-slide {
+      height: 100dvh;
+      height: 100vh;
+      min-height: -webkit-fill-available;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: calc(52px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px));
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255,0,80,0.08), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 50% 80%, rgba(0,242,234,0.06), transparent 55%),
+        #02050c;
+    }
+    .disc-phone {
+      position: relative;
+      width: min(420px, 92vw);
+      height: min(88dvh, 900px);
+      max-height: calc(100svh - 120px);
+      max-height: calc(100vh - 120px);
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow:
+        0 4px 0 rgba(255,255,255,0.04) inset,
+        0 28px 80px rgba(0,0,0,0.75);
+      background: #000;
+      isolation: isolate;
+    }
+    .disc-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .disc-slide .bg {
+      position: absolute;
+      inset: 0;
+      background: center/cover no-repeat;
+      transform: scale(1.02);
+      z-index: 0;
+    }
+    .disc-slide .shade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 40%, rgba(0,0,0,0.82) 100%);
+      pointer-events: none;
+    }
+    .disc-slide .panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      padding: 1.2rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
+      max-width: 100%;
+      pointer-events: auto;
+    }
+    .disc-slide .rank {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.35rem;
+    }
+    .disc-slide h2 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.55);
+    }
+    .disc-slide .price { font-size: 1.05rem; font-weight: 800; color: var(--accent); margin-top: 0.5rem; }
+    .disc-slide .actions { margin-top: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .disc-slide .actions a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      background: var(--grad);
+      color: #061018;
+    }
+    .disc-status {
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.75rem;
+      color: rgba(255,255,255,0.55);
+      padding: 2rem;
+    }
+    .disc-status.err { color: #ff9b9b; }
+  </style>
+</head>
+<body class="discover-page" data-tanda-page-label="Discovery reel – swipe vertically like the feed.">
+  <div class="disc-chrome">
+    <a href="products.html" id="backDiscover" title="Back to shop"><i class="fas fa-arrow-left"></i></a>
+    <span class="disc-title">Immersive shop</span>
+    <span class="disc-counter" id="discCounter"></span>
+    <div id="authNav" data-nav-mode="immersive_shop"></div>
+  </div>
+
+  <main class="disc-reel" id="reel"></main>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=2"></script>
+  <script>
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (typeof SuperAffiliateAPI.updateCartBadge === 'function') SuperAffiliateAPI.updateCartBadge();
+
+    const rootBase = SuperAffiliateAPI.getPathToSiteRoot();
+    const bd = document.getElementById('backDiscover');
+    if (bd) bd.href = rootBase + 'products.html';
+
+    const reel = document.getElementById('reel');
+    const counter = document.getElementById('discCounter');
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function thumb(p) {
+      if (!p || !p.images || !p.images.length) return '';
+      const im = p.images[0];
+      return (im && (im.image || im.url || im.file)) || '';
+    }
+
+    function formatPrice(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return '—';
+      return '₦' + Math.round(n).toLocaleString();
+    }
+
+    const products = [];
+    let page = 1;
+    let loading = false;
+    let hasMore = true;
+    const perPage = 20;
+    let sentinelObs = null;
+
+    function slideHtml(p, idx, total) {
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+      const href = `${root}product-detail.html?id=${encodeURIComponent(p.id)}`;
+      const im = thumb(p);
+      const bg = im ? `background-image:url('${esc(im)}')` : '';
+      const rp = p.rank_position;
+      const rankLabel = rp != null ? `Discovery #${rp + 1}` : `Item ${idx + 1}`;
+      return `
+        <section class="disc-slide" data-idx="${idx}">
+          <div class="disc-phone">
+            <div class="disc-stage">
+              <div class="bg" style="${bg}" role="img" aria-label=""></div>
+              <div class="shade"></div>
+              <div class="panel">
+                <div class="rank">${esc(rankLabel)} · ${idx + 1}/${total}</div>
+                <h2>${esc(p.name)}</h2>
+                <div class="price">${formatPrice(p.price)}</div>
+                <div class="actions">
+                  <a href="${esc(href)}"><i class="fas fa-arrow-right"></i> View product</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>`;
+    }
+
+    function updateCounter() {
+      const slides = reel.querySelectorAll('.disc-slide');
+      if (!slides.length) {
+        counter.textContent = '';
+        return;
+      }
+      const h = reel.clientHeight || window.innerHeight;
+      const i = Math.min(slides.length - 1, Math.max(0, Math.round(reel.scrollTop / Math.max(h * 0.98, 1))));
+      counter.textContent = `${i + 1}/${slides.length}`;
+    }
+
+    function attachSentinel() {
+      if (sentinelObs) sentinelObs.disconnect();
+      const sent = reel.querySelector('.disc-sentinel');
+      if (!sent || !hasMore || loading) return;
+      sentinelObs = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !loading) loadNext();
+        },
+        { root: reel, rootMargin: '200px', threshold: 0 }
+      );
+      sentinelObs.observe(sent);
+    }
+
+    async function loadNext() {
+      if (loading || !hasMore) return;
+      loading = true;
+      const firstPaint = products.length === 0;
+      if (firstPaint) {
+        reel.innerHTML = '<div class="disc-status"><i class="fas fa-spinner fa-spin fa-2x"></i> Loading discovery…</div>';
+      }
+      try {
+        const data = await SuperAffiliateAPI.fetchCommerceDiscoveryPage(page, perPage);
+        const chunk = (data && data.products) || [];
+        hasMore = data && data.has_next === true;
+        page += 1;
+        products.push(...chunk);
+
+        if (!chunk.length) {
+          hasMore = false;
+          if (firstPaint && !products.length) {
+            reel.innerHTML='<div class="disc-status">No products in discovery yet.</div>';
+          }
+          loading = false;
+          return;
+        }
+
+        if (firstPaint) reel.innerHTML = '';
+
+        const prevCount = firstPaint ? 0 : reel.querySelectorAll('.disc-slide').length;
+        const totalLabel = hasMore ? `${products.length}+` : String(products.length);
+        const html = chunk
+          .map((p, j) => slideHtml(p, prevCount + j, totalLabel))
+          .join('');
+
+        reel.querySelector('.disc-sentinel')?.remove();
+        reel.insertAdjacentHTML('beforeend', html);
+        if (hasMore) {
+          reel.insertAdjacentHTML('beforeend', '<div class="disc-sentinel" style="height:1px;width:100%;"></div>');
+        }
+        attachSentinel();
+        updateCounter();
+      } catch (e) {
+        if (firstPaint) {
+          reel.innerHTML = `<div class="disc-status err">${esc(e.message || 'Load failed')}</div>`;
+        }
+        hasMore = false;
+      } finally {
+        loading = false;
+      }
+    }
+
+    let scrollIdle;
+    reel.addEventListener(
+      'scroll',
+      () => {
+        updateCounter();
+        clearTimeout(scrollIdle);
+        scrollIdle = setTimeout(updateCounter, 60);
+        const slides = reel.querySelectorAll('.disc-slide');
+        if (!slides.length || loading || !hasMore) return;
+        const h = reel.clientHeight || window.innerHeight;
+        const i = Math.round(reel.scrollTop / Math.max(h * 0.98, 1));
+        if (i >= slides.length - 2) loadNext();
+      },
+      { passive: true }
+    );
+
+    window.addEventListener('resize', updateCounter);
+
+    loadNext();
+  </script>
+</body>
+</html>

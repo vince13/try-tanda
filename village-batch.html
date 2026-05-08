@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Village batch - Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 720px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title { font-size: 1.4rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav { display: flex; align-items: center; gap: 0.5rem; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; scrollbar-width: none; gap: 0.25rem; scroll-behavior: smooth; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .loading, .err { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .btn-ghost { background: rgba(255,255,255,0.12); color: var(--text); text-decoration: none; }
+    input[type="number"] {
+      width: 6rem;
+      padding: 0.6rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0.25rem 0.55rem;
+      border-radius: 0.35rem;
+      background: rgba(0,242,234,0.18);
+      color: var(--accent);
+    }
+    code { font-size: 0.8rem; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Batch detail</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="page-loading" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 1.75rem;"></i>
+      <p style="margin-top: 0.75rem;">Loading…</p>
+    </div>
+    <div id="page-error" class="err" style="display: none;"></div>
+    <div id="page-main" style="display: none;"></div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    const qs = new URLSearchParams(window.location.search);
+    const batchId = (qs.get('id') || '').trim();
+
+    function looksLikeVillageBatchUuid(s) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
+    }
+
+    function esc(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+
+    let currentUserId = null;
+    let batchData = null;
+
+    function myContribution(batch, uid) {
+      if (!batch || !batch.contributions || uid == null) return null;
+      return batch.contributions.find((c) => Number(c.buyer_id) === Number(uid)) || null;
+    }
+
+    function renderBatch(batch) {
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+      const name = batch.product_name || (batch.product && batch.product.name) || 'Product';
+      const status = batch.status || '—';
+      const preview = batch.effective_unit_price_preview ? `≤ ₦${parseFloat(batch.effective_unit_price_preview).toLocaleString('en-NG', { maximumFractionDigits: 0 })} / unit (preview)` : '';
+      const summary = batch.summary || {};
+      const amAgent = currentUserId != null && Number(batch.agent_id) === Number(currentUserId);
+      const contrib = myContribution(batch, currentUserId);
+      const isOpen = status === 'open';
+
+      let actions = '';
+      if (isOpen && !amAgent) {
+        if (contrib) {
+          actions = `
+            <div class="card">
+              <h3 style="margin-bottom: 0.75rem; color: var(--accent); font-size: 1rem;">Your quantity</h3>
+              <p class="muted" style="margin-bottom: 0.75rem;">You have <strong>${esc(contrib.quantity)}</strong> unit(s) in this batch.</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+                <label class="muted">Update to</label>
+                <input type="number" id="qty-update" min="0" value="${esc(contrib.quantity)}">
+                <button type="button" class="btn" id="btn-update-qty"><i class="fas fa-save"></i> Update</button>
+              </div>
+              <p class="muted" style="margin-top: 0.75rem; font-size: 0.82rem;">Set to 0 to leave the batch (before the agent checks out).</p>
+            </div>`;
+        } else {
+          actions = `
+            <div class="card">
+              <h3 style="margin-bottom: 0.75rem; color: var(--accent); font-size: 1rem;">Join this batch</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+                <label class="muted">Quantity</label>
+                <input type="number" id="qty-join" min="1" value="1">
+                <button type="button" class="btn" id="btn-join"><i class="fas fa-sign-in-alt"></i> Join</button>
+              </div>
+              <p class="muted" style="margin-top: 0.75rem; font-size: 0.82rem;">Wallet or escrow rules apply—if payment is required, top up on the wallet page.</p>
+            </div>`;
+        }
+      } else if (amAgent && isOpen) {
+        actions = `<div class="card"><p class="muted">You are the agent for this open batch. Use the Tanda app to lock, collect payment, and finish the flow.</p></div>`;
+      }
+
+      document.getElementById('page-main').innerHTML = `
+        <div class="card">
+          <span class="badge">${esc(status)}</span>
+          <h2 style="margin: 0.75rem 0 0.35rem; font-size: 1.25rem;">${esc(name)}</h2>
+          ${preview ? `<p class="muted">${esc(preview)}</p>` : ''}
+          <p class="muted" style="margin-top: 0.75rem;"><strong>Batch ID</strong><br><code>${esc(batch.id)}</code></p>
+          <p class="muted" style="margin-top: 0.5rem;">Participants: ${esc(summary.participants)} · Total units: ${esc(summary.total_quantity)}</p>
+          <div style="margin-top: 1rem;">
+            <a class="btn btn-ghost" href="${root}village-hub.html"><i class="fas fa-arrow-left"></i> Hub</a>
+            ${batch.product_id ? `<a class="btn btn-ghost" style="margin-left: 0.5rem;" href="${root}product-detail.html?id=${encodeURIComponent(batch.product_id)}"><i class="fas fa-box"></i> Product</a>` : ''}
+            <a class="btn btn-ghost" style="margin-left: 0.5rem;" href="${root}wallet.html"><i class="fas fa-wallet"></i> Wallet</a>
+          </div>
+        </div>
+        ${actions}`;
+
+      const btnJoin = document.getElementById('btn-join');
+      if (btnJoin) {
+        btnJoin.addEventListener('click', async () => {
+          const q = document.getElementById('qty-join').value;
+          btnJoin.disabled = true;
+          try {
+            await SuperAffiliateAPI.joinVillageBatch(batch.id, q);
+            await reload();
+          } catch (e) {
+            alert(e.message || 'Join failed');
+            btnJoin.disabled = false;
+          }
+        });
+      }
+      const btnUp = document.getElementById('btn-update-qty');
+      if (btnUp) {
+        btnUp.addEventListener('click', async () => {
+          const q = parseInt(document.getElementById('qty-update').value, 10);
+          btnUp.disabled = true;
+          try {
+            await SuperAffiliateAPI.setVillageBatchMyQuantity(batch.id, q);
+            await reload();
+          } catch (e) {
+            alert(e.message || 'Update failed');
+            btnUp.disabled = false;
+          }
+        });
+      }
+    }
+
+    async function reload() {
+      const batch = await SuperAffiliateAPI.getVillageBatchDetail(batchId);
+      batchData = batch;
+      if (batch && batch.error) throw new Error(batch.error);
+      renderBatch(batch);
+    }
+
+    async function init() {
+      if (!looksLikeVillageBatchUuid(batchId)) {
+        document.getElementById('page-loading').style.display = 'none';
+        document.getElementById('page-error').style.display = 'block';
+        document.getElementById('page-error').innerHTML = '<p>Invalid batch ID. Use the full UUID (with dashes) from your agent.</p><a class="btn btn-ghost" href="village-hub.html" style="margin-top: 1rem;">Back to hub</a>';
+        return;
+      }
+      try {
+        const me = await SuperAffiliateAPI.getCurrentUser();
+        currentUserId = me && me.id != null ? me.id : null;
+        await reload();
+        document.getElementById('page-loading').style.display = 'none';
+        document.getElementById('page-main').style.display = 'block';
+      } catch (e) {
+        console.error(e);
+        document.getElementById('page-loading').style.display = 'none';
+        document.getElementById('page-error').style.display = 'block';
+        document.getElementById('page-error').innerHTML = `
+          <p>${esc(e.message || 'Could not load batch.')}</p>
+          <a class="btn btn-ghost" href="village-hub.html" style="margin-top: 1rem; display: inline-flex;">Hub</a>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

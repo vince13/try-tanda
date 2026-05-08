@@ -255,6 +255,36 @@
       color: var(--text-secondary);
     }
 
+    .analytics-role-banner {
+      margin: 0 0 1.25rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(0, 242, 234, 0.35);
+      background: rgba(0, 242, 234, 0.08);
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+
+    .analytics-role-banner strong {
+      color: var(--text-primary);
+    }
+
+    .analytics-role-banner a {
+      color: var(--accent-color);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .analytics-role-banner a:hover {
+      text-decoration: underline;
+    }
+
+    .analytics-role-banner--admin {
+      border-color: rgba(255, 80, 180, 0.4);
+      background: rgba(255, 0, 80, 0.08);
+    }
+
     /* Video Modal */
     .video-modal {
       display: none;
@@ -647,11 +677,13 @@
 </head>
 <body>
   <div class="header">
-    <h1 class="title">Creator Analytics</h1>
+    <h1 class="title" id="analytics-page-title">Creator Analytics</h1>
     <div class="nav" id="authNav"></div>
   </div>
 
   <div class="container">
+    <div id="analytics-role-banner" class="analytics-role-banner" style="display: none;" aria-live="polite"></div>
+
     <div id="loading-section" class="loading">
       <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
       <p>Loading analytics...</p>
@@ -751,7 +783,7 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let currentPeriod = 'week'; // Map to backend period: 'day', 'week', 'month', 'year'
     let analyticsData = null;
@@ -865,6 +897,50 @@
       document.getElementById('loading-section').style.display = 'none';
       document.getElementById('analytics-section').style.display = 'block';
 
+      const isAdmin = SuperAffiliateAPI.isTandaWebAdmin(userProfile);
+      const roleStr = (userProfile && userProfile.role != null) ? String(userProfile.role).trim() : '';
+      const isAffiliateRole = roleStr === 'affiliate';
+      const hasAffiliateStats = !!(affiliateStats && typeof affiliateStats === 'object');
+      const isAffiliate = isAffiliateRole || hasAffiliateStats;
+
+      const titleEl = document.getElementById('analytics-page-title');
+      const bannerEl = document.getElementById('analytics-role-banner');
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+
+      if (titleEl) {
+        if (isAdmin) {
+          titleEl.textContent = 'Admin · Creator analytics';
+          document.title = 'Admin analytics - Tanda Web';
+        } else if (isAffiliate) {
+          titleEl.textContent = 'Affiliate analytics';
+          document.title = 'Affiliate analytics - Tanda Web';
+        } else {
+          titleEl.textContent = 'Creator analytics';
+          document.title = 'Creator analytics - Tanda Web';
+        }
+      }
+
+      if (bannerEl) {
+        bannerEl.classList.remove('analytics-role-banner--admin');
+        if (isAdmin) {
+          bannerEl.style.display = 'block';
+          bannerEl.classList.add('analytics-role-banner--admin');
+          bannerEl.innerHTML =
+            '<strong>Platform admin view.</strong> These metrics are still for your account as a creator. ' +
+            'For internal platform tools, open ' +
+            '<a href="' + root + 'admin-tools/strategic-analysis.html">Admin tools</a>. ' +
+            'Privileged APIs remain enforced on the server.';
+        } else if (isAffiliate && !isAdmin) {
+          bannerEl.style.display = 'block';
+          bannerEl.innerHTML =
+            '<strong>Affiliate analytics.</strong> Earnings below include affiliate commissions where applicable. ' +
+            'This page mirrors what creators and partners see in the app — not the full platform dashboard.';
+        } else {
+          bannerEl.style.display = 'none';
+          bannerEl.innerHTML = '';
+        }
+      }
+
       // Extract metrics from analytics API response
       const viewsData = analyticsData.find(d => d.metric === 'views') || { value: 0 };
       const likesData = analyticsData.find(d => d.metric === 'likes') || { value: 0 };
@@ -890,7 +966,12 @@
 
       // Display account summary
       const username = userProfile?.username || 'user';
-      const accountType = userProfile?.is_creator ? 'Creator' : 'User';
+      let accountType = userProfile?.is_creator ? 'Creator' : 'User';
+      if (isAdmin) {
+        accountType = userProfile?.is_creator ? 'Admin · Creator' : 'Admin · Member';
+      } else if (isAffiliate) {
+        accountType = userProfile?.is_creator ? 'Affiliate · Creator' : 'Affiliate';
+      }
       const memberSince = formatDate(userProfile?.created_at);
 
       document.getElementById('account-summary').innerHTML = `

@@ -180,34 +180,146 @@
       font-size: 1rem;
     }
 
-    /* Horizontal Category Chips */
+    /* Quick links from the main shop */
+    .shop-shortcuts {
+      margin-bottom: 1.75rem;
+    }
+    .shop-shortcuts-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-secondary);
+      margin-bottom: 0.65rem;
+    }
+    .shop-shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .shop-shortcuts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .shop-shortcut {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 1rem 1.1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(0, 242, 234, 0.48);
+      background: rgba(255, 255, 255, 0.04);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    }
+    .shop-shortcut:hover {
+      border-color: rgba(0, 242, 234, 0.72);
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-1px);
+    }
+    .shop-shortcut-icon {
+      flex-shrink: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 0, 80, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 1.1rem;
+    }
+    .shop-shortcut-icon i {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .shop-shortcut-body { min-width: 0; }
+    .shop-shortcut-title {
+      font-weight: 700;
+      font-size: 0.98rem;
+      margin-bottom: 0.2rem;
+      display: block;
+    }
+    .shop-shortcut-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: block;
+    }
+
+    /* Mobile-only category control; desktop uses filters row + chips */
+    .category-filter-mobile {
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .filters .filter-group-category {
+        display: none !important;
+      }
+      .category-filter-mobile {
+        display: block;
+        margin-bottom: 1.25rem;
+        padding: 1rem 1.25rem;
+        background: var(--bg-card);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: var(--border-radius);
+      }
+      .category-filter-mobile label {
+        display: block;
+        margin-bottom: 0.55rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+      }
+      .category-filter-mobile select {
+        width: 100%;
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+    }
+
+    /* Category chips: desktop = inline, content-sized, wrap to next row; mobile hidden (use Category dropdown) */
     .category-scroll-container {
       margin-bottom: 2rem;
-      position: relative;
       width: 100%;
-      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .category-scroll-container {
+        display: none;
+      }
     }
 
     .category-chips {
       display: flex;
-      gap: 0.75rem;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      scroll-behavior: smooth;
-      padding: 0.5rem;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      align-content: flex-start;
+      gap: 0.55rem 0.65rem;
+      overflow: visible;
+      padding: 0;
       width: 100%;
-      min-height: 50px;
-    }
-
-    .category-chips::-webkit-scrollbar {
-      display: none;
+      max-width: 100%;
+      min-height: 0;
     }
 
     .category-chip {
-      flex-shrink: 0;
-      padding: 0.65rem 1.5rem;
+      flex: 0 0 auto;
+      width: auto;
+      max-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0.6rem 1.1rem;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 2rem;
@@ -217,6 +329,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       white-space: nowrap;
+      text-align: left;
       user-select: none;
       backdrop-filter: blur(10px);
     }
@@ -225,7 +338,7 @@
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-primary);
       border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .category-chip.active {
@@ -639,6 +752,183 @@
       box-shadow: 0 4px 12px rgba(0, 242, 234, 0.3);
     }
 
+    .btn-ai-preview {
+      padding: 0.5rem 1rem;
+      background: rgba(156, 39, 176, 0.2);
+      border: 1px solid rgba(186, 104, 200, 0.45);
+      color: #e1bee7;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      white-space: nowrap;
+      position: relative;
+      z-index: 21;
+      pointer-events: auto;
+    }
+
+    .btn-ai-preview:hover {
+      background: rgba(156, 39, 176, 0.32);
+      border-color: rgba(225, 190, 231, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .badge-low-stock {
+      background: rgba(255, 193, 7, 0.25);
+      color: #ffc107;
+    }
+
+    .product-status-pill {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .product-status-pill.draft {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ccc;
+    }
+
+    .product-status-pill.active {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+    }
+
+    .seller-stock-panel {
+      padding: 0.5rem 1rem 0;
+      margin-top: 0.25rem;
+    }
+
+    .seller-stock-panel label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .seller-stock-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .seller-stock-input {
+      width: 56px;
+      padding: 0.35rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.35rem;
+      color: var(--text-primary);
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .btn-stock-save {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      background: rgba(0, 242, 234, 0.2);
+      border: 1px solid rgba(0, 242, 234, 0.45);
+      color: var(--accent-color);
+      border-radius: 0.4rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-stock-save:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-view-listing {
+      flex: 0 0 auto;
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+      border-radius: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-delete-product {
+      padding: 0.5rem 0.75rem;
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      color: #ff8a80;
+      border-radius: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-delete-product:hover {
+      background: rgba(244, 67, 54, 0.25);
+    }
+
+    .product-card.seller-manage .product-favorite-btn {
+      display: none !important;
+    }
+
+    .product-actions.seller-actions {
+      flex-wrap: wrap;
+    }
+
+    .seller-reach-banner {
+      margin: 0 0 1.25rem;
+      padding: 1rem 1.15rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(0, 242, 234, 0.25);
+      background: rgba(0, 242, 234, 0.06);
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .seller-reach-banner strong {
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+    .seller-reach-banner-hint {
+      margin: 0.5rem 0 0;
+      max-width: 44rem;
+    }
+
+    .btn-copy-share-link {
+      flex: 0 0 auto;
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+      border-radius: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-copy-share-link:hover {
+      border-color: rgba(0, 242, 234, 0.45);
+      color: var(--accent-color);
+    }
+
     .product-name {
       font-size: 0.9rem;
       font-weight: 600;
@@ -650,6 +940,23 @@
       line-height: 1.3;
     }
 
+    .product-price-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.45rem;
+      margin-bottom: 0.3rem;
+      min-width: 0;
+    }
+
+    .product-price-original {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-decoration: line-through;
+      opacity: 0.9;
+    }
+
     .product-price {
       font-size: 1.1rem;
       font-weight: 700;
@@ -657,7 +964,30 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0;
+    }
+
+    .product-local-market {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      min-width: 0;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.35rem;
+      line-height: 1.3;
+    }
+
+    .product-local-market-label {
+      flex-shrink: 0;
+      opacity: 0.95;
+    }
+
+    .product-local-market-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .product-seller {
@@ -709,6 +1039,30 @@
       color: var(--text-secondary);
     }
 
+    .products-load-error {
+      display: none;
+      text-align: center;
+      padding: 3rem 1.25rem;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+    }
+
+    .products-load-error h2 {
+      color: var(--text-primary);
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .products-load-error .products-load-error-detail {
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      opacity: 0.9;
+    }
+
     @media (max-width: 640px) {
       body {
         padding: 1rem;
@@ -745,9 +1099,12 @@
         margin-bottom: 0.3rem;
       }
 
+      .product-price-row {
+        margin-bottom: 0.25rem;
+      }
+
       .product-price {
         font-size: 1rem;
-        margin-bottom: 0.25rem;
       }
 
       .product-seller {
@@ -826,7 +1183,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Browse products – filters, favorites, and checkout.">
   <div class="header">
     <h1 class="title" id="page-title">Products</h1>
     <div class="nav" id="authNav">
@@ -844,9 +1201,9 @@
         <label for="search">Search</label>
         <input type="text" id="search" placeholder="Search products..." onkeyup="handleSearch(event)">
       </div>
-      <div class="filter-group">
+      <div class="filter-group filter-group-category">
         <label for="category">Category</label>
-        <select id="category" onchange="loadProducts()">
+        <select id="category" onchange="onCategoryFilterChange()">
           <option value="">All Categories</option>
         </select>
       </div>
@@ -861,15 +1218,62 @@
       </div>
     </div>
 
-    <!-- Horizontal Category Chips -->
+    <div class="shop-shortcuts" aria-label="More ways to shop">
+      <div class="shop-shortcuts-label">Explore</div>
+      <div class="shop-shortcuts-grid">
+        <a class="shop-shortcut" href="products.html">
+          <span class="shop-shortcut-icon"><i class="fas fa-shopping-bag" aria-hidden="true"></i></span>
+          <span class="shop-shortcut-body">
+            <span class="shop-shortcut-title">Shop</span>
+            <span class="shop-shortcut-desc">Browse the full product catalog.</span>
+          </span>
+        </a>
+        <a class="shop-shortcut" href="local-market.html">
+          <span class="shop-shortcut-icon"><i class="fas fa-store" aria-hidden="true"></i></span>
+          <span class="shop-shortcut-body">
+            <span class="shop-shortcut-title">Local Market</span>
+            <span class="shop-shortcut-desc">Markets and picks tailored to your area.</span>
+          </span>
+        </a>
+        <a class="shop-shortcut" href="instant-shop.html">
+          <span class="shop-shortcut-icon"><i class="fas fa-bolt" aria-hidden="true"></i></span>
+          <span class="shop-shortcut-body">
+            <span class="shop-shortcut-title">Instant checkout</span>
+            <span class="shop-shortcut-desc">Video-first listings with quick checkout.</span>
+          </span>
+        </a>
+        <a class="shop-shortcut" href="product-experience.html">
+          <span class="shop-shortcut-icon"><i class="fas fa-mobile-screen" aria-hidden="true"></i></span>
+          <span class="shop-shortcut-body">
+            <span class="shop-shortcut-title">Immersive shop</span>
+            <span class="shop-shortcut-desc">Swipe through products full screen.</span>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile: dedicated category dropdown (chips hidden); syncs with #category in JS -->
+    <div class="category-filter-mobile" id="category-filter-mobile">
+      <label for="category-mobile">Browse by category</label>
+      <select id="category-mobile" onchange="onMobileCategoryChange()" aria-label="Filter products by category">
+        <option value="">All categories</option>
+      </select>
+    </div>
+
+    <!-- Category chips (desktop); mobile uses #category-mobile below Explore -->
     <div class="category-scroll-container">
       <div class="category-chips" id="category-chips">
         <!-- Categories will be loaded dynamically -->
       </div>
     </div>
 
+    <div id="seller-reach-banner" class="seller-reach-banner" style="display: none;" role="region" aria-label="Sharing your listings">
+      <p style="margin:0;"><strong><i class="fas fa-share-alt" aria-hidden="true"></i> Reach buyers manually</strong></p>
+      <p class="seller-reach-banner-hint">Copy each product’s link and share it on your own channels. Tanda does not send bulk messages to buyers on your behalf.</p>
+    </div>
+
     <div id="loading-section" class="loading">
-      <!-- Skeleton Loading -->
+      <!-- Skeleton restored from template on each load / retry -->
       <div class="products-grid">
         <div class="skeleton-card">
           <div class="skeleton-image"></div>
@@ -894,6 +1298,39 @@
       </div>
     </div>
 
+    <template id="products-loading-skeleton-template">
+      <div class="products-grid">
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text-short"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text-short"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text-short"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text-short"></div>
+        </div>
+      </div>
+    </template>
+
+    <div id="products-load-error" class="products-load-error" role="alert">
+      <h2><i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i> Couldn't load products</h2>
+      <p id="products-load-error-detail">Check your connection and try again.</p>
+      <button type="button" class="btn" id="products-retry-btn">
+        <i class="fas fa-redo"></i> Try again
+      </button>
+    </div>
+
     <div id="products-section" style="display: none;">
       <div class="products-grid" id="products-grid"></div>
     </div>
@@ -904,7 +1341,8 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=5"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     // Initialize product favorites tracking - make it global FIRST
     window.productFavorites = {};
@@ -1053,7 +1491,7 @@
         padding: 1rem 2rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: ${typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600};
         animation: slideIn 0.3s ease;
       `;
       toast.textContent = message;
@@ -1063,6 +1501,49 @@
         setTimeout(() => toast.remove(), 300);
       }, 2000);
     }
+
+    window.adjustSellerStockInput = function(productId, delta) {
+      const el = document.getElementById('seller-stock-' + productId);
+      if (!el) return;
+      let v = parseInt(el.value, 10);
+      if (isNaN(v)) v = 0;
+      v = Math.max(0, v + delta);
+      el.value = String(v);
+    };
+
+    window.saveSellerProductStock = async function(productId) {
+      const el = document.getElementById('seller-stock-' + productId);
+      const btn = document.getElementById('seller-stock-save-' + productId);
+      if (!el) return;
+      let v = parseInt(el.value, 10);
+      if (isNaN(v) || v < 0) {
+        showToast('Enter a valid stock quantity (0 or more).', 'error');
+        return;
+      }
+      if (btn) btn.disabled = true;
+      try {
+        await SuperAffiliateAPI.updateSellerProduct(productId, { stock_quantity: v });
+        showToast('Stock updated', 'success');
+      } catch (e) {
+        showToast(e.message || 'Could not update stock', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
+
+    window.deleteSellerProductFromList = async function(productId) {
+      const card = document.querySelector('.product-card[data-product-id="' + productId + '"]');
+      const nameEl = card ? card.querySelector('.product-name') : null;
+      const label = nameEl ? nameEl.textContent.trim() : 'this product';
+      if (!confirm('Delete "' + label + '" permanently? This cannot be undone.')) return;
+      try {
+        await SuperAffiliateAPI.deleteSellerProduct(productId);
+        showToast('Product deleted', 'success');
+        loadProducts();
+      } catch (e) {
+        showToast(e.message || 'Could not delete product', 'error');
+      }
+    };
 
     // Load product favorites (used by initializeProducts)
     async function loadProductFavorites() {
@@ -1160,6 +1641,91 @@
     let products = [];
     let searchTimeout = null;
     let loadingTimeout = null;
+
+    function restoreProductsLoadingSkeleton() {
+      const loadEl = document.getElementById('loading-section');
+      const tpl = document.getElementById('products-loading-skeleton-template');
+      if (!loadEl || !tpl) return;
+      loadEl.innerHTML = '';
+      loadEl.appendChild(tpl.content.cloneNode(true));
+    }
+
+    function hideProductsLoadError() {
+      const err = document.getElementById('products-load-error');
+      if (err) err.style.display = 'none';
+    }
+
+    function showProductsLoadError(message) {
+      const err = document.getElementById('products-load-error');
+      const detail = document.getElementById('products-load-error-detail');
+      const loadEl = document.getElementById('loading-section');
+      const productsSection = document.getElementById('products-section');
+      const emptySection = document.getElementById('empty-section');
+      if (detail) detail.textContent = message || 'Check your connection and try again.';
+      if (loadEl) loadEl.style.display = 'none';
+      if (productsSection) productsSection.style.display = 'none';
+      if (emptySection) emptySection.style.display = 'none';
+      if (err) err.style.display = 'block';
+    }
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function escapeHtmlAttr(str) {
+      if (str == null || str === '') return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+    }
+
+    /** Prefer seller shop name from API; fall back to creator username. */
+    function getProductSellerDisplayName(product) {
+      if (!product) return 'Seller';
+      const si = product.creator_seller_info;
+      if (si && si.shop_name != null) {
+        const shop = String(si.shop_name).trim();
+        if (shop) return shop;
+      }
+      const c = product.creator;
+      if (c && typeof c === 'object' && c.username != null) {
+        const u = String(c.username).trim();
+        if (u) return u;
+      }
+      return 'Seller';
+    }
+
+    function productShareUrlForSeller(product) {
+      if (!product || !product.id) return '';
+      const fromApi = product.share_link && String(product.share_link).trim();
+      if (fromApi) return fromApi;
+      try {
+        const base = SuperAffiliateAPI.getPathToSiteRoot();
+        return new URL(`${base}product-detail.html?id=${encodeURIComponent(product.id)}`, window.location.href).href;
+      } catch (_) {
+        return '';
+      }
+    }
+
+    window.copySellerProductShareLink = async function (btn) {
+      if (!btn) return;
+      const url = (btn.getAttribute('data-share-url') || '').trim();
+      if (!url) {
+        showToast('No share link available for this listing.', 'error');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied', 'success');
+      } catch (err) {
+        console.warn('clipboard', err);
+        window.prompt('Copy this link:', url);
+      }
+    };
     let selectedCategory = '';
 
     // Category icons mapping
@@ -1278,6 +1844,23 @@
           });
           select.value = currentValue;
         }
+        const selectMobile = document.getElementById('category-mobile');
+        if (selectMobile) {
+          const keepVal = (selectedCategory || (select && select.value) || '').toString();
+          selectMobile.innerHTML = '<option value="">All categories</option>';
+          categories.forEach(cat => {
+            const option = document.createElement('option');
+            const slug = cat.slug || cat.id || cat.name;
+            option.value = slug;
+            let displayName = cat.name || cat.title || 'Category';
+            if (categoryDisplayNames[slug]) {
+              displayName = categoryDisplayNames[slug];
+            }
+            option.textContent = displayName;
+            selectMobile.appendChild(option);
+          });
+          selectMobile.value = keepVal;
+        }
       } catch (error) {
         console.warn('⚠️ Error loading categories:', error);
         // Ensure "All" chip is shown on error
@@ -1293,6 +1876,26 @@
         }
       }
     }
+
+    // Sync desktop + mobile category dropdowns and chip highlights when filters row changes.
+    window.onCategoryFilterChange = function () {
+      const categorySelect = document.getElementById('category');
+      const mobile = document.getElementById('category-mobile');
+      selectedCategory = categorySelect ? categorySelect.value : '';
+      if (mobile) mobile.value = selectedCategory || '';
+      document.querySelectorAll('.category-chip').forEach(function (chip) {
+        const slug = chip.getAttribute('data-category') || '';
+        chip.classList.toggle('active', slug === (selectedCategory || ''));
+      });
+      loadProducts();
+    };
+
+    window.onMobileCategoryChange = function () {
+      const mobile = document.getElementById('category-mobile');
+      const categorySelect = document.getElementById('category');
+      if (categorySelect && mobile) categorySelect.value = mobile.value;
+      onCategoryFilterChange();
+    };
 
     // Handle category chip selection
     window.selectCategory = function(categorySlug) {
@@ -1312,16 +1915,28 @@
       if (categorySelect) {
         categorySelect.value = categorySlug;
       }
+      const mobileSel = document.getElementById('category-mobile');
+      if (mobileSel) {
+        mobileSel.value = categorySlug || '';
+      }
 
       // Load products with new category
       loadProducts();
     };
 
     // Determine product badges
-    function getProductBadges(product) {
+    function getProductBadges(product, opts) {
       const badges = [];
+      const sellerManage = opts && opts.sellerManage;
       const createdDate = product.created_at ? new Date(product.created_at) : null;
       const now = new Date();
+      
+      if (sellerManage && product.stock_quantity !== undefined && product.stock_quantity !== null) {
+        const sq = parseInt(product.stock_quantity, 10);
+        if (!isNaN(sq) && sq < 5) {
+          badges.push('<span class="product-badge badge-low-stock">Low stock</span>');
+        }
+      }
       
       // Calculate discount percentage if on sale
       let discountPercent = 0;
@@ -1351,6 +1966,28 @@
       return badges.length > 0 ? `<div class="product-badges">${badges.join('')}</div>` : '';
     }
 
+    function getProductLocalMarketLine(product) {
+      if (!product || !product.is_local_market_listing) return '';
+      let name = '';
+      const detail = product.local_market_detail;
+      if (detail && detail.name) name = String(detail.name).trim();
+      else if (product.local_market && typeof product.local_market === 'object' && product.local_market.name) {
+        name = String(product.local_market.name).trim();
+      }
+      if (!name && product.creator_seller_info) {
+        const si = product.creator_seller_info;
+        if (si.primary_market && si.primary_market.name) name = String(si.primary_market.name).trim();
+        else if (si.market_name) name = String(si.market_name).trim();
+      }
+      if (!name) return '';
+      const fullLabel = `Local market: ${name}`;
+      return `
+        <div class="product-local-market" title="${escapeHtmlAttr(fullLabel + ' · local delivery')}">
+          <span class="product-local-market-label">Local market:</span>
+          <span class="product-local-market-name">${escapeHtml(name)}</span>
+        </div>`;
+    }
+
     async function loadProducts() {
       const search = document.getElementById('search').value;
       const category = selectedCategory || document.getElementById('category').value;
@@ -1364,6 +2001,9 @@
         console.error('Required DOM elements not found!');
         return;
       }
+
+      hideProductsLoadError();
+      restoreProductsLoadingSkeleton();
       
       loadingSection.style.display = 'block';
       productsSection.style.display = 'none';
@@ -1407,49 +2047,48 @@
         }
         if (params.toString()) url += '?' + params.toString();
 
-        console.log('Loading products from:', url);
-        const apiBaseUrl = getApiBaseUrl();
-        console.log('API Base URL:', apiBaseUrl);
-        console.log('SuperAffiliateAPI available:', typeof SuperAffiliateAPI !== 'undefined');
-        console.log('Global API_BASE_URL available:', typeof API_BASE_URL !== 'undefined');
-        
         const startTime = Date.now();
-        const response = await SuperAffiliateAPI.apiRequest(url);
-        const duration = Date.now() - startTime;
-        console.log(`✅ Products response received in ${duration}ms`);
-        console.log('Response type:', typeof response);
-        console.log('Is array?', Array.isArray(response));
-        console.log('Response keys:', response ? Object.keys(response) : 'null');
-        console.log('Response sample:', response ? JSON.stringify(response).substring(0, 200) + '...' : 'null');
-        
-        // Handle different response formats
-        // Backend returns: { products: [...], has_next: bool, total_products: int, ... }
-        let productsArray = null;
-        
-        if (response && Array.isArray(response.products)) {
-          // Backend format: { products: [...] }
-          productsArray = response.products;
-          console.log('✅ Using response.products, count:', productsArray.length);
-        } else if (Array.isArray(response)) {
-          // Direct array response
-          productsArray = response;
-          console.log('✅ Using direct array, count:', productsArray.length);
-        } else if (response && Array.isArray(response.results)) {
-          // DRF pagination format: { results: [...] }
-          productsArray = response.results;
-          console.log('✅ Using response.results (paginated), count:', productsArray.length);
-        } else if (response && response.data && Array.isArray(response.data)) {
-          productsArray = response.data;
-          console.log('✅ Using response.data, count:', productsArray.length);
-        } else if (response && response.items && Array.isArray(response.items)) {
-          productsArray = response.items;
-          console.log('✅ Using response.items, count:', productsArray.length);
+        let productsArray = [];
+
+        if (showMyProducts) {
+          const searchQ = search ? String(search).trim() : '';
+          let page = 1;
+          let hasNext = true;
+          while (hasNext) {
+            const p = new URLSearchParams();
+            if (searchQ) p.append('search', searchQ);
+            p.append('page', String(page));
+            p.append('per_page', '50');
+            const pageUrl = `/commerce/seller/products/?${p.toString()}`;
+            const pageResp = await SuperAffiliateAPI.apiRequest(pageUrl);
+            const chunk = pageResp && Array.isArray(pageResp.products) ? pageResp.products : [];
+            productsArray.push(...chunk);
+            hasNext = !!(pageResp && pageResp.has_next);
+            page += 1;
+            if (page > 250) {
+              console.warn('Seller products: pagination stopped at safety cap');
+              break;
+            }
+          }
+          console.log(`Seller products: ${productsArray.length} items in ${Date.now() - startTime}ms`);
         } else {
-          console.error('❌ Unknown response format!');
-          console.error('Full response:', JSON.stringify(response, null, 2));
-          console.error('Response type:', typeof response);
-          console.error('Response keys:', response ? Object.keys(response) : 'null');
-          productsArray = [];
+          console.log('Loading products from:', url);
+          const response = await SuperAffiliateAPI.apiRequest(url);
+          console.log(`Products response in ${Date.now() - startTime}ms`);
+          if (response && Array.isArray(response.products)) {
+            productsArray = response.products;
+          } else if (Array.isArray(response)) {
+            productsArray = response;
+          } else if (response && Array.isArray(response.results)) {
+            productsArray = response.results;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            productsArray = response.data;
+          } else if (response && response.items && Array.isArray(response.items)) {
+            productsArray = response.items;
+          } else {
+            console.error('Unknown response format:', response);
+            productsArray = [];
+          }
         }
         
         products = productsArray || [];
@@ -1459,17 +2098,14 @@
         if (loadingTimeout) clearTimeout(loadingTimeout);
         
         if (products.length > 0) {
-          console.log('✅ Calling displayProducts with', products.length, 'products');
           displayProducts(products);
         } else {
-          console.warn('⚠️ No products found in response');
           const loadingSection = document.getElementById('loading-section');
           const emptySection = document.getElementById('empty-section');
           if (loadingSection) loadingSection.style.display = 'none';
           if (emptySection) emptySection.style.display = 'block';
         }
         
-        // Load categories in parallel (don't wait for it)
         loadCategories().catch(err => console.error('Error loading categories:', err));
       } catch (error) {
         // Clear timeout on error
@@ -1482,16 +2118,7 @@
         });
         
         // Show error message to user
-        document.getElementById('loading-section').innerHTML = `
-          <div style="text-align: center; padding: 2rem;">
-            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1rem;"></i>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Failed to load products</p>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">${error.message || 'Please check your connection and try again'}</p>
-            <button class="btn" onclick="loadProducts()" style="width: auto; display: inline-block;">
-              <i class="fas fa-redo"></i> Retry
-            </button>
-          </div>
-        `;
+        showProductsLoadError(error.message || 'Please check your connection and try again.');
       }
     }
 
@@ -1624,54 +2251,115 @@
           console.log(`[Product Card ${productId}] Will render image: ${hasImage ? 'YES' : 'NO'}`);
           console.log(`[Product Card ${productId}] Will show fallback: ${!hasImage ? 'YES' : 'NO'}`);
           
+          const safeName = escapeHtml(product.name || 'Product');
+          const altAttr = String(product.name || 'Product')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;');
+          const shareUrl = showMyProducts ? productShareUrlForSeller(product) : '';
+          const stockQty = product.stock_quantity !== undefined && product.stock_quantity !== null
+            ? Math.max(0, parseInt(product.stock_quantity, 10) || 0)
+            : 0;
+          const st = String(product.status || 'active').toLowerCase();
+          let statusPillClass = 'active';
+          let statusLabel = 'Active';
+          if (st === 'draft') { statusPillClass = 'draft'; statusLabel = 'Draft'; }
+          else if (st === 'inactive') { statusPillClass = 'draft'; statusLabel = 'Inactive'; }
+          else if (st === 'sold_out') { statusPillClass = 'draft'; statusLabel = 'Sold out'; }
+
+          const origRaw = product.original_price;
+          const curRaw = product.price;
+          const origNum = origRaw != null && origRaw !== '' ? parseFloat(origRaw) : NaN;
+          const curNum = curRaw != null && curRaw !== '' ? parseFloat(curRaw) : NaN;
+          const showOriginalStrike = !Number.isNaN(origNum) && !Number.isNaN(curNum) && origNum > curNum && origNum > 0;
+          const originalPriceHtml = showOriginalStrike
+            ? `<span class="product-price-original">${formatCurrency(origNum)}</span>`
+            : '';
+          const localMarketLine = getProductLocalMarketLine(product);
+
           return `
-        <div class="product-card" data-product-id="${productId}">
+        <div class="product-card${showMyProducts ? ' seller-manage' : ''}" data-product-id="${productId}">
           <a href="product-detail.html?id=${product.id}" class="product-card-content" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; flex: 1;">
             <div class="product-image-container">
-              ${getProductBadges(product)}
+              ${getProductBadges(product, { sellerManage: showMyProducts })}
               ${hasImage ? `
-                <img src="${imageUrl}" alt="${product.name || 'Product'}" class="product-image" onload="console.log('[Product ${productId}] Image loaded successfully:', this.src);" onerror="console.error('[Product ${productId}] Image failed to load:', this.src); this.onerror=null; this.style.display='none'; const fallback = this.parentElement.querySelector('.product-image-fallback'); console.log('[Product ${productId}] Fallback element found:', fallback); if(fallback) { fallback.classList.add('show'); console.log('[Product ${productId}] Fallback shown'); } else { console.error('[Product ${productId}] Fallback element not found!'); }">
+                <img src="${imageUrl}" alt="${altAttr}" class="product-image" onload="console.log('[Product ${productId}] Image loaded successfully:', this.src);" onerror="console.error('[Product ${productId}] Image failed to load:', this.src); this.onerror=null; this.style.display='none'; const fallback = this.parentElement.querySelector('.product-image-fallback'); if(fallback) { fallback.classList.add('show'); }">
               ` : ''}
               <div class="product-image-fallback ${!hasImage ? 'show' : ''}" data-product-id="${productId}">
                 <i class="fas fa-image"></i>
               </div>
-              <button class="product-favorite-btn ${isFavorited ? 'favorited' : ''}" 
+              ${showMyProducts ? '' : `
+              <button type="button" class="product-favorite-btn ${isFavorited ? 'favorited' : ''}" 
                       onclick="event.preventDefault(); event.stopPropagation(); window.toggleFavorite('${productId}', this)" 
                       title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}"
                       aria-label="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
                 <i class="fas fa-heart"></i>
               </button>
+              `}
             </div>
             <div class="product-info">
-              <div class="product-name">${product.name}</div>
-              <div class="product-price">${formatCurrency(product.price)}</div>
-              ${product.creator ? `
+              ${showMyProducts ? `<span class="product-status-pill ${statusPillClass}">${statusLabel}</span>` : ''}
+              <div class="product-name">${safeName}</div>
+              <div class="product-price-row">
+                ${originalPriceHtml}
+                <span class="product-price">${formatCurrency(product.price)}</span>
+              </div>
+              ${localMarketLine}
+              ${!showMyProducts && (product.creator || product.creator_seller_info) ? `
                 <div class="product-seller">
-                  <span>by ${product.creator.username || 'Seller'}</span>
+                  <span>by ${escapeHtml(getProductSellerDisplayName(product))}</span>
                   ${(product.average_rating || product.average_rating === 0) ? `
                     <span class="product-rating-badge">${(product.average_rating || 0).toFixed(1)}/5</span>
                   ` : ''}
                 </div>
               ` : ''}
+              ${showMyProducts ? '' : `
               <div class="product-quantity-selector" style="display: none;" id="qty-selector-${productId}">
-                <button class="quantity-btn" onclick="event.stopPropagation(); window.updateQuantity('${productId}', -1)">-</button>
+                <button type="button" class="quantity-btn" onclick="event.stopPropagation(); window.updateQuantity('${productId}', -1)">-</button>
                 <input type="number" class="quantity-input-small" id="qty-${productId}" value="1" min="1" max="${product.stock_quantity || 999}" onchange="window.validateQuantity('${productId}')" onclick="event.stopPropagation();">
-                <button class="quantity-btn" onclick="event.stopPropagation(); window.updateQuantity('${productId}', 1)">+</button>
+                <button type="button" class="quantity-btn" onclick="event.stopPropagation(); window.updateQuantity('${productId}', 1)">+</button>
               </div>
+              `}
             </div>
           </a>
-          <div class="product-actions">
+          ${showMyProducts ? `
+          <div class="seller-stock-panel">
+            <label>Stock on hand</label>
+            <div class="seller-stock-controls">
+              <button type="button" class="quantity-btn" onclick="event.preventDefault(); event.stopPropagation(); window.adjustSellerStockInput('${productId}', -1)">−</button>
+              <input type="number" min="0" class="seller-stock-input" id="seller-stock-${productId}" value="${stockQty}" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
+              <button type="button" class="quantity-btn" onclick="event.preventDefault(); event.stopPropagation(); window.adjustSellerStockInput('${productId}', 1)">+</button>
+              <button type="button" class="btn-stock-save" id="seller-stock-save-${productId}" onclick="event.preventDefault(); event.stopPropagation(); window.saveSellerProductStock('${productId}')">Save</button>
+            </div>
+          </div>
+          ` : ''}
+          <div class="product-actions${showMyProducts ? ' seller-actions' : ''}">
             ${showMyProducts ? `
-              <button class="btn-edit" onclick="event.preventDefault(); event.stopPropagation(); window.editProduct('${productId}')" title="Edit Product">
+              <a href="product-detail.html?id=${product.id}" class="btn-view-listing" onclick="event.stopPropagation();">
+                <i class="fas fa-external-link-alt"></i> View
+              </a>
+              ${shareUrl ? `
+              <button type="button" class="btn-copy-share-link" data-share-url="${escapeHtmlAttr(shareUrl)}" onclick="event.preventDefault(); event.stopPropagation(); window.copySellerProductShareLink(this)" title="Copy listing link to share manually" aria-label="Copy listing link">
+                <i class="fas fa-link"></i> <span>Copy link</span>
+              </button>
+              ` : ''}
+              <button type="button" class="btn-edit" onclick="event.preventDefault(); event.stopPropagation(); window.editProduct('${productId}')" title="Edit product">
                 <i class="fas fa-edit"></i> <span>Edit</span>
               </button>
-            ` : ''}
-            <button class="btn-buy" onclick="event.preventDefault(); event.stopPropagation(); window.buyNow('${productId}')">
-              <i class="fas fa-bolt"></i> <span class="btn-buy-text">Buy Now</span>
-            </button>
-            <button class="btn-cart" onclick="event.preventDefault(); event.stopPropagation(); window.toggleQuantitySelector('${productId}')" title="Add to Cart" aria-label="Add to Cart">
-              <i class="fas fa-shopping-cart"></i>
-            </button>
+              <a href="product-video-studio.html?product=${encodeURIComponent(productId)}" class="btn-ai-preview" onclick="event.stopPropagation();" title="AI preview reel">
+                <i class="fas fa-film"></i> <span>AI preview</span>
+              </a>
+              <button type="button" class="btn-delete-product" onclick="event.preventDefault(); event.stopPropagation(); window.deleteSellerProductFromList('${productId}')" title="Delete product permanently">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            ` : `
+              <button type="button" class="btn-buy" onclick="event.preventDefault(); event.stopPropagation(); window.buyNow('${productId}')">
+                <i class="fas fa-bolt"></i> <span class="btn-buy-text">Buy Now</span>
+              </button>
+              <button type="button" class="btn-cart" onclick="event.preventDefault(); event.stopPropagation(); window.toggleQuantitySelector('${productId}')" title="Add to Cart" aria-label="Add to Cart">
+                <i class="fas fa-shopping-cart"></i>
+              </button>
+            `}
           </div>
         </div>
       `;
@@ -1717,14 +2405,7 @@
       } catch (error) {
         console.error('❌ Error generating product HTML:', error);
         console.error('Error stack:', error.stack);
-        emptySection.style.display = 'block';
-        emptySection.innerHTML = `
-          <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-          <p>Error displaying products: ${error.message}</p>
-          <button class="btn" onclick="loadProducts()" style="margin-top: 1rem; width: auto; display: inline-block;">
-            <i class="fas fa-redo"></i> Retry
-          </button>
-        `;
+        showProductsLoadError(error.message || 'Could not display products.');
       }
     }
 
@@ -1810,16 +2491,7 @@
       loadingTimeout = setTimeout(() => {
         const loadingSection = document.getElementById('loading-section');
         if (loadingSection && loadingSection.style.display !== 'none') {
-          loadingSection.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 1rem;"></i>
-              <p style="color: var(--text-secondary); margin-bottom: 1rem;">Request is taking too long</p>
-              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">The server might be slow or unreachable</p>
-              <button class="btn" onclick="loadProducts()" style="width: auto; display: inline-block;">
-                <i class="fas fa-redo"></i> Retry
-              </button>
-            </div>
-          `;
+          showProductsLoadError('The server is taking too long or might be unreachable. Try again in a moment.');
         }
       }, 15000); // 15 second timeout
     }
@@ -1843,6 +2515,15 @@
         if (pageTitle) {
           pageTitle.textContent = 'My Products';
         }
+        if (!SuperAffiliateAPI.isAuthenticated()) {
+          window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+          return;
+        }
+      }
+
+      const reachBannerEl = document.getElementById('seller-reach-banner');
+      if (reachBannerEl) {
+        reachBannerEl.style.display = showMyProducts ? 'block' : 'none';
       }
       
       // Add haptic feedback to interactions
@@ -1899,6 +2580,16 @@
         } catch (error) {
           console.warn('Error checking authentication:', error);
         }
+      }
+
+      const retryBtn = document.getElementById('products-retry-btn');
+      if (retryBtn && !retryBtn.dataset.bound) {
+        retryBtn.dataset.bound = '1';
+        retryBtn.addEventListener('click', () => {
+          if (loadingTimeout) clearTimeout(loadingTimeout);
+          setLoadingTimeout();
+          loadProducts();
+        });
       }
     }
   </script>

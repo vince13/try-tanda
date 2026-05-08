@@ -466,6 +466,49 @@
       color: var(--text-secondary);
     }
 
+    .handoff-codes-wrap {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: rgba(0, 242, 234, 0.08);
+      border: 1px solid rgba(0, 242, 234, 0.28);
+    }
+    .handoff-codes-wrap h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.65rem;
+      color: #00f2ea;
+      font-weight: 700;
+    }
+    .handoff-code-block { margin-bottom: 1rem; }
+    .handoff-code-block:last-child { margin-bottom: 0; }
+    .handoff-code-block strong { font-size: 0.88rem; display: block; margin-bottom: 0.25rem; }
+    .handoff-code-digits {
+      font-family: ui-monospace, monospace;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      margin: 0.35rem 0;
+      color: #fff;
+    }
+    .handoff-code-help {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 0.45rem;
+    }
+    .btn-copy-handoff {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      cursor: pointer;
+    }
+
     .shipping-address-card {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
@@ -535,6 +578,105 @@
 
     .btn-secondary:hover {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Return flow: available but visually quiet – avoid encouraging returns */
+    .return-panel-subtle {
+      margin-top: 1rem;
+      margin-bottom: 0;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0.5rem;
+    }
+    .return-panel-subtle h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .return-panel-subtle h3 i {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+    .return-panel-subtle .return-status-badge {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.35rem;
+    }
+    .btn-return-subtle {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 0.5rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      box-shadow: none;
+    }
+    .btn-return-subtle:hover {
+      transform: none;
+      box-shadow: none;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+    .btn-ack-return-subtle {
+      background: transparent;
+      color: #81c784;
+      border: 1px solid rgba(129, 199, 132, 0.35);
+      padding: 0.5rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      box-shadow: none;
+    }
+    .btn-ack-return-subtle:hover {
+      transform: none;
+      box-shadow: none;
+      background: rgba(129, 199, 132, 0.08);
+    }
+
+    .buyer-returns-guide {
+      margin-top: 1.25rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--border-radius);
+      background: rgba(0, 242, 234, 0.06);
+      border: 1px solid rgba(0, 242, 234, 0.22);
+    }
+
+    .buyer-returns-guide h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .buyer-returns-guide .guide-lead {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin: 0 0 0.65rem;
+    }
+
+    .buyer-returns-guide .guide-lead a {
+      color: var(--accent-color);
+    }
+
+    .buyer-returns-guide .guide-steps {
+      margin: 0;
+      padding-left: 1.2rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .buyer-returns-guide .guide-steps li {
+      margin-bottom: 0.35rem;
     }
 
     .loading {
@@ -711,6 +853,7 @@
               <div class="driver-phone" id="driver-phone"></div>
             </div>
           </div>
+          <div id="delivery-handoff-codes" class="handoff-codes-wrap" style="display: none;" aria-live="polite"></div>
         </div>
 
         <!-- Shipping address -->
@@ -731,15 +874,7 @@
           </button>
         </div>
 
-        <!-- Return Request Information Card -->
-        <div id="return-request-card" class="card" style="display: none; margin-top: 1.5rem; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3);">
-          <h2 style="font-size: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i class="fas fa-undo" style="color: #ff9800;"></i> Return Request
-          </h2>
-          <div id="return-request-content"></div>
-        </div>
-
-        <div id="order-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div id="order-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
           <a href="orders.html" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Back to Orders
           </a>
@@ -747,23 +882,117 @@
           <button id="cancel-order-btn" class="btn" style="display: none; background: rgba(255, 152, 0, 0.2); color: #ff9800; border: 1px solid #ff9800;" onclick="cancelOrder()">
             <i class="fas fa-times-circle"></i> Cancel Order
           </button>
-          <!-- Request Return button - shown for delivered orders (excluding digital-only) -->
-          <button id="request-return-btn" class="btn" style="display: none; background: rgba(255, 87, 34, 0.2); color: #ff5722; border: 1px solid #ff5722;" onclick="requestReturn()">
-            <i class="fas fa-undo"></i> Request Return
+        </div>
+        <div id="buyer-returns-guide" class="buyer-returns-guide" style="display: none;" aria-live="polite"></div>
+
+        <div id="return-actions" style="margin-top: 0.65rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+          <button id="request-return-btn" type="button" class="btn btn-return-subtle" style="display: none;" onclick="requestReturn()">
+            <i class="fas fa-undo" aria-hidden="true"></i> Request return
           </button>
-          <!-- Acknowledge Return button - shown when seller has approved return -->
-          <button id="acknowledge-return-btn" class="btn" style="display: none; background: rgba(76, 175, 80, 0.2); color: #4caf50; border: 1px solid #4caf50;" onclick="acknowledgeReturn()">
-            <i class="fas fa-check-circle"></i> Acknowledge Return
+          <button id="acknowledge-return-btn" type="button" class="btn btn-ack-return-subtle" style="display: none;" onclick="acknowledgeReturn()">
+            <i class="fas fa-check-circle" aria-hidden="true"></i> Acknowledge return
           </button>
+        </div>
+
+        <!-- Return status – only shown when a return exists; kept below primary actions -->
+        <div id="return-request-card" class="card return-panel-subtle" style="display: none;">
+          <h3>
+            <i class="fas fa-undo" aria-hidden="true"></i> Return status
+          </h3>
+          <div id="return-request-content"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let orderData = null;
     let paymentUrl = null;
+
+    function escapeHtmlOd(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function getPhysicalReturnPolicyFromOrder(order) {
+      const items = order.items || [];
+      let anyPhysical = false;
+      let anyReturnable = false;
+      let maxReturnDays = null;
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const p = it.product;
+        if (!p) continue;
+        const pt = String(p.product_type || 'physical').toLowerCase();
+        if (pt !== 'physical' && pt !== 'hybrid') continue;
+        anyPhysical = true;
+        if (p.is_returnable === true) {
+          anyReturnable = true;
+          const rd = p.return_period_days;
+          if (rd != null && rd !== '' && !Number.isNaN(Number(rd))) {
+            const n = Number(rd);
+            if (n > 0) {
+              maxReturnDays = maxReturnDays == null ? n : Math.max(maxReturnDays, n);
+            }
+          }
+        }
+      }
+      return { anyPhysical, anyReturnable, maxReturnDays };
+    }
+
+    function renderBuyerReturnsGuide(order, ctx) {
+      const el = document.getElementById('buyer-returns-guide');
+      if (!el) return;
+      const {
+        isDigitalOnly,
+        orderStatus,
+        isPaid,
+        canReturn,
+        hasReturnInProgress,
+      } = ctx;
+      if (isDigitalOnly) {
+        el.style.display = 'none';
+        el.innerHTML = '';
+        return;
+      }
+      const policy = getPhysicalReturnPolicyFromOrder(order);
+      if (!policy.anyPhysical) {
+        el.style.display = 'none';
+        el.innerHTML = '';
+        return;
+      }
+
+      let html = '<h3><i class="fas fa-life-ring" aria-hidden="true"></i> Returns & support</h3>';
+
+      if (hasReturnInProgress) {
+        html += '<p class="guide-lead">You have a return in progress. Use <strong>Return status</strong> below for updates. Typical flow: seller review → your acknowledgment if approved → admin processing → refund when completed.</p>';
+        html += '<ul class="guide-steps"><li>Reply if the seller messages you about pickup or condition.</li><li>After <strong>Seller approved</strong>, use <strong>Acknowledge return</strong> so processing can continue.</li><li>Use <strong>Add response</strong> to clarify details if needed.</li><li>Questions? Open <a href="help-support.html">Help &amp; support</a> with this order number.</li></ul>';
+      } else if (orderStatus === 'delivered' && isPaid) {
+        if (canReturn && policy.anyReturnable) {
+          const daysLine = policy.maxReturnDays
+            ? ` This listing allows returns within about <strong>${policy.maxReturnDays}</strong> day(s) where applicable.`
+            : '';
+          html += `<p class="guide-lead">This order is delivered.${daysLine} Use <strong>Request return</strong> to start – you’ll enter a short reason and the seller reviews before any refund.</p>`;
+          html += '<ul class="guide-steps"><li>Final eligibility is confirmed when you submit; keep packaging if the seller asks.</li><li>For payment or account issues, use <a href="help-support.html">Help &amp; support</a>.</li></ul>';
+        } else if (!policy.anyReturnable) {
+          html += '<p class="guide-lead">The physical item(s) on this order are marked <strong>not returnable</strong> by the listing. If something arrived damaged or not as described, open <a href="help-support.html">Help &amp; support</a> with your order number.</p>';
+        } else {
+          html += '<p class="guide-lead">A return request isn’t available for this order right now. If you need help, use <a href="help-support.html">Help &amp; support</a>.</p>';
+        }
+      } else if (['shipped', 'processing', 'confirmed'].includes(orderStatus)) {
+        html += '<p class="guide-lead">Your order is being processed or on the way. After it is marked <strong>delivered</strong>, you may be able to request a return if the listing allows returns.</p>';
+      } else if (orderStatus === 'cancelled' || orderStatus === 'refunded') {
+        html += '<p class="guide-lead">This order is closed. For questions about a refund, contact <a href="help-support.html">Help &amp; support</a> with this order number.</p>';
+      } else {
+        html += '<p class="guide-lead">After delivery, returns depend on each listing’s policy. Track progress above; use <a href="help-support.html">Help &amp; support</a> anytime.</p>';
+      }
+
+      el.innerHTML = html;
+      el.style.display = 'block';
+    }
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -828,7 +1057,7 @@
       const isDigitalOnly = isDigitalOnlyOrder(order);
       
       // Order ID and Date
-      document.getElementById('order-id').textContent = order.id.substring(0, 8).toUpperCase();
+      document.getElementById('order-id').textContent = String(order.id);
       if (order.created_at) {
         const date = new Date(order.created_at);
         document.getElementById('order-date').textContent = date.toLocaleDateString('en-US', {
@@ -977,147 +1206,157 @@
         }
       }
 
-      // Show/hide Request Return button - for delivered orders (excluding digital-only)
+      // Show/hide Request Return – delivered, physical-capable, no return workflow started
       const returnBtn = document.getElementById('request-return-btn');
-      const canReturn = !isDigitalOnly && orderStatus === 'delivered' && !order.return_status;
-      
+      const rsNormEarly = (order.return_status != null && String(order.return_status).trim())
+        ? String(order.return_status).trim().toLowerCase()
+        : '';
+      const noActiveReturn = !rsNormEarly;
+      const returnPolicyEarly = getPhysicalReturnPolicyFromOrder(order);
+      const canReturn = !isDigitalOnly && orderStatus === 'delivered' && isPaid && noActiveReturn && returnPolicyEarly.anyReturnable;
+
       if (returnBtn) {
-        if (canReturn) {
-          returnBtn.style.display = 'inline-flex';
-        } else {
-          returnBtn.style.display = 'none';
-        }
+        returnBtn.style.display = canReturn ? 'inline-flex' : 'none';
       }
 
-      // Display Return Request Information (if return has been requested)
+      // Return status panel: only when there is a real return (fix: was `orderStatus || ...` which is always true)
       const returnCard = document.getElementById('return-request-card');
       const returnContent = document.getElementById('return-request-content');
-      const returnStatus = order.return_status?.toLowerCase() || '';
-      const hasReturnRequest = orderStatus || order.status?.toLowerCase() === 'return_requested';
-      
-      if (hasReturnRequest && returnCard && returnContent) {
+      const returnStatus = rsNormEarly;
+      const hasReturnInProgress =
+        returnStatus !== '' ||
+        orderStatus === 'return_requested';
+
+      if (hasReturnInProgress && returnCard && returnContent) {
           const returnReason = order.return_reason || '';
           const sellerResponse = order.seller_response || '';
-          
-          // Get return status display text and color
+
           let statusText, statusColor, statusClass;
-          switch (returnStatus) {
+          if (!returnStatus && orderStatus === 'return_requested') {
+              statusText = 'Return requested';
+              statusColor = '#909090';
+              statusClass = 'status-pending';
+          } else {
+            switch (returnStatus) {
             case 'pending':
               statusText = 'Pending Review';
-              statusColor = '#ff9800';
+              statusColor = '#b0b0b0';
               statusClass = 'status-pending';
               break;
             case 'seller_reviewing':
               statusText = 'Seller Reviewing';
-              statusColor = '#2196f3';
+              statusColor = '#90caf9';
               statusClass = 'status-processing';
               break;
             case 'seller_approved':
               statusText = 'Seller Approved';
-              statusColor = '#4caf50';
+              statusColor = '#81c784';
               statusClass = 'status-confirmed';
               break;
             case 'seller_rejected':
               statusText = 'Seller Rejected';
-              statusColor = '#f44336';
+              statusColor = '#e57373';
               statusClass = 'status-cancelled';
               break;
             case 'processing':
               statusText = 'Processing Return';
-              statusColor = '#2196f3';
+              statusColor = '#90caf9';
               statusClass = 'status-processing';
               break;
             case 'admin_approved':
               statusText = 'Admin Approved';
-              statusColor = '#4caf50';
+              statusColor = '#81c784';
               statusClass = 'status-confirmed';
               break;
             case 'admin_rejected':
               statusText = 'Admin Rejected';
-              statusColor = '#f44336';
+              statusColor = '#e57373';
               statusClass = 'status-cancelled';
               break;
             case 'completed':
               statusText = 'Return Completed';
-              statusColor = '#4caf50';
+              statusColor = '#81c784';
               statusClass = 'status-confirmed';
               break;
             default:
-              statusText = 'Unknown';
-              statusColor = '#9e9e9e';
+              statusText = returnStatus
+                ? returnStatus.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+                : 'In progress';
+              statusColor = '#909090';
               statusClass = 'status-pending';
           }
-          
+          }
+
           let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <span style="color: var(--text-secondary); font-size: 0.9rem;">Status:</span>
-              <span class="status-badge ${statusClass}" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="color: var(--text-secondary); font-size: 0.8rem;">Status</span>
+              <span class="status-badge return-status-badge ${statusClass}" style="background: ${statusColor}18; color: ${statusColor}; border: 1px solid ${statusColor}40;">
                 ${statusText}
               </span>
             </div>
           `;
-          
+
           if (returnReason) {
             html += `
-              <div style="margin-bottom: 1rem;">
-                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Your Reason:</div>
-                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
-                  ${returnReason}
+              <div style="margin-bottom: 0.75rem;">
+                <div style="color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.35rem; font-weight: 500;">Your reason</div>
+                <div style="color: var(--text-primary); font-size: 0.85rem; padding: 0.65rem; background: rgba(255, 255, 255, 0.04); border-radius: 0.4rem;">
+                  ${escapeHtmlOd(returnReason)}
                 </div>
               </div>
             `;
           }
-          
+
           if (sellerResponse) {
-            const responseBgColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.1)' : 
-                                   returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.1)' : 
-                                   'rgba(255, 255, 255, 0.05)';
-            const responseBorderColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.3)' : 
-                                       returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.3)' : 
-                                       'rgba(255, 255, 255, 0.1)';
-            
+            const responseBgColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.06)' :
+                                   returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.06)' :
+                                   'rgba(255, 255, 255, 0.04)';
+            const responseBorderColor = returnStatus === 'seller_approved' ? 'rgba(76, 175, 80, 0.2)' :
+                                       returnStatus === 'seller_rejected' ? 'rgba(244, 67, 54, 0.2)' :
+                                       'rgba(255, 255, 255, 0.08)';
+
             html += `
-              <div style="margin-bottom: 1rem;">
-                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Seller Response:</div>
-                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: ${responseBgColor}; border: 1px solid ${responseBorderColor}; border-radius: 0.5rem;">
-                  ${sellerResponse}
+              <div style="margin-bottom: 0.75rem;">
+                <div style="color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.35rem; font-weight: 500;">Seller response</div>
+                <div style="color: var(--text-primary); font-size: 0.85rem; padding: 0.65rem; background: ${responseBgColor}; border: 1px solid ${responseBorderColor}; border-radius: 0.4rem;">
+                  ${escapeHtmlOd(sellerResponse)}
                 </div>
               </div>
             `;
           }
-          
+
           const buyerResponse = order.buyer_response || '';
           if (buyerResponse) {
             html += `
-              <div style="margin-bottom: 1rem;">
-                <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.4rem; font-weight: 500;">Your Response:</div>
-                <div style="color: var(--text-primary); font-size: 0.9rem; padding: 0.75rem; background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 0.5rem;">
-                  ${buyerResponse}
+              <div style="margin-bottom: 0.75rem;">
+                <div style="color: var(--text-secondary); font-size: 0.78rem; margin-bottom: 0.35rem; font-weight: 500;">Your response</div>
+                <div style="color: var(--text-primary); font-size: 0.85rem; padding: 0.65rem; background: rgba(33, 150, 243, 0.06); border: 1px solid rgba(33, 150, 243, 0.2); border-radius: 0.4rem;">
+                  ${escapeHtmlOd(buyerResponse)}
                 </div>
               </div>
             `;
           }
-          
-          // Add Response button (shown when seller has responded and not processing/completed)
+
           if (sellerResponse && returnStatus !== 'processing' && returnStatus !== 'completed') {
             html += `
-              <div style="margin-top: 1rem;">
-                <button onclick="showBuyerResponseModal('${order.id}')" class="btn" style="width: 100%; background: rgba(33, 150, 243, 0.1); color: #2196f3; border: 1px solid #2196f3; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem;">
-                  <i class="fas fa-comment"></i> ${buyerResponse ? 'Update Response' : 'Add Response'}
+              <div style="margin-top: 0.65rem;">
+                <button type="button" onclick="showBuyerResponseModal('${order.id}')" class="btn btn-return-subtle" style="width: 100%; justify-content: center;">
+                  <i class="fas fa-comment" aria-hidden="true"></i> ${buyerResponse ? 'Update response' : 'Add response'}
                 </button>
               </div>
             `;
           }
-          
+
           returnContent.innerHTML = html;
           returnCard.style.display = 'block';
       } else {
         if (returnCard) {
           returnCard.style.display = 'none';
+          if (returnContent) returnContent.innerHTML = '';
         }
       }
 
-      // Show/hide Acknowledge Return button - when seller has approved
+      // Acknowledge Return – seller approved (subtle button in return-actions row)
       const acknowledgeBtn = document.getElementById('acknowledge-return-btn');
       if (acknowledgeBtn) {
         if (returnStatus === 'seller_approved') {
@@ -1126,6 +1365,14 @@
           acknowledgeBtn.style.display = 'none';
         }
       }
+
+      renderBuyerReturnsGuide(order, {
+        isDigitalOnly,
+        orderStatus,
+        isPaid,
+        canReturn,
+        hasReturnInProgress,
+      });
 
       // Payment Section
       document.getElementById('payment-status').textContent = (paymentStatus || 'pending').toUpperCase();
@@ -1253,6 +1500,60 @@
       card.style.display = 'block';
     }
 
+    function bindHandoffCopyButtons(container) {
+      if (!container) return;
+      container.querySelectorAll('.btn-copy-handoff').forEach(function (btn) {
+        btn.onclick = function () {
+          var t = btn.getAttribute('data-handoff-copy') || '';
+          if (!t) return;
+          navigator.clipboard.writeText(t).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 1500);
+          }).catch(function () {});
+        };
+      });
+    }
+
+    function normalizeTrackingHandoff(dj) {
+      if (!dj || typeof dj !== 'object') return null;
+      var pick = dj.pickup_otp != null && String(dj.pickup_otp).trim() !== '' ? String(dj.pickup_otp).trim() : '';
+      var del = dj.delivery_otp != null && String(dj.delivery_otp).trim() !== '' ? String(dj.delivery_otp).trim() : '';
+      if (!pick && dj.pickupOtp != null) pick = String(dj.pickupOtp).trim();
+      if (!del && dj.deliveryOtp != null) del = String(dj.deliveryOtp).trim();
+      var jp = String(dj.job_purpose || dj.jobPurpose || 'delivery').toLowerCase();
+      return { job_purpose: jp, pickup_otp: pick, delivery_otp: del };
+    }
+
+    function buildOrderHandoffHtml(dj) {
+      var h = normalizeTrackingHandoff(dj);
+      if (!h || (!h.pickup_otp && !h.delivery_otp)) return '';
+      var jp = h.job_purpose || 'delivery';
+      var html = '<h3><i class="fas fa-key" style="margin-right:0.35rem;"></i>Your rider confirmation codes</h3>';
+      if (h.pickup_otp) {
+        var pt = jp === 'seller_return_leg' ? 'Return pickup code' : 'Pickup code';
+        var ph = jp === 'seller_return_leg'
+          ? 'Give this code to the rider when they collect the return from you.'
+          : 'Give this code to the rider when they pick the package up from you (or your staff hands it over).';
+        var otpP = escapeHtmlOd(String(h.pickup_otp));
+        html += '<div class="handoff-code-block"><strong>' + escapeHtmlOd(pt) + '</strong>' +
+          '<div class="handoff-code-digits">' + otpP + '</div>' +
+          '<p class="handoff-code-help">' + escapeHtmlOd(ph) + '</p>' +
+          '<button type="button" class="btn-copy-handoff" data-handoff-copy="' + otpP + '"><i class="fas fa-copy"></i> Copy</button></div>';
+      }
+      if (h.delivery_otp) {
+        var dt = jp === 'seller_return_leg' ? 'Return drop-off code' : 'Delivery code';
+        var dh = jp === 'seller_return_leg'
+          ? 'Give this code to the rider when they bring the return back to the shop.'
+          : 'Give this code to the rider when they hand you your order.';
+        var otpD = escapeHtmlOd(String(h.delivery_otp));
+        html += '<div class="handoff-code-block"><strong>' + escapeHtmlOd(dt) + '</strong>' +
+          '<div class="handoff-code-digits">' + otpD + '</div>' +
+          '<p class="handoff-code-help">' + escapeHtmlOd(dh) + '</p>' +
+          '<button type="button" class="btn-copy-handoff" data-handoff-copy="' + otpD + '"><i class="fas fa-copy"></i> Copy</button></div>';
+      }
+      return html;
+    }
+
     async function loadDeliveryTracking(orderId) {
       const etaEl = document.getElementById('delivery-eta');
       const updatedEl = document.getElementById('delivery-updated');
@@ -1297,8 +1598,27 @@
           driverPhoneEl.textContent = tracking.driver_phone ? `Phone: ${tracking.driver_phone}` : '';
           driverInfo.style.display = 'flex';
         }
+
+        var handoffEl = document.getElementById('delivery-handoff-codes');
+        if (handoffEl) {
+          var dj = tracking.handoff_codes || tracking.handoffCodes || tracking.delivery_job || tracking.deliveryJob;
+          var handHtml = buildOrderHandoffHtml(dj);
+          if (handHtml) {
+            handoffEl.innerHTML = handHtml;
+            handoffEl.style.display = 'block';
+            bindHandoffCopyButtons(handoffEl);
+          } else {
+            handoffEl.innerHTML = '';
+            handoffEl.style.display = 'none';
+          }
+        }
       } catch (error) {
         console.log('No delivery tracking found for this order (this is normal for new orders).', error);
+        var handoffErr = document.getElementById('delivery-handoff-codes');
+        if (handoffErr) {
+          handoffErr.innerHTML = '';
+          handoffErr.style.display = 'none';
+        }
       }
     }
 
@@ -1338,6 +1658,7 @@
 
     function showToast(message, type) {
       const toast = document.createElement('div');
+      const z = typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600;
       toast.style.cssText = `
         position: fixed;
         top: 2rem;
@@ -1347,7 +1668,7 @@
         padding: 1rem 2rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: ${z};
       `;
       toast.textContent = message;
       document.body.appendChild(toast);

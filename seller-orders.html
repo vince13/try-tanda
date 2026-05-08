@@ -90,6 +90,60 @@
       }
     }
 
+    .nav > * {
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .orders-load-error {
+      display: none;
+      text-align: center;
+      padding: 3rem 1.25rem;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .orders-load-error h2 {
+      color: var(--text-primary);
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .orders-load-error .orders-load-error-detail {
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      opacity: 0.9;
+    }
+
+    .orders-load-error .btn-retry {
+      padding: 0.65rem 1.25rem;
+      min-height: 44px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--primary-gradient);
+      color: #ffffff;
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -155,6 +209,10 @@
     .orders-table {
       width: 100%;
       border-collapse: collapse;
+    }
+
+    .orders-table-scroll {
+      overflow-x: auto;
     }
 
     .orders-table th,
@@ -410,16 +468,19 @@
       }
     }
 
-    /* Modal */
+    /* Modal: tall forms scroll inside .modal-form; header (incl. close) stays visible */
     .modal {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.8);
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      z-index: 9999;
-      padding: 1.5rem;
+      z-index: 100600;
+      padding: 0.75rem 1rem 1.25rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     .modal.active {
@@ -432,8 +493,15 @@
       padding: 1.5rem;
       max-width: 480px;
       width: 100%;
+      max-height: min(90vh, calc(100vh - 1.5rem));
+      max-height: min(90dvh, calc(100dvh - 1.5rem));
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       position: relative;
+      margin: 0 auto;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .modal-header {
@@ -441,6 +509,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex-shrink: 0;
     }
 
     .modal-title {
@@ -454,11 +523,20 @@
       color: #ffffff;
       font-size: 1.25rem;
       cursor: pointer;
+      padding: 0.25rem;
+      flex-shrink: 0;
     }
 
     .modal-form {
       display: grid;
       gap: 0.75rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1 1 auto;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding-right: 0.15rem;
     }
 
     .modal-form label {
@@ -514,6 +592,117 @@
       background: var(--primary-gradient);
       color: #ffffff;
     }
+
+    @media (max-width: 768px) {
+      .filter-select select {
+        min-height: 44px;
+      }
+
+      .orders-table-scroll {
+        overflow: visible;
+      }
+
+      .orders-table thead {
+        display: none;
+      }
+
+      .orders-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .orders-table tbody td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        padding: 0.75rem 0.85rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .orders-table tbody td:last-child {
+        border-bottom: none;
+      }
+
+      .orders-table tbody td::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .status-select {
+        min-height: 44px;
+        padding: 0.35rem 0.65rem;
+        width: 100%;
+        max-width: 280px;
+      }
+
+      .order-actions {
+        width: 100%;
+      }
+
+      .order-actions .btn-xs {
+        min-height: 44px;
+        padding: 0.45rem 0.85rem;
+      }
+
+      .orders-pagination {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+      }
+
+      .orders-pagination .orders-pagination-buttons {
+        justify-content: space-between;
+      }
+
+      .orders-pagination .orders-pagination-buttons .btn-xs {
+        min-height: 44px;
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    .seller-handoff-panel {
+      display: none;
+      margin: 0 0 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 0.65rem;
+      background: rgba(0, 242, 234, 0.08);
+      border: 1px solid rgba(0, 242, 234, 0.28);
+      font-size: 0.88rem;
+    }
+    .seller-handoff-panel h4 {
+      color: var(--accent-color);
+      font-size: 0.9rem;
+      margin-bottom: 0.65rem;
+    }
+    .seller-handoff-row { margin-bottom: 0.85rem; }
+    .seller-handoff-row:last-child { margin-bottom: 0; }
+    .seller-handoff-digits {
+      font-family: ui-monospace, monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin: 0.25rem 0;
+    }
+    .seller-handoff-help { color: var(--text-secondary); font-size: 0.82rem; line-height: 1.4; }
+    .btn-copy-otp {
+      margin-top: 0.35rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      border-radius: 0.4rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -523,6 +712,14 @@
   </div>
 
   <div class="container">
+    <div id="orders-load-error" class="orders-load-error" role="alert">
+      <h2><i class="fas fa-plug"></i> Couldn't load orders</h2>
+      <p id="orders-load-error-detail" class="orders-load-error-detail">Check your connection and try again.</p>
+      <button type="button" class="btn-retry" id="orders-load-retry">
+        <i class="fas fa-redo"></i> Try again
+      </button>
+    </div>
+
     <div id="loading-section" class="loading">
       <div class="spinner"></div>
       <p>Loading orders...</p>
@@ -598,6 +795,10 @@
       </div>
       <form id="driver-form" class="modal-form" onsubmit="submitDriverForm(event)">
         <input type="hidden" id="driver-order-id">
+        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.65rem;">
+          For <strong>Tanda delivery</strong> (riders or logistics companies, wallet-backed fee, and buyer/seller handoff codes), use <strong>Delivery request</strong> on the order row. This form is for simple manual driver contact only.
+        </p>
+        <div id="seller-handoff-panel" class="seller-handoff-panel" aria-live="polite"></div>
         <label>
           Driver Name
           <input type="text" id="driver-name" placeholder="e.g. John Doe">
@@ -628,12 +829,165 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <!-- Tanda delivery request (parity with Flutter SellerDeliveryRequestScreen – creates DeliveryJob + OTPs) -->
+  <div id="delivery-request-modal" class="modal">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Tanda delivery request</h3>
+        <button type="button" class="modal-close" onclick="closeDeliveryRequestModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="delivery-request-form" class="modal-form" onsubmit="submitDeliveryRequestForm(event)">
+        <input type="hidden" id="dr-order-id" value="">
+        <p id="dr-order-hint" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;"></p>
+        <p style="font-size: 0.8rem; color: var(--accent-color); margin-bottom: 1rem;">
+          This matches the app: broadcast to <strong>local riders</strong> or assign an approved <strong>logistics company</strong>. A delivery job is created and pickup/delivery codes appear on order tracking for you and the buyer.
+        </p>
+        <fieldset style="border: none; padding: 0; margin: 0 0 1rem;">
+          <legend style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.35rem;">Fulfillment mode</legend>
+          <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+            <input type="radio" name="dr-mode" value="local_broadcast" checked onchange="onDeliveryRequestModeChange()">
+            <span>Local riders (open broadcast)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="radio" name="dr-mode" value="logistics_org" onchange="onDeliveryRequestModeChange()">
+            <span>Logistics company</span>
+          </label>
+        </fieldset>
+        <label>
+          Delivery fee (NGN)
+          <input type="text" id="dr-delivery-fee" required inputmode="decimal" placeholder="e.g. 1500" autocomplete="off">
+        </label>
+        <label id="dr-collateral-wrap">
+          Rider collateral (NGN)
+          <input type="text" id="dr-collateral" inputmode="decimal" placeholder="Usually matches order value for local broadcast" autocomplete="off">
+          <small style="display: block; margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.78rem;">Required for local rider broadcasts (platform rule). Not used when you pick a logistics company.</small>
+        </label>
+        <label>
+          Package weight (kg) <span style="color: #ff9800;">*</span>
+          <input type="text" id="dr-weight-kg" required inputmode="decimal" placeholder="e.g. 1.5" autocomplete="off">
+        </label>
+        <label>
+          Package description (optional)
+          <textarea id="dr-package-desc" rows="2" placeholder="What the rider should look for"></textarea>
+        </label>
+        <label>
+          Notes (optional)
+          <textarea id="dr-notes" rows="2" placeholder="Special pickup instructions"></textarea>
+        </label>
+        <label id="dr-org-wrap" style="display: none;">
+          Logistics company
+          <select id="dr-org-id">
+            <option value="">Loading…</option>
+          </select>
+          <small id="dr-org-hint" style="display: block; margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.78rem;"></small>
+        </label>
+        <label>
+          Package photo (optional)
+          <input type="file" id="dr-package-photo" accept="image/*">
+        </label>
+        <div id="dr-form-error" style="display: none; color: #ff9800; font-size: 0.85rem; margin-bottom: 0.75rem;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancel" onclick="closeDeliveryRequestModal()">Cancel</button>
+          <button type="submit" class="btn btn-save" id="dr-submit-btn">Create delivery request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=31"></script>
   <script>
     let currentPage = 1;
     let totalPages = 1;
     let currentStatusFilter = '';
     let isLoading = false;
+    /** Order id → last loaded row payload (for delivery fee defaults). */
+    let sellerOrdersCache = {};
+    /** Latest GET /commerce/seller/delivery/jobs/ results (for active-job UI). */
+    let sellerDeliveryJobsList = [];
+
+    /** Mirrors commerce.views.ACTIVE_DELIVERY_JOB_STATUSES — blocks creating another job. */
+    const ACTIVE_TANDA_DELIVERY_JOB_STATUSES = {
+      draft: true,
+      open: true,
+      assigned: true,
+      accepted: true,
+      picked_up: true,
+      in_transit: true,
+      delivered: true,
+      return_pending: true,
+      fee_withheld: true,
+      disputed: true,
+    };
+
+    function orderIdHasActiveSellerDeliveryJob(orderId) {
+      const oid = String(orderId || '').trim();
+      if (!oid || !sellerDeliveryJobsList.length) return false;
+      return sellerDeliveryJobsList.some(function (j) {
+        if (!j) return false;
+        const jid = j.order_id != null ? String(j.order_id).trim() : '';
+        if (jid !== oid) return false;
+        const st = String(j.status || '').toLowerCase();
+        return !!ACTIVE_TANDA_DELIVERY_JOB_STATUSES[st];
+      });
+    }
+
+    async function refreshSellerDeliveryJobsList() {
+      try {
+        const res = await SuperAffiliateAPI.getCommerceSellerDeliveryJobs();
+        sellerDeliveryJobsList = Array.isArray(res.results) ? res.results : [];
+      } catch (e) {
+        console.warn('Could not load seller delivery jobs:', e);
+        sellerDeliveryJobsList = [];
+      }
+    }
+
+    const ORDERS_LOADING_INNER = `
+      <div class="spinner"></div>
+      <p>Loading orders...</p>
+    `;
+
+    function restoreOrdersLoadingMarkup() {
+      const el = document.getElementById('loading-section');
+      if (el) el.innerHTML = ORDERS_LOADING_INNER;
+    }
+
+    function hideOrdersLoadError() {
+      const err = document.getElementById('orders-load-error');
+      if (err) err.style.display = 'none';
+    }
+
+    function showOrdersLoadError(message) {
+      const err = document.getElementById('orders-load-error');
+      const detail = document.getElementById('orders-load-error-detail');
+      const loadEl = document.getElementById('loading-section');
+      const section = document.getElementById('orders-section');
+      if (detail) detail.textContent = message || 'Check your connection and try again.';
+      if (loadEl) loadEl.style.display = 'none';
+      if (section) section.style.display = 'none';
+      if (err) err.style.display = 'block';
+    }
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    function orderHasPhysicalLineItems(order) {
+      const items = (order && order.items) || [];
+      return items.some(function (it) {
+        const t = String((it.product && it.product.product_type) || 'physical').toLowerCase();
+        return t === 'physical' || t === 'hybrid';
+      });
+    }
+
+    function drNormalizeMoneyInput(raw) {
+      const s = String(raw == null ? '' : raw).replace(/,/g, '').trim();
+      if (!s) return '0';
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? String(n) : '0';
+    }
 
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -644,9 +998,16 @@
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
 
+    document.getElementById('orders-load-retry').addEventListener('click', () => {
+      hideOrdersLoadError();
+      loadOrders(currentPage, currentStatusFilter);
+    });
+
     async function loadOrders(page = 1, statusFilter = '') {
       if (isLoading) return;
       isLoading = true;
+      hideOrdersLoadError();
+      restoreOrdersLoadingMarkup();
       document.getElementById('loading-section').style.display = 'block';
       document.getElementById('orders-section').style.display = 'none';
 
@@ -658,23 +1019,20 @@
 
         const response = await SuperAffiliateAPI.apiRequest(url);
         const orders = response.orders || [];
+        sellerOrdersCache = {};
+        orders.forEach(function (o) {
+          if (o && o.id) sellerOrdersCache[o.id] = o;
+        });
         currentPage = response.current_page || 1;
         totalPages = response.total_pages || 1;
+        await refreshSellerDeliveryJobsList();
         renderOrders(orders);
 
         document.getElementById('loading-section').style.display = 'none';
         document.getElementById('orders-section').style.display = 'block';
       } catch (error) {
         console.error('Error loading orders:', error);
-        document.getElementById('loading-section').innerHTML = `
-          <div style="color: #f44336;">
-            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <p>Failed to load orders. ${error.message || 'Please try again.'}</p>
-            <button class="btn-xs primary" onclick="location.reload()" style="margin-top: 1rem;">
-              <i class="fas fa-redo"></i> Retry
-            </button>
-          </div>
-        `;
+        showOrdersLoadError(error.message || 'Please try again.');
       } finally {
         isLoading = false;
       }
@@ -720,9 +1078,12 @@
         const firstItemVariations = firstItem?.selected_variations && typeof firstItem.selected_variations === 'object'
           ? Object.entries(firstItem.selected_variations)
               .filter(([k, v]) => v !== null && v !== undefined && String(v).trim().length > 0)
-              .map(([k, v]) => `${k}: ${v}`)
           : [];
-        const variationsText = firstItemVariations.length > 0 ? ` (${firstItemVariations.join(', ')})` : '';
+        const escCustomer = escapeHtml(customerName);
+        const escFirstName = escapeHtml(firstItemName);
+        const escVariationsInner = firstItemVariations.length > 0
+          ? ` (${firstItemVariations.map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(', ')})`
+          : '';
 
         const status = (order.status || 'pending').toLowerCase();
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
@@ -731,6 +1092,14 @@
         const returnReason = order.return_reason || null;
         const sellerResponse = order.seller_response || null;
         const hasReturnRequest = status === 'return_requested' && returnReason;
+        const hasPhysicalLineItems = orderHasPhysicalLineItems(order);
+        const eligibleForTandaDeliveryUi =
+          paymentStatus === 'paid' &&
+          hasPhysicalLineItems &&
+          status !== 'return_requested' &&
+          status !== 'cancelled' &&
+          status !== 'refunded';
+        const hasActiveTandaJob = eligibleForTandaDeliveryUi && orderIdHasActiveSellerDeliveryJob(order.id);
 
         let paymentLabel = 'PENDING';
         let paymentClass = 'badge-pending';
@@ -743,34 +1112,38 @@
         }
 
         const orderId = order.id || '';
+        const returnTitleAttr = returnReason ? escapeHtml(returnReason) : '';
+        const returnPreview = returnReason
+          ? `${escapeHtml(returnReason.substring(0, 50))}${returnReason.length > 50 ? '...' : ''}`
+          : '';
         return `
           <tr>
-            <td>
+            <td data-label="Order">
               <div class="order-id">${orderId ? orderId.substring(0, 8).toUpperCase() : '-'}</div>
               <div class="order-date">${dateStr} ${timeStr}</div>
             </td>
-            <td>
-              <div>${customerName}</div>
+            <td data-label="Customer">
+              <div>${escCustomer}</div>
               <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                ${firstItemName}${variationsText}${itemCount > 1 ? ` +${itemCount - 1} more` : ''}
+                ${escFirstName}${escVariationsInner}${itemCount > 1 ? ` +${itemCount - 1} more` : ''}
               </div>
             </td>
-            <td>
+            <td data-label="Amounts">
               <div>${formatCurrency(order.subtotal || 0)}</div>
               <div class="badge-shipping">
                 <i class="fas fa-truck"></i>
                 <span>${formatCurrency(shipping)}</span>
               </div>
             </td>
-            <td>
+            <td data-label="Status">
               <span class="status-pill status-${status}">${status.toUpperCase()}</span>
               ${hasReturnRequest ? `
                 <div class="return-status-badge return-status-${returnStatus || 'pending'}">
                   ${(returnStatus || 'pending').replace(/_/g, ' ').toUpperCase()}
                 </div>
                 ${returnReason ? `
-                  <div class="return-info" title="${returnReason}">
-                    <i class="fas fa-info-circle"></i> Return: ${returnReason.substring(0, 50)}${returnReason.length > 50 ? '...' : ''}
+                  <div class="return-info" title="${returnTitleAttr}">
+                    <i class="fas fa-info-circle"></i> Return: ${returnPreview}
                   </div>
                 ` : ''}
                 ${sellerResponse ? `
@@ -792,10 +1165,10 @@
                 </select>
               </div>
             </td>
-            <td>
+            <td data-label="Payment">
               <span class="badge ${paymentClass}">${paymentLabel}</span>
             </td>
-            <td>
+            <td data-label="Actions">
               <div class="order-actions">
                 <button class="btn-xs" onclick="viewOrder('${order.id}')">
                   <i class="fas fa-eye"></i> View
@@ -810,6 +1183,15 @@
                     <i class="fas fa-edit"></i> View Response
                   </button>
                 ` : ''}
+                ${eligibleForTandaDeliveryUi ? (hasActiveTandaJob ? `
+                  <button type="button" class="btn-xs primary" onclick="viewSellerTandaDelivery('${order.id}')" style="background: rgba(0, 242, 234, 0.15); color: var(--accent-color); border: 1px solid var(--accent-color);" title="Open order detail for tracking and rider codes">
+                    <i class="fas fa-route"></i> Tanda delivery
+                  </button>
+                ` : `
+                  <button type="button" class="btn-xs primary" onclick="openDeliveryRequestModal('${order.id}')" style="background: rgba(0, 242, 234, 0.15); color: var(--accent-color); border: 1px solid var(--accent-color);">
+                    <i class="fas fa-truck-fast"></i> Delivery request
+                  </button>
+                `) : ''}
                 ${status !== 'return_requested' ? `
                   <button class="btn-xs" onclick="openDriverModal('${order.id}')">
                     <i class="fas fa-motorcycle"></i> Driver
@@ -822,9 +1204,9 @@
       }).join('');
 
       const paginationHtml = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+        <div class="orders-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
           <div>Page ${currentPage} of ${totalPages}</div>
-          <div style="display: flex; gap: 0.5rem;">
+          <div class="orders-pagination-buttons" style="display: flex; gap: 0.5rem;">
             <button class="btn-xs" onclick="changePage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>
               <i class="fas fa-chevron-left"></i> Prev
             </button>
@@ -836,7 +1218,7 @@
       `;
 
       container.innerHTML = `
-        <div style="overflow-x: auto;">
+        <div class="orders-table-scroll">
           <table class="orders-table">
             <thead>
               <tr>
@@ -871,6 +1253,206 @@
       window.location.href = `order-detail.html?id=${orderId}`;
     }
 
+    function viewSellerTandaDelivery(orderId) {
+      window.location.href = `order-detail.html?id=${encodeURIComponent(String(orderId).trim())}#delivery-card`;
+    }
+
+    function closeDeliveryRequestModal() {
+      const m = document.getElementById('delivery-request-modal');
+      if (m) m.classList.remove('active');
+    }
+
+    function onDeliveryRequestModeChange() {
+      const mode = document.querySelector('input[name="dr-mode"]:checked');
+      const v = mode ? mode.value : 'local_broadcast';
+      const collWrap = document.getElementById('dr-collateral-wrap');
+      const orgWrap = document.getElementById('dr-org-wrap');
+      const collInput = document.getElementById('dr-collateral');
+      if (collWrap) collWrap.style.display = v === 'logistics_org' ? 'none' : 'block';
+      if (orgWrap) orgWrap.style.display = v === 'logistics_org' ? 'block' : 'none';
+      if (collInput) {
+        if (v === 'logistics_org') collInput.removeAttribute('required');
+        else collInput.setAttribute('required', 'required');
+      }
+    }
+
+    async function openDeliveryRequestModal(orderId) {
+      const oid = String(orderId || '').trim();
+      if (!oid) return;
+      await refreshSellerDeliveryJobsList();
+      if (orderIdHasActiveSellerDeliveryJob(oid)) {
+        showToast('This order already has an active Tanda delivery job. Opening order details…', 'info');
+        viewSellerTandaDelivery(oid);
+        return;
+      }
+      const order = sellerOrdersCache[oid];
+      const errEl = document.getElementById('dr-form-error');
+      if (errEl) {
+        errEl.style.display = 'none';
+        errEl.textContent = '';
+      }
+      document.getElementById('dr-order-id').value = oid;
+      const shipVal = order && order.shipping != null ? order.shipping : (order && order.shipping_cost != null ? order.shipping_cost : 0);
+      const subVal = order && order.subtotal != null ? order.subtotal : (order && order.total != null ? order.total : 0);
+      document.getElementById('dr-delivery-fee').value = String(parseFloat(shipVal) || 0);
+      document.getElementById('dr-collateral').value = String(parseFloat(subVal) || 0);
+      document.getElementById('dr-weight-kg').value = '';
+      document.getElementById('dr-package-desc').value = '';
+      document.getElementById('dr-notes').value = '';
+      document.getElementById('dr-package-photo').value = '';
+      const modes = document.querySelectorAll('input[name="dr-mode"]');
+      modes.forEach(function (r) {
+        r.checked = r.value === 'local_broadcast';
+      });
+      onDeliveryRequestModeChange();
+      const hint = document.getElementById('dr-order-hint');
+      if (hint) {
+        hint.textContent = 'Order #' + oid.substring(0, 8).toUpperCase() + (order && order.customer && order.customer.username ? ' · ' + order.customer.username : '');
+      }
+      const orgSel = document.getElementById('dr-org-id');
+      const orgHint = document.getElementById('dr-org-hint');
+      if (orgSel) {
+        orgSel.innerHTML = '<option value="">Loading companies…</option>';
+      }
+      document.getElementById('delivery-request-modal').classList.add('active');
+      try {
+        const res = await SuperAffiliateAPI.getCommerceDeliverySellerOrgs({ order_id: oid });
+        const rows = res.results || [];
+        if (orgSel) {
+          orgSel.innerHTML = '';
+          const ph = document.createElement('option');
+          ph.value = '';
+          ph.textContent = rows.length ? 'Select a logistics company…' : 'No companies cover this delivery address';
+          orgSel.appendChild(ph);
+          rows.forEach(function (o) {
+            const id = o.id != null ? String(o.id) : '';
+            if (!id) return;
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = (o.name || 'Company') + (o.contact_phone ? ' · ' + o.contact_phone : '');
+            orgSel.appendChild(opt);
+          });
+        }
+        if (orgHint) {
+          orgHint.textContent = res.filtered_by_order
+            ? (rows.length ? 'Filtered to companies that cover the buyer’s address.' : 'No approved logistics companies cover this order’s destination — check buyer LGA/state or use local riders.')
+            : 'All approved logistics companies (add order filter on server when viewing this order).';
+        }
+      } catch (e) {
+        if (orgSel) {
+          orgSel.innerHTML = '<option value="">Could not load companies</option>';
+        }
+        if (orgHint) orgHint.textContent = (e && e.message) ? String(e.message) : 'Could not load logistics companies.';
+      }
+    }
+
+    async function submitDeliveryRequestForm(ev) {
+      ev.preventDefault();
+      const errBox = document.getElementById('dr-form-error');
+      if (errBox) {
+        errBox.style.display = 'none';
+        errBox.textContent = '';
+      }
+      const orderId = document.getElementById('dr-order-id').value.trim();
+      const modeRadio = document.querySelector('input[name="dr-mode"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'local_broadcast';
+      const fee = drNormalizeMoneyInput(document.getElementById('dr-delivery-fee').value);
+      const collateral = drNormalizeMoneyInput(document.getElementById('dr-collateral').value);
+      const weightRaw = document.getElementById('dr-weight-kg').value.trim().replace(/,/g, '');
+      const wnum = parseFloat(weightRaw);
+      if (!Number.isFinite(wnum) || wnum <= 0) {
+        if (errBox) {
+          errBox.textContent = 'Enter package weight in kg (a number greater than zero, e.g. 1.5).';
+          errBox.style.display = 'block';
+        }
+        showToast('Enter a valid package weight in kg', 'error');
+        return;
+      }
+      let orgId = (document.getElementById('dr-org-id').value || '').trim();
+      if (mode === 'logistics_org' && !orgId) {
+        showToast('Select a logistics company', 'error');
+        return;
+      }
+      if (mode === 'local_broadcast') {
+        const cnum = parseFloat(collateral);
+        if (!Number.isFinite(cnum) || cnum <= 0) {
+          showToast('Enter rider collateral (NGN) for local broadcasts', 'error');
+          return;
+        }
+      }
+      const desc = (document.getElementById('dr-package-desc').value || '').trim();
+      const notes = (document.getElementById('dr-notes').value || '').trim();
+      const photoInput = document.getElementById('dr-package-photo');
+      const file = photoInput && photoInput.files && photoInput.files[0] ? photoInput.files[0] : null;
+      const btn = document.getElementById('dr-submit-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Submitting…';
+      }
+      try {
+        if (file) {
+          const fd = new FormData();
+          fd.append('order_id', orderId);
+          fd.append('mode', mode);
+          fd.append('delivery_fee', fee);
+          fd.append('package_weight_kg', weightRaw);
+          if (desc) fd.append('package_description', desc.slice(0, 500));
+          if (mode === 'local_broadcast') fd.append('collateral_required', collateral);
+          if (mode === 'logistics_org') fd.append('org_id', orgId);
+          if (notes) fd.append('notes', notes.slice(0, 500));
+          fd.append('package_photo', file);
+          await SuperAffiliateAPI.postCommerceSellerDeliveryJobMultipart(fd);
+        } else {
+          const body = {
+            order_id: orderId,
+            mode: mode,
+            delivery_fee: fee,
+            package_weight_kg: weightRaw,
+          };
+          if (desc) body.package_description = desc.slice(0, 500);
+          if (mode === 'local_broadcast') body.collateral_required = collateral;
+          if (mode === 'logistics_org') body.org_id = orgId;
+          if (notes) body.notes = notes.slice(0, 500);
+          await SuperAffiliateAPI.postCommerceSellerDeliveryJobJson(body);
+        }
+        showToast('Delivery request created. Pickup and delivery codes appear on order detail / tracking.', 'success');
+        closeDeliveryRequestModal();
+        loadOrders(currentPage, currentStatusFilter);
+      } catch (error) {
+        console.error('Delivery request failed:', error);
+        const rd = error && error.responseData;
+        if (rd && rd.error === 'active_delivery_exists') {
+          const oid = document.getElementById('dr-order-id').value.trim();
+          showToast('This order already has an active Tanda delivery job. Opening order details…', 'info');
+          closeDeliveryRequestModal();
+          await refreshSellerDeliveryJobsList();
+          loadOrders(currentPage, currentStatusFilter);
+          if (oid) viewSellerTandaDelivery(oid);
+          return;
+        }
+        let msg = (error && error.message) ? String(error.message) : 'Could not create delivery request';
+        if (rd) {
+          if (rd.error === 'order_in_return_flow' && rd.detail) {
+            msg = String(rd.detail);
+          } else if (rd.detail) {
+            msg = String(rd.detail);
+          } else if (rd.error) {
+            msg = String(rd.error);
+          }
+        }
+        if (errBox) {
+          errBox.textContent = msg;
+          errBox.style.display = 'block';
+        }
+        showToast(msg, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Create delivery request';
+        }
+      }
+    }
+
     async function updateOrderStatus(orderId, status) {
       try {
         const result = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/status/`, {
@@ -886,26 +1468,88 @@
       }
     }
 
+    function bindSellerHandoffCopies(panel) {
+      if (!panel) return;
+      panel.querySelectorAll('.btn-copy-otp').forEach(function (btn) {
+        btn.onclick = function () {
+          var t = btn.getAttribute('data-handoff-copy') || '';
+          if (!t) return;
+          navigator.clipboard.writeText(t).then(function () {
+            showToast('Code copied', 'success');
+          }).catch(function () {
+            showToast('Could not copy', 'error');
+          });
+        };
+      });
+    }
+
+    function fillSellerHandoffPanel(tracking) {
+      var panel = document.getElementById('seller-handoff-panel');
+      if (!panel) return;
+      var raw = tracking && (tracking.handoff_codes || tracking.handoffCodes || tracking.delivery_job || tracking.deliveryJob);
+      if (!raw) {
+        panel.style.display = 'none';
+        panel.innerHTML = '';
+        return;
+      }
+      var pick = (raw.pickup_otp != null && String(raw.pickup_otp).trim() !== '' ? String(raw.pickup_otp).trim() : '') ||
+        (raw.pickupOtp != null ? String(raw.pickupOtp).trim() : '');
+      var del = (raw.delivery_otp != null && String(raw.delivery_otp).trim() !== '' ? String(raw.delivery_otp).trim() : '') ||
+        (raw.deliveryOtp != null ? String(raw.deliveryOtp).trim() : '');
+      if (!pick && !del) {
+        panel.style.display = 'none';
+        panel.innerHTML = '';
+        return;
+      }
+      var jp = String(raw.job_purpose || raw.jobPurpose || 'delivery').toLowerCase();
+      var html = '<h4><i class="fas fa-key"></i> Rider confirmation codes</h4>';
+      if (pick) {
+        var pt = jp === 'seller_return_leg' ? 'Return pickup code' : 'Pickup code';
+        var ph = jp === 'seller_return_leg'
+          ? 'Tell the rider this when they collect the return from the buyer.'
+          : 'Tell the rider this when they pick up from you or your shop.';
+        html += '<div class="seller-handoff-row"><strong>' + escapeHtml(pt) + '</strong>' +
+          '<div class="seller-handoff-digits">' + escapeHtml(String(pick)) + '</div>' +
+          '<p class="seller-handoff-help">' + escapeHtml(ph) + '</p>' +
+          '<button type="button" class="btn-copy-otp" data-handoff-copy="' + escapeHtml(String(pick)) + '">Copy code</button></div>';
+      }
+      if (del) {
+        var dt = jp === 'seller_return_leg' ? 'Return drop-off code' : 'Delivery code';
+        var dh = jp === 'seller_return_leg'
+          ? 'Tell the rider this when they bring the return back to you.'
+          : 'Normally only the buyer needs this for handoff — if you see it, use only as instructed.';
+        html += '<div class="seller-handoff-row"><strong>' + escapeHtml(dt) + '</strong>' +
+          '<div class="seller-handoff-digits">' + escapeHtml(String(del)) + '</div>' +
+          '<p class="seller-handoff-help">' + escapeHtml(dh) + '</p>' +
+          '<button type="button" class="btn-copy-otp" data-handoff-copy="' + escapeHtml(String(del)) + '">Copy code</button></div>';
+      }
+      panel.innerHTML = html;
+      panel.style.display = 'block';
+      bindSellerHandoffCopies(panel);
+    }
+
     async function openDriverModal(orderId) {
       document.getElementById('driver-order-id').value = orderId;
       document.getElementById('driver-name').value = '';
       document.getElementById('driver-phone').value = '';
       document.getElementById('estimated-delivery-time').value = '';
       document.getElementById('driver-status').value = 'confirmed';
+      fillSellerHandoffPanel(null);
 
+      var trackingSnapshot = null;
       try {
         // Try to load existing tracking info
-        const tracking = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/tracking/`);
-        if (tracking) {
-          if (tracking.driver_name) {
-            document.getElementById('driver-name').value = tracking.driver_name;
+        trackingSnapshot = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/tracking/`);
+        if (trackingSnapshot) {
+          if (trackingSnapshot.driver_name) {
+            document.getElementById('driver-name').value = trackingSnapshot.driver_name;
           }
-          if (tracking.driver_phone) {
-            document.getElementById('driver-phone').value = tracking.driver_phone;
+          if (trackingSnapshot.driver_phone) {
+            document.getElementById('driver-phone').value = trackingSnapshot.driver_phone;
           }
-          if (tracking.estimated_delivery_time) {
+          if (trackingSnapshot.estimated_delivery_time) {
             // Convert ISO timestamp to datetime-local value (YYYY-MM-DDTHH:MM)
-            const iso = tracking.estimated_delivery_time;
+            const iso = trackingSnapshot.estimated_delivery_time;
             const d = new Date(iso);
             if (!isNaN(d.getTime())) {
               const pad = (n) => String(n).padStart(2, '0');
@@ -915,14 +1559,15 @@
               document.getElementById('estimated-delivery-time').value = '';
             }
           }
-          if (tracking.status) {
-            document.getElementById('driver-status').value = tracking.status;
+          if (trackingSnapshot.status) {
+            document.getElementById('driver-status').value = trackingSnapshot.status;
           }
         }
       } catch (error) {
         console.log('No existing tracking or error fetching tracking:', error);
       }
 
+      fillSellerHandoffPanel(trackingSnapshot);
       document.getElementById('driver-modal').classList.add('active');
     }
 
@@ -1057,6 +1702,7 @@
 
     function showToast(message, type) {
       const toast = document.createElement('div');
+      const z = typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600;
       toast.style.cssText = `
         position: fixed;
         top: 1.5rem;
@@ -1066,7 +1712,7 @@
         padding: 0.9rem 1.4rem;
         border-radius: 0.5rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-        z-index: 9999;
+        z-index: ${z};
         font-size: 0.9rem;
       `;
       toast.textContent = message;

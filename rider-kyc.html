@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Rider KYC — Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+      --err: #ff6b8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1.1rem 3rem;
+    }
+    .header {
+      max-width: 720px;
+      margin: 0 auto 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .container { max-width: 720px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 0.45rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 16px;
+      margin-bottom: 0.75rem;
+      font-family: inherit;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .btn-ghost { background: rgba(255,255,255,0.12); color: var(--text); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .err { color: var(--err); font-size: 0.88rem; margin-top: 0.5rem; white-space: pre-wrap; }
+    .ok { color: #7dcea0; font-size: 0.88rem; margin-top: 0.5rem; }
+    a.link { color: var(--accent); }
+    .file-hint { font-size: 0.75rem; color: var(--muted); margin: -0.5rem 0 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-id-card"></i> Rider KYC</h1>
+    <div class="nav">
+      <a class="btn btn-ghost" href="driver-dashboard.html" style="text-decoration:none;"><i class="fas fa-motorcycle"></i> Console</a>
+      <a class="btn btn-ghost" href="profile.html" style="text-decoration:none;"><i class="fas fa-user"></i> Profile</a>
+    </div>
+  </div>
+  <div class="container">
+    <p class="muted" style="margin-bottom: 1rem;">
+      Submit your delivery partner application from the web (multipart, same endpoint as the app). Photos can be large on iOS — upload may take up to a few minutes.
+    </p>
+    <div id="gate-panel" class="card" style="display: none;">
+      <h2>Not available</h2>
+      <p id="gate-msg" class="muted"></p>
+      <a href="help-support.html" class="link">Contact support</a>
+    </div>
+    <form id="kyc-form" class="card" style="display: none;">
+      <h2>Identity</h2>
+      <div class="grid2">
+        <div>
+          <label for="display_name">Display name</label>
+          <input id="display_name" name="display_name" required maxlength="120">
+        </div>
+        <div>
+          <label for="legal_full_name">Legal full name</label>
+          <input id="legal_full_name" name="legal_full_name" required maxlength="200">
+        </div>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" type="tel" required maxlength="32">
+        </div>
+        <div>
+          <label for="whatsapp">WhatsApp (optional)</label>
+          <input id="whatsapp" name="whatsapp" type="tel" maxlength="32">
+        </div>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="government_id_type">ID type</label>
+          <select id="government_id_type" name="government_id_type" required>
+            <option value="">Select…</option>
+            <option value="nin">NIN</option>
+            <option value="drivers_license">Driver's license</option>
+            <option value="voters_card">Voter's card</option>
+            <option value="intl_passport">International passport</option>
+            <option value="other">Other government-issued ID</option>
+          </select>
+        </div>
+        <div>
+          <label for="government_id_number">ID number</label>
+          <input id="government_id_number" name="government_id_number" required maxlength="64">
+        </div>
+      </div>
+      <div>
+        <label for="date_of_birth">Date of birth</label>
+        <input id="date_of_birth" name="date_of_birth" type="date" required>
+      </div>
+
+      <h2 style="margin-top:1rem;">Residence</h2>
+      <div>
+        <label for="residence_address">Address</label>
+        <input id="residence_address" name="residence_address" required maxlength="500">
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="residence_state">State</label>
+          <input id="residence_state" name="residence_state" required maxlength="100">
+        </div>
+        <div>
+          <label for="residence_lga">LGA</label>
+          <input id="residence_lga" name="residence_lga" required maxlength="120">
+        </div>
+      </div>
+      <div>
+        <label for="residence_nearest_market">Nearest market</label>
+        <input id="residence_nearest_market" name="residence_nearest_market" required maxlength="160">
+      </div>
+      <div>
+        <label for="residence_landmark">Landmark</label>
+        <input id="residence_landmark" name="residence_landmark" required maxlength="200">
+      </div>
+
+      <h2 style="margin-top:1rem;">Photos</h2>
+      <label for="passport_photo">Passport-style photo</label>
+      <input id="passport_photo" name="passport_photo" type="file" accept="image/*" capture="user">
+      <p class="file-hint">Required on first submit. JPEG/PNG recommended.</p>
+      <label for="government_id_image">Government ID photo</label>
+      <input id="government_id_image" name="government_id_image" type="file" accept="image/*" capture="environment">
+      <p class="file-hint">Must be readable. Required on first submit.</p>
+
+      <h2 style="margin-top:1rem;">Vehicle</h2>
+      <div>
+        <label for="vehicle_type">Transport type</label>
+        <select id="vehicle_type" name="vehicle_type" required>
+          <option value="">Select…</option>
+          <option value="bike">Bike / motorcycle</option>
+          <option value="tricycle">Tricycle (keke)</option>
+          <option value="car_sedan">Car – sedan</option>
+          <option value="car_pickup">Car – pickup / light truck</option>
+          <option value="car">Car – other</option>
+          <option value="van">Van</option>
+          <option value="truck">Truck</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="vehicle_plate_number">Plate number (if any)</label>
+          <input id="vehicle_plate_number" name="vehicle_plate_number" maxlength="32">
+        </div>
+        <div>
+          <label for="vehicle_description">Description (optional)</label>
+          <input id="vehicle_description" name="vehicle_description" maxlength="160">
+        </div>
+      </div>
+      <label for="vehicle_photo">Vehicle photo</label>
+      <input id="vehicle_photo" name="vehicle_photo" type="file" accept="image/*" capture="environment">
+      <p class="file-hint">Clear photo of your vehicle — required unless already on file from a prior submission.</p>
+
+      <h2 style="margin-top:1rem;">Union</h2>
+      <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <input type="checkbox" id="union_member" name="union_member" value="true" style="width:auto;margin:0;">
+        I am a member of a transport union / association
+      </label>
+      <div>
+        <label for="union_name">Union / association name</label>
+        <input id="union_name" name="union_name" maxlength="160" disabled>
+      </div>
+      <label style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
+        <input type="checkbox" id="willing_to_join_union" name="willing_to_join_union" value="true" style="width:auto;margin:0;">
+        Willing to be introduced to a relevant association
+      </label>
+
+      <h2 style="margin-top:1rem;">Notes (optional)</h2>
+      <textarea id="kyc_notes" name="kyc_notes" maxlength="2000" placeholder="Anything extra for reviewers…"></textarea>
+
+      <button type="submit" class="btn" id="submit-kyc" style="margin-top:1rem;">
+        <i class="fas fa-paper-plane"></i> Submit for review
+      </button>
+      <div id="form-err" class="err" role="alert"></div>
+      <div id="form-ok" class="ok" role="status"></div>
+    </form>
+  </div>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+
+    const form = document.getElementById('kyc-form');
+    const gate = document.getElementById('gate-panel');
+    const gateMsg = document.getElementById('gate-msg');
+    const unionMember = document.getElementById('union_member');
+    const unionName = document.getElementById('union_name');
+
+    function setYmd(input, isoDate) {
+      if (!input || !isoDate) return;
+      const s = String(isoDate).slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) input.value = s;
+    }
+
+    (async function boot() {
+      try {
+        const root = await SuperAffiliateAPI.getCommerceDeliveryPartnerMe();
+        const p = root && root.partner;
+        if (!p) {
+          form.style.display = 'block';
+          return;
+        }
+        if (p.resubmission_blocked) {
+          gateMsg.textContent = 'Resubmission is blocked on this profile. Contact support if this is a mistake.';
+          gate.style.display = 'block';
+          return;
+        }
+        if (p.status === 'pending' || p.application_locked) {
+          gateMsg.textContent = 'Your application is pending review. You cannot submit again until admin processes it.';
+          gate.style.display = 'block';
+          return;
+        }
+        if (!p.can_submit_kyc && p.status === 'approved') {
+          gateMsg.textContent = 'You are already approved. Changes to KYC are not open here; contact support for corrections.';
+          gate.style.display = 'block';
+          return;
+        }
+        if (!p.can_submit_kyc) {
+          gateMsg.textContent = 'Submission is not allowed for your current status (' + (p.status || '') + ').';
+          gate.style.display = 'block';
+          return;
+        }
+        form.style.display = 'block';
+        document.getElementById('display_name').value = p.display_name || '';
+        document.getElementById('legal_full_name').value = p.legal_full_name || '';
+        document.getElementById('phone').value = p.phone || '';
+        document.getElementById('whatsapp').value = p.whatsapp || '';
+        document.getElementById('government_id_type').value = p.government_id_type || '';
+        document.getElementById('government_id_number').value = p.government_id_number || '';
+        setYmd(document.getElementById('date_of_birth'), p.date_of_birth);
+        document.getElementById('residence_address').value = p.residence_address || '';
+        document.getElementById('residence_state').value = p.residence_state || '';
+        document.getElementById('residence_lga').value = p.residence_lga || '';
+        document.getElementById('residence_nearest_market').value = p.residence_nearest_market || '';
+        document.getElementById('residence_landmark').value = p.residence_landmark || '';
+        const pv = p.primary_vehicle;
+        if (pv && pv.vehicle_type) {
+          document.getElementById('vehicle_type').value = pv.vehicle_type;
+          if (pv.plate_number) document.getElementById('vehicle_plate_number').value = pv.plate_number;
+          if (pv.description) document.getElementById('vehicle_description').value = pv.description;
+        }
+        unionMember.checked = !!p.union_member;
+        unionName.disabled = !unionMember.checked;
+        unionName.value = p.union_name || '';
+        document.getElementById('willing_to_join_union').checked = !!p.willing_to_join_union;
+      } catch (e) {
+        gateMsg.textContent = e.message || String(e);
+        gate.style.display = 'block';
+      }
+    })();
+
+    unionMember.addEventListener('change', function () {
+      unionName.disabled = !unionMember.checked;
+      if (!unionMember.checked) unionName.value = '';
+    });
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      document.getElementById('form-err').textContent = '';
+      document.getElementById('form-ok').textContent = '';
+      const btn = document.getElementById('submit-kyc');
+      btn.disabled = true;
+      try {
+        const fd = new FormData();
+        fd.append('display_name', document.getElementById('display_name').value.trim());
+        fd.append('legal_full_name', document.getElementById('legal_full_name').value.trim());
+        fd.append('phone', document.getElementById('phone').value.trim());
+        const wa = document.getElementById('whatsapp').value.trim();
+        if (wa) fd.append('whatsapp', wa);
+        fd.append('government_id_type', document.getElementById('government_id_type').value);
+        fd.append('government_id_number', document.getElementById('government_id_number').value.trim());
+        fd.append('date_of_birth', document.getElementById('date_of_birth').value);
+        fd.append('residence_address', document.getElementById('residence_address').value.trim());
+        fd.append('residence_state', document.getElementById('residence_state').value.trim());
+        fd.append('residence_lga', document.getElementById('residence_lga').value.trim());
+        fd.append('residence_nearest_market', document.getElementById('residence_nearest_market').value.trim());
+        fd.append('residence_landmark', document.getElementById('residence_landmark').value.trim());
+        fd.append('vehicle_type', document.getElementById('vehicle_type').value);
+        const plate = document.getElementById('vehicle_plate_number').value.trim();
+        if (plate) fd.append('vehicle_plate_number', plate);
+        const vdesc = document.getElementById('vehicle_description').value.trim();
+        if (vdesc) fd.append('vehicle_description', vdesc);
+        fd.append('union_member', unionMember.checked ? 'true' : 'false');
+        if (unionMember.checked) fd.append('union_name', unionName.value.trim());
+        fd.append('willing_to_join_union', document.getElementById('willing_to_join_union').checked ? 'true' : 'false');
+        const notes = document.getElementById('kyc_notes').value.trim();
+        if (notes) fd.append('kyc_notes', notes);
+        const pf = document.getElementById('passport_photo').files[0];
+        const gf = document.getElementById('government_id_image').files[0];
+        const vf = document.getElementById('vehicle_photo').files[0];
+        if (pf) fd.append('passport_photo', pf);
+        if (gf) fd.append('government_id_image', gf);
+        if (vf) fd.append('vehicle_photo', vf);
+        await SuperAffiliateAPI.updateCommerceDeliveryPartnerProfile(fd);
+        document.getElementById('form-ok').textContent = 'Submitted. Your status is now pending review.';
+      } catch (e) {
+        let msg = e.message || String(e);
+        if (e.responseData && typeof e.responseData === 'object') {
+          const rows = Object.entries(e.responseData).map(([k, v]) => k + ': ' + (Array.isArray(v) ? v.join(', ') : v));
+          if (rows.length) msg = rows.join('\n');
+        }
+        document.getElementById('form-err').textContent = msg;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

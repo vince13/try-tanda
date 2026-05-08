@@ -16,7 +16,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script src="js/ios-enhancements.js"></script>
 
   <style>
@@ -877,7 +877,7 @@
         }
         
         // Check if user is admin (superuser, staff, or role='admin')
-        isAdmin = currentUser.is_superuser || currentUser.is_staff || currentUser.role === 'admin';
+        isAdmin = SuperAffiliateAPI.isTandaWebAdmin(currentUser);
         console.log('Admin status:', isAdmin, 'User:', currentUser);
         return isAdmin;
       } catch (error) {
@@ -916,6 +916,13 @@
           
           // Add marketplace link (current page indicator)
           const navContainer = document.getElementById('authNav');
+          if (navContainer && !navContainer.querySelector('a[href="search.html"]')) {
+            const searchLink = document.createElement('a');
+            searchLink.href = 'search.html';
+            searchLink.className = 'nav-link-btn';
+            searchLink.innerHTML = '<i class="fas fa-search"></i><span>Search</span>';
+            navContainer.insertBefore(searchLink, navContainer.firstChild);
+          }
           if (navContainer && !navContainer.querySelector('a[href="marketplace.html"]')) {
             const marketplaceLink = document.createElement('a');
             marketplaceLink.href = 'marketplace.html';

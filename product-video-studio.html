@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>AI Product Preview – Video Studio – Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --grad: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --bg0: #050508;
+      --bg1: #111118;
+      --card: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --muted: #a8a8b3;
+      --text: #fff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(160deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    .header {
+      max-width: 960px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    h1.title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav .user-menu-dropdown { overflow: visible !important; position: relative !important; }
+      .nav .user-menu-wrapper { overflow: visible !important; }
+      .header { flex-direction: column; align-items: stretch; }
+    }
+    .nav > * { flex-shrink: 0; }
+
+    .wrap { max-width: 960px; margin: 0 auto; }
+
+    .panel {
+      display: none;
+      text-align: center;
+      padding: 2.5rem 1.25rem;
+      border-radius: 1rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      margin-bottom: 1.25rem;
+    }
+    .panel h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .panel p { color: var(--muted); font-size: 0.92rem; margin-bottom: 1rem; line-height: 1.45; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.65rem 1.15rem;
+      min-height: 44px;
+      border-radius: 0.65rem;
+      border: none;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background: var(--grad);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-danger {
+      background: rgba(244, 67, 54, 0.18);
+      border: 1px solid rgba(244, 67, 54, 0.45);
+      color: #ff8a80;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.35rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="text"], input[type="file"], select, textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 0.55rem;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--text);
+      font: inherit;
+      margin-bottom: 0.85rem;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+
+    .tier-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+    .tier-option {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+    .tier-option input { margin: 0; width: auto; }
+    .tier-option:has(input:checked) {
+      border-color: var(--accent);
+      background: rgba(0, 242, 234, 0.12);
+    }
+
+    .credits {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .video-box {
+      margin-top: 1rem;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+      aspect-ratio: 9/16;
+      max-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-box video { width: 100%; height: 100%; object-fit: contain; }
+    .video-box.placeholder { color: var(--muted); font-size: 0.9rem; padding: 2rem; text-align: center; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+    .hint { font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-top: 0.75rem; }
+
+    .loading-line { display: none; align-items: center; gap: 0.5rem; color: var(--accent); font-size: 0.9rem; margin-top: 0.75rem; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .product-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: flex-end; margin-bottom: 1rem; }
+    .product-row input { flex: 1; min-width: 200px; margin-bottom: 0; }
+
+    .listing-images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    @media (min-width: 480px) {
+      .listing-images-grid {
+        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      }
+    }
+    .listing-image-tile {
+      position: relative;
+      padding: 0;
+      border: 2px solid var(--border);
+      border-radius: 0.65rem;
+      overflow: hidden;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.45);
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .listing-image-tile:hover {
+      border-color: rgba(0, 242, 234, 0.45);
+    }
+    .listing-image-tile:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .listing-image-tile.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(0, 242, 234, 0.18);
+    }
+    .listing-image-tile.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .listing-image-tile img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+    .listing-image-caption {
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 0.35rem 0.45rem;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .video-box.reel-preview {
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-film"></i> AI Product Preview</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="wrap">
+    <div id="studio-load-error" class="panel" role="alert">
+      <h2><i class="fas fa-plug"></i> Studio unavailable</h2>
+      <p id="studio-load-error-detail">Could not load catalog or preferences.</p>
+      <button type="button" class="btn" id="studio-load-retry"><i class="fas fa-redo"></i> Try again</button>
+    </div>
+
+    <div id="studio-main">
+      <div class="card">
+        <h2><i class="fas fa-box"></i> Listing</h2>
+        <p class="hint">Open this page from <strong>Edit product</strong> or <strong>My Products</strong> with a product id, or paste a listing UUID below.</p>
+        <div class="product-row">
+          <div style="flex:1;min-width:220px">
+            <label for="product-id-input">Product ID</label>
+            <input type="text" id="product-id-input" placeholder="e.g. from URL ?product=…" autocomplete="off">
+          </div>
+          <button type="button" class="btn btn-secondary" id="btn-load-product"><i class="fas fa-sync"></i> Load</button>
+        </div>
+        <div id="listing-preview-wrap" style="display:none;">
+          <label id="listing-photos-label">Product photos</label>
+          <p class="hint" id="listing-photos-hint" style="margin-bottom:0.65rem;">Tap a photo to use it as the still for AI generation (the server fetches this URL).</p>
+          <div id="listing-images-grid" class="listing-images-grid" role="listbox" aria-labelledby="listing-photos-label"></div>
+          <p id="listing-images-empty" class="hint" style="display:none;">No photos on this listing. Upload a still in the section below.</p>
+
+          <label style="margin-top:1rem;">Current preview reel (catalog)</label>
+          <div class="video-box reel-preview" id="listing-preview-box">
+            <video id="listing-preview-video" controls playsinline style="display:none;"></video>
+            <span id="listing-preview-none" class="placeholder" style="display:none;">No preview reel on this listing yet.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-sliders-h"></i> Tier &amp; template</h2>
+        <div id="credits-line" class="credits"></div>
+        <label>Quality tier</label>
+        <div class="tier-grid" id="tier-radios"></div>
+        <p id="free-tier-note" class="hint" style="display:none;"></p>
+
+        <label for="template-select">Prompt template</label>
+        <select id="template-select"></select>
+
+        <label for="prompt">Motion / scene prompt</label>
+        <textarea id="prompt" placeholder="Describe how the product should move or be shown…"></textarea>
+
+        <div class="row">
+          <div>
+            <label><input type="checkbox" id="wm-enabled" style="width:auto;margin-right:0.35rem;"> Seller watermark on clip</label>
+            <input type="text" id="wm-text" placeholder="Shop name (optional)">
+            <label for="wm-pos">Position</label>
+            <select id="wm-pos">
+              <option value="top_left">Top left</option>
+              <option value="center_left">Center left</option>
+            </select>
+          </div>
+          <div>
+            <label for="image-file">Product still (upload)</label>
+            <input type="file" id="image-file" accept="image/jpeg,image/png,image/webp">
+            <p id="image-source-hint" class="hint" style="margin:0;"></p>
+          </div>
+        </div>
+
+        <div class="loading-line" id="gen-loading"><div class="spinner"></div> Generating… this may take a few minutes.</div>
+
+        <div class="actions">
+          <button type="button" class="btn" id="btn-generate" disabled><i class="fas fa-magic"></i> Generate preview</button>
+        </div>
+
+        <label>Latest clip</label>
+        <div class="video-box placeholder" id="result-video-wrap">
+          <video id="result-video" controls playsinline style="display:none;width:100%;height:100%;object-fit:contain;"></video>
+          <span id="result-video-placeholder">Generate a clip to preview it here.</span>
+        </div>
+
+        <div class="actions" id="attach-actions" style="display:none;">
+          <button type="button" class="btn" id="btn-attach"><i class="fas fa-link"></i> Attach to this listing</button>
+          <button type="button" class="btn btn-danger" id="btn-clear-preview"><i class="fas fa-times"></i> Remove preview from listing</button>
+        </div>
+        <p class="hint">Attach uses the same API as the app: <code style="color:#8be9fd;">POST /api/ai/product-video/attach/</code> with <code>video_url</code> from generate. Removing calls <code>clear-preview</code>.</p>
+      </div>
+
+      <p style="text-align:center;margin-top:1rem;"><a href="products.html?my=true" style="color:var(--muted);">← My products</a></p>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    let catalog = null;
+    let selectedTier = 'pro';
+    let activeProductId = null;
+    let activeProduct = null;
+    let lastVideoUrl = null;
+    let pendingListingImageUrl = null;
+
+    function clearListingImageTileSelection() {
+      document.querySelectorAll('.listing-image-tile').forEach((el) => {
+        el.classList.remove('selected');
+        el.setAttribute('aria-pressed', 'false');
+      });
+    }
+
+    function selectListingImage(url) {
+      if (!url) return;
+      document.getElementById('image-file').value = '';
+      pendingListingImageUrl = url;
+      clearListingImageTileSelection();
+      document.querySelectorAll('.listing-image-tile').forEach((el) => {
+        if (el.dataset.imageUrl === url) {
+          el.classList.add('selected');
+          el.setAttribute('aria-pressed', 'true');
+        }
+      });
+      document.getElementById('image-source-hint').textContent =
+        'Using the selected listing photo (server will fetch this URL). Upload a file below to override.';
+    }
+
+    function collectProductImageUrls(product) {
+      if (!product) return [];
+      const seen = new Set();
+      const out = [];
+      function add(raw, label) {
+        const u = absoluteImageUrl(raw);
+        if (!u) return;
+        const key = u.replace(/\?.*$/, '');
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push({ url: u, label: String(label || 'Photo') });
+      }
+      if (product.image) add(product.image, 'Main image');
+      if (product.thumbnail) add(product.thumbnail, 'Thumbnail');
+      const imgs = product.images;
+      if (Array.isArray(imgs)) {
+        const sorted = [...imgs].sort((a, b) => {
+          const pa = a && a.is_primary ? 0 : 1;
+          const pb = b && b.is_primary ? 0 : 1;
+          if (pa !== pb) return pa - pb;
+          const oa = Number(a && a.order != null ? a.order : 9999);
+          const ob = Number(b && b.order != null ? b.order : 9999);
+          return oa - ob;
+        });
+        sorted.forEach((im, i) => {
+          if (!im) return;
+          const raw = im.image || im.image_url || im.url;
+          if (raw) add(raw, im.is_primary ? 'Primary photo' : `Photo ${i + 1}`);
+        });
+      }
+      return out;
+    }
+
+    function renderListingImageGallery(entries) {
+      const grid = document.getElementById('listing-images-grid');
+      const empty = document.getElementById('listing-images-empty');
+      grid.innerHTML = '';
+      pendingListingImageUrl = null;
+      clearListingImageTileSelection();
+      if (!entries.length) {
+        empty.style.display = 'block';
+        document.getElementById('image-source-hint').textContent = '';
+        return;
+      }
+      empty.style.display = 'none';
+      entries.forEach((entry) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'listing-image-tile';
+        btn.dataset.imageUrl = entry.url;
+        btn.tabIndex = 0;
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.setAttribute('aria-label', `Use ${entry.label} for AI video`);
+        const img = document.createElement('img');
+        img.src = entry.url;
+        img.alt = entry.label;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        btn.appendChild(img);
+        const cap = document.createElement('span');
+        cap.className = 'listing-image-caption';
+        cap.textContent = entry.label;
+        btn.appendChild(cap);
+        btn.addEventListener('click', () => selectListingImage(entry.url));
+        btn.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            selectListingImage(entry.url);
+          }
+        });
+        grid.appendChild(btn);
+      });
+      selectListingImage(entries[0].url);
+    }
+
+    function apiRootWithoutSlash() {
+      if (typeof API_BASE_URL !== 'undefined') {
+        return String(API_BASE_URL).replace(/\/api\/?$/, '');
+      }
+      return '';
+    }
+
+    function absoluteImageUrl(path) {
+      if (!path || !String(path).trim()) return null;
+      const p = String(path).trim();
+      if (p.startsWith('http://') || p.startsWith('https://')) return p;
+      const base = apiRootWithoutSlash();
+      return base + (p.startsWith('/') ? p : '/' + p);
+    }
+
+    function showLoadError(msg) {
+      document.getElementById('studio-main').style.display = 'none';
+      const el = document.getElementById('studio-load-error');
+      document.getElementById('studio-load-error-detail').textContent = msg || 'Please try again.';
+      el.style.display = 'block';
+    }
+    function hideLoadError() {
+      document.getElementById('studio-load-error').style.display = 'none';
+      document.getElementById('studio-main').style.display = 'block';
+    }
+
+    function tierCardsFromCatalog(c) {
+      const o = [];
+      if (c.free_tier && typeof c.free_tier === 'object') {
+        o.push({ ...c.free_tier, _kind: 'free' });
+      }
+      if (Array.isArray(c.tiers)) {
+        c.tiers.forEach(t => { if (t && typeof t === 'object') o.push({ ...t, _kind: 'paid' }); });
+      }
+      return o;
+    }
+
+    function renderTierRadios(c) {
+      const host = document.getElementById('tier-radios');
+      host.innerHTML = '';
+      const cards = tierCardsFromCatalog(c);
+      const freeNote = document.getElementById('free-tier-note');
+      cards.forEach((row, i) => {
+        const key = (row.tier_key || row.tier || row.id || row.key || '').toString().toLowerCase();
+        if (!key) return;
+        const label = document.createElement('label');
+        label.className = 'tier-option';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'pv_tier';
+        input.value = key;
+        if (key === selectedTier) input.checked = true;
+        const title = (row.title || row.label || key).toString();
+        const price = row.price_ngn_per_video_display || row.quality_summary || key;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(` ${title} – ${price}`));
+        input.addEventListener('change', () => {
+          if (input.checked) selectedTier = key;
+        });
+        host.appendChild(label);
+      });
+      const free = c.free_tier;
+      if (free && free.available === false) {
+        freeNote.style.display = 'block';
+        freeNote.textContent = free.unavailable_reason || 'Free tier is unavailable; choose a paid tier.';
+      } else {
+        freeNote.style.display = 'none';
+      }
+    }
+
+    function renderTemplates(c) {
+      const sel = document.getElementById('template-select');
+      sel.innerHTML = '';
+      const templates = Array.isArray(c.templates) ? c.templates : [];
+      templates.forEach(t => {
+        if (!t || !t.id) return;
+        const o = document.createElement('option');
+        o.value = t.id;
+        o.textContent = (t.title || t.id).toString();
+        sel.appendChild(o);
+      });
+      sel.onchange = () => applyTemplatePrompt(sel.value, true);
+    }
+
+    function applyTemplatePrompt(tid, replace) {
+      if (!catalog || !tid) return;
+      const templates = catalog.templates || [];
+      for (const t of templates) {
+        if (t && t.id === tid) {
+          const p = (t.prompt || '').toString();
+          const el = document.getElementById('prompt');
+          if (p && (replace || !el.value.trim())) el.value = p;
+          break;
+        }
+      }
+    }
+
+    function renderCredits(bal) {
+      const el = document.getElementById('credits-line');
+      if (!bal || typeof bal !== 'object') {
+        el.textContent = '';
+        return;
+      }
+      const parts = Object.keys(bal).map(k => `${k}: ${bal[k]}`).join(' · ');
+      el.textContent = 'Prepaid credits – ' + parts;
+    }
+
+    async function bootstrap() {
+      hideLoadError();
+      try {
+        const cat = await SuperAffiliateAPI.getProductVideoCatalog();
+        if (!cat || cat.ok !== true) {
+          throw new Error((cat && cat.error) || 'Catalog not available (studio may be disabled).');
+        }
+        let pref = { default_tier: 'pro', default_template_id: '' };
+        let creds = null;
+        try {
+          pref = await SuperAffiliateAPI.getProductVideoPreference() || pref;
+        } catch (e) {
+          console.warn('preference', e);
+        }
+        try {
+          creds = await SuperAffiliateAPI.getProductVideoCreditsBalance();
+        } catch (e) {
+          console.warn('credits balance', e);
+        }
+        catalog = cat;
+        let t = (pref && pref.default_tier && String(pref.default_tier).toLowerCase()) || 'pro';
+        if (t === 'free' && cat.free_tier && cat.free_tier.available === false) t = 'pro';
+        selectedTier = t;
+        renderTierRadios(cat);
+        renderTemplates(cat);
+        const radios = document.querySelectorAll('input[name="pv_tier"]');
+        radios.forEach(r => { if (r.value === selectedTier) r.checked = true; });
+        const tid = (pref && pref.default_template_id) ? String(pref.default_template_id) : '';
+        const ts = document.getElementById('template-select');
+        if (tid) {
+          for (let i = 0; i < ts.options.length; i++) {
+            if (ts.options[i].value === tid) {
+              ts.value = tid;
+              break;
+            }
+          }
+        }
+        applyTemplatePrompt(ts.value, true);
+        if (creds && creds.ok && creds.balances) renderCredits(creds.balances);
+        document.getElementById('btn-generate').disabled = false;
+      } catch (e) {
+        console.error(e);
+        showLoadError(e.message || 'Failed to load studio.');
+      }
+    }
+
+    async function loadProductById(pid) {
+      const id = (pid || '').trim();
+      if (!id) return;
+      activeProductId = id;
+      activeProduct = await SuperAffiliateAPI.apiRequest(`/commerce/products/${encodeURIComponent(id)}/`);
+      renderListingImageGallery(collectProductImageUrls(activeProduct));
+
+      const wrap = document.getElementById('listing-preview-wrap');
+      const vid = document.getElementById('listing-preview-video');
+      const none = document.getElementById('listing-preview-none');
+      const url = activeProduct.preview_reel_url || null;
+      wrap.style.display = 'block';
+      if (url) {
+        vid.src = url;
+        vid.style.display = 'block';
+        none.style.display = 'none';
+      } else {
+        vid.removeAttribute('src');
+        vid.style.display = 'none';
+        none.style.display = 'block';
+      }
+      document.getElementById('attach-actions').style.display = 'flex';
+    }
+
+    document.getElementById('studio-load-retry').addEventListener('click', bootstrap);
+
+    document.getElementById('btn-load-product').addEventListener('click', async () => {
+      try {
+        await loadProductById(document.getElementById('product-id-input').value);
+      } catch (e) {
+        alert(e.message || 'Could not load product');
+      }
+    });
+
+    document.getElementById('image-file').addEventListener('change', () => {
+      const f = document.getElementById('image-file').files && document.getElementById('image-file').files[0];
+      clearListingImageTileSelection();
+      pendingListingImageUrl = null;
+      if (f) {
+        document.getElementById('image-source-hint').textContent = 'Using uploaded file.';
+        return;
+      }
+      const firstTile = document.querySelector('.listing-image-tile');
+      if (firstTile && firstTile.dataset.imageUrl) {
+        selectListingImage(firstTile.dataset.imageUrl);
+      } else {
+        document.getElementById('image-source-hint').textContent = '';
+      }
+    });
+
+    function watermarkFields() {
+      const on = document.getElementById('wm-enabled').checked;
+      const text = document.getElementById('wm-text').value.trim();
+      const pos = document.getElementById('wm-pos').value;
+      if (!on || !text) return {};
+      return {
+        seller_watermark_enabled: true,
+        seller_watermark_text: text,
+        seller_watermark_position: pos,
+      };
+    }
+
+    document.getElementById('btn-generate').addEventListener('click', async () => {
+      const tier = (document.querySelector('input[name="pv_tier"]:checked') || {}).value || selectedTier;
+      const templateId = document.getElementById('template-select').value || '';
+      const prompt = document.getElementById('prompt').value.trim();
+      const file = document.getElementById('image-file').files && document.getElementById('image-file').files[0];
+      const urlFromListing = pendingListingImageUrl;
+
+      const wm = watermarkFields();
+      const genEl = document.getElementById('gen-loading');
+      genEl.style.display = 'flex';
+      document.getElementById('btn-generate').disabled = true;
+
+      try {
+        let res;
+        if (file) {
+          res = await SuperAffiliateAPI.generateProductVideoFromFile(file, {
+            tier,
+            prompt,
+            templateId,
+            ...wm,
+          });
+        } else if (urlFromListing) {
+          res = await SuperAffiliateAPI.generateProductVideoFromImageUrl(urlFromListing, {
+            tier,
+            prompt,
+            template_id: templateId,
+            ...wm,
+          });
+        } else {
+          throw new Error('Upload a still, or load a product and pick a listing photo above.');
+        }
+        if (!res || res.ok !== true) {
+          throw new Error((res && res.error) || 'Generation failed');
+        }
+        lastVideoUrl = res.video_url || null;
+        if (lastVideoUrl) {
+          const v = document.getElementById('result-video');
+          v.src = lastVideoUrl;
+          v.style.display = 'block';
+          document.getElementById('result-video-placeholder').style.display = 'none';
+          document.getElementById('result-video-wrap').classList.remove('placeholder');
+        }
+        if (activeProductId) document.getElementById('attach-actions').style.display = 'flex';
+      } catch (e) {
+        console.error(e);
+        alert(e.message || 'Generation failed');
+      } finally {
+        genEl.style.display = 'none';
+        document.getElementById('btn-generate').disabled = false;
+      }
+    });
+
+    document.getElementById('btn-attach').addEventListener('click', async () => {
+      if (!activeProductId || !lastVideoUrl) {
+        alert('Load a listing and generate a clip first.');
+        return;
+      }
+      try {
+        const res = await SuperAffiliateAPI.attachProductPreviewReel({
+          productId: activeProductId,
+          videoUrl: lastVideoUrl,
+        });
+        if (!res || res.ok !== true) {
+          throw new Error((res && res.error) || 'Attach failed');
+        }
+        alert('Preview reel saved on this product.');
+        await loadProductById(activeProductId);
+      } catch (e) {
+        alert(e.message || 'Attach failed');
+      }
+    });
+
+    document.getElementById('btn-clear-preview').addEventListener('click', async () => {
+      if (!activeProductId) return;
+      if (!confirm('Remove the preview reel from this listing?')) return;
+      try {
+        const res = await SuperAffiliateAPI.clearProductPreviewReel(activeProductId);
+        if (!res || res.ok !== true) {
+          throw new Error((res && res.error) || 'Could not remove preview');
+        }
+        await loadProductById(activeProductId);
+      } catch (e) {
+        alert(e.message || 'Remove failed');
+      }
+    });
+
+    const qp = new URLSearchParams(window.location.search);
+    const qpProduct = qp.get('product');
+    if (qpProduct) document.getElementById('product-id-input').value = qpProduct;
+
+    bootstrap().then(() => {
+      if (qpProduct) {
+        loadProductById(qpProduct).catch(e => console.warn(e));
+      }
+    });
+  </script>
+</body>
+</html>

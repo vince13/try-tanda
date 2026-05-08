@@ -62,16 +62,35 @@
     }
     
     @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
       .nav {
         gap: 0.25rem;
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
       
       .nav::-webkit-scrollbar {
         display: none;
+      }
+
+      .nav > * {
+        flex-shrink: 0;
+      }
+
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
       }
     }
 
@@ -345,6 +364,18 @@
       color: var(--text-secondary);
     }
 
+    .address-load-error {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .address-load-error h3 {
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 1rem;
@@ -390,6 +421,15 @@
       <div id="loading-section" class="loading">
         <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
         <p>Loading addresses...</p>
+      </div>
+
+      <div id="address-load-error" class="address-load-error">
+        <i class="fas fa-exclamation-circle" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.45;"></i>
+        <h3>Could not load addresses</h3>
+        <p style="max-width: 400px; margin: 0 auto 1.25rem;">Check your connection and try again.</p>
+        <button type="button" class="btn btn-primary" id="address-retry-btn">
+          <i class="fas fa-redo"></i> Try again
+        </button>
       </div>
 
       <div id="addresses-section" style="display: none;">
@@ -493,7 +533,7 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let currentAddressId = null;
 
@@ -507,6 +547,10 @@
 
     // Load addresses
     async function loadAddresses() {
+      document.getElementById('address-load-error').style.display = 'none';
+      document.getElementById('addresses-section').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+
       try {
         const response = await SuperAffiliateAPI.apiRequest('/commerce/shipping/addresses/');
         // Handle both array and paginated response formats
@@ -516,8 +560,8 @@
         displayAddresses(addresses);
       } catch (error) {
         console.error('Error loading addresses:', error);
-        showAlert('Failed to load addresses. Please try again.', 'error');
         document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('address-load-error').style.display = 'block';
       }
     }
 
@@ -526,6 +570,7 @@
       const loadingSection = document.getElementById('loading-section');
       const addressesSection = document.getElementById('addresses-section');
 
+      document.getElementById('address-load-error').style.display = 'none';
       loadingSection.style.display = 'none';
       addressesSection.style.display = 'block';
 
@@ -741,6 +786,8 @@
         closeModal();
       }
     });
+
+    document.getElementById('address-retry-btn').addEventListener('click', loadAddresses);
 
     // Initialize
     loadAddresses();

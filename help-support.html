@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Help &amp; support - Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+      --err: #ff6b8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 1040px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    @media (max-width: 768px) {
+      .nav { width: 100%; overflow-x: auto; gap: 0.25rem; scrollbar-width: none; }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.05rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .faq-item {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0.85rem 0;
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-weight: 600; margin-bottom: 0.35rem; }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    /* Mobile-style chat thread */
+    .thread-wrap {
+      max-height: min(480px, 56vh);
+      overflow: auto;
+      padding: 1rem 0.65rem;
+      background: rgba(0,0,0,0.45);
+      border-radius: 1rem;
+      margin: 0.75rem 0;
+      border: 1px solid rgba(255,255,255,0.08);
+      scroll-behavior: smooth;
+    }
+    .chat-row {
+      display: flex;
+      margin-bottom: 0.85rem;
+      max-width: 100%;
+      align-items: flex-end;
+    }
+    .chat-row--mine { justify-content: flex-end; }
+    .chat-row--other { justify-content: flex-start; gap: 0.5rem; }
+    .chat-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .chat-avatar--bot { background: rgba(59, 130, 246, 0.35); color: #93c5fd; }
+    .chat-avatar--agent { background: rgba(16, 185, 129, 0.35); color: #6ee7b7; }
+    .chat-avatar--system { background: rgba(251, 146, 60, 0.35); color: #fdba74; }
+    .chat-avatar--user { background: rgba(148, 163, 184, 0.35); color: #e2e8f0; }
+    .chat-row-inner { max-width: min(88%, 440px); display: flex; flex-direction: column; min-width: 0; }
+    .chat-row--mine .chat-row-inner { align-items: flex-end; }
+    .chat-row--other .chat-row-inner { align-items: flex-start; }
+    .chat-bubble {
+      padding: 0.65rem 0.95rem;
+      border-radius: 1.15rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      word-break: break-word;
+      text-align: left;
+    }
+    .chat-bubble--mine {
+      background: linear-gradient(135deg, rgba(255,0,80,0.92), rgba(0,242,234,0.5));
+      color: #fff;
+      border-bottom-right-radius: 0.3rem;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+    }
+    .chat-bubble--bot {
+      background: rgba(37, 99, 235, 0.22);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      color: #e2e8f0;
+      border-bottom-left-radius: 0.3rem;
+    }
+    .chat-bubble--agent {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #ecfdf5;
+      border-bottom-left-radius: 0.3rem;
+    }
+    .chat-bubble--system {
+      background: rgba(251, 146, 60, 0.12);
+      border: 1px solid rgba(251, 146, 60, 0.4);
+      color: #ffedd5;
+      border-bottom-left-radius: 0.3rem;
+    }
+    .chat-bubble--peer {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      border-bottom-left-radius: 0.3rem;
+    }
+    .chat-body { white-space: pre-wrap; }
+    .chat-meta {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.28rem;
+      padding: 0 0.2rem;
+      line-height: 1.35;
+    }
+    .chat-meta-label { font-weight: 600; color: rgba(255,255,255,0.55); }
+    .chat-meta-time {
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+    }
+    .chat-meta-sep {
+      margin: 0 0.35rem;
+      color: rgba(255,255,255,0.28);
+      user-select: none;
+    }
+    .chat-row--mine .chat-meta { text-align: right; }
+    .msg-media { margin: 0.45rem 0 0; }
+    .msg-media img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 0.5rem;
+      display: block;
+    }
+    .msg-media a.file-link { color: inherit; font-weight: 600; text-decoration: underline; }
+    .chat-bubble--mine .msg-media a.file-link { color: #fff; }
+    .banner-err { color: var(--err); font-size: 0.9rem; margin: 0.5rem 0; }
+    .badge {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.35rem;
+      background: rgba(0,242,234,0.15);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .support-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .support-split { grid-template-columns: 1fr; }
+    }
+    .conv-list-wrap {
+      border: none;
+      border-radius: 0;
+      max-height: min(420px, 52vh);
+      overflow: auto;
+      background: transparent;
+      padding-right: 0.25rem;
+    }
+    .conv-row {
+      display: block;
+      width: 100%;
+      margin: 0 0 0.75rem 0;
+      padding: 1rem 1.05rem;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      border-radius: 0.95rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.35) 100%);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    }
+    .conv-row:last-child { margin-bottom: 0; }
+    .conv-row:hover {
+      border-color: rgba(0,242,234,0.35);
+      box-shadow: 0 10px 36px rgba(0,242,234,0.08);
+      transform: translateY(-1px);
+    }
+    .conv-row.active {
+      border-color: rgba(0, 242, 234, 0.55);
+      box-shadow: 0 0 0 1px rgba(0,242,234,0.2), 0 10px 40px rgba(0,242,234,0.12);
+      background: linear-gradient(165deg, rgba(0,242,234,0.12) 0%, rgba(0,0,0,0.4) 100%);
+    }
+    .conv-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+    .conv-subj {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.3;
+      color: #fff;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .conv-badges-row { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; flex-shrink: 0; }
+    .conv-snippet {
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.62);
+      text-align: left;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .conv-meta-footer {
+      margin-top: 0.75rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-align: left;
+    }
+    .attach-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.5rem 0 0.35rem;
+    }
+    .attach-name { font-size: 0.85rem; color: var(--muted); }
+    .poll-hint { font-size: 0.78rem; color: var(--muted); margin: 0.5rem 0 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-life-ring"></i> Help &amp; support</h1>
+    <div class="nav" id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <div id="staff-note" class="card" style="display: none;">
+      <h2>Your access</h2>
+      <p id="staff-note-body" class="muted"></p>
+    </div>
+
+    <div class="card">
+      <h2>FAQs</h2>
+      <p class="muted" style="margin-bottom: 1rem;">Loaded from the support knowledge base (sign-in required).</p>
+      <div id="faq-loading" class="muted"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+      <div id="faq-error" class="banner-err" style="display: none;"></div>
+      <div id="faq-list" style="display: none;"></div>
+      <button type="button" class="btn btn-ghost" id="faq-retry" style="margin-top: 0.75rem; display: none;"><i class="fas fa-redo"></i> Reload FAQs</button>
+    </div>
+
+    <div class="card">
+      <h2>Support conversations</h2>
+      <p class="muted" style="margin-bottom: 1rem;">
+        Open a ticket, switch threads from your history, or open a shared link (<code style="font-size:0.85em;">?conversation=</code>).
+        Optional <strong>attachment</strong> on <code style="font-size:0.85em;">support/send/</code> — image, PDF, video, or other file (multipart field <code style="font-size:0.85em;">attachment</code>; max 25MB). Plain text still uses JSON or multipart with caption only.
+      </p>
+
+      <div class="support-split">
+        <div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.65rem;">
+            <span style="font-weight: 600; font-size: 0.95rem;">Your tickets</span>
+            <button type="button" class="btn btn-ghost" id="btn-reload-list" style="font-size: 0.85rem; padding: 0.45rem 0.85rem;"><i class="fas fa-list"></i> Refresh list</button>
+          </div>
+          <div id="conv-list-loading" class="muted" style="display: none; padding: 0.75rem;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+          <div id="conv-list-error" class="banner-err" style="display: none; padding: 0.5rem 0;"></div>
+          <div id="conv-list-wrap" class="conv-list-wrap" style="display: none;"></div>
+          <p id="conv-list-empty" class="muted" style="display: none; padding: 0.75rem;">No conversations yet. Use <strong>Start / resume</strong> to create one.</p>
+        </div>
+
+        <div>
+          <div id="thread-error" class="banner-err" style="display: none;"></div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <button type="button" class="btn" id="btn-start"><i class="fas fa-plus"></i> Start / resume</button>
+            <button type="button" class="btn btn-ghost" id="btn-refresh"><i class="fas fa-sync"></i> Refresh thread</button>
+            <button type="button" class="btn btn-ghost" id="btn-escalate"><i class="fas fa-user-headset"></i> Escalate to human</button>
+          </div>
+
+          <p class="muted" id="thread-id-line" style="margin-bottom: 0.75rem;"></p>
+
+          <div id="thread-wrap" class="thread-wrap" style="display: none;"></div>
+          <p class="poll-hint" id="poll-hint" style="display: none;">Updates every 12s while this tab is visible and a thread is open.</p>
+
+          <label class="muted" for="msg-input" style="display:block; margin-bottom: 0.35rem;">Message</label>
+          <textarea id="msg-input" placeholder="Describe your issue… (optional if you attach a file)"></textarea>
+          <input type="file" id="support-attach-input" accept="image/*,.pdf,.doc,.docx,application/pdf,video/*" style="display:none;" />
+          <div class="attach-bar">
+            <button type="button" class="btn btn-ghost" id="btn-attach" style="font-size:0.85rem; padding:0.45rem 0.85rem;"><i class="fas fa-paperclip"></i> Attach file</button>
+            <span class="attach-name" id="attach-name" style="display:none;"></span>
+            <button type="button" class="btn btn-ghost" id="btn-attach-clear" style="display:none; font-size:0.85rem; padding:0.45rem 0.85rem;">Remove</button>
+          </div>
+          <button type="button" class="btn" id="btn-send" style="margin-top: 0.75rem;"><i class="fas fa-paper-plane"></i> Send</button>
+          <p id="send-hint" class="muted" style="margin-top: 0.75rem; font-size: 0.85rem;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    const SUPPORT_CID_KEY = 'tanda_support_conversation_id';
+    const POLL_MS = 12000;
+    let pollTimer = null;
+    let supportViewerUsername = '';
+
+    async function ensureSupportViewerProfile() {
+      try {
+        const me = await SuperAffiliateAPI.getCurrentUser();
+        supportViewerUsername =
+          me && me.username ? String(me.username).trim().toLowerCase() : '';
+      } catch (_) {
+        supportViewerUsername = '';
+      }
+    }
+
+    function messageSenderIsMe(sender) {
+      if (!supportViewerUsername || sender == null || sender === '') return false;
+      return String(sender).trim().toLowerCase() === supportViewerUsername;
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function fmtWhen(iso) {
+      if (iso == null || iso === '') return '';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+      } catch (_) {
+        return '';
+      }
+    }
+
+    /** Richer stamp for chat rows (weekday + date + time). */
+    function formatChatMessageTimeHtml(raw) {
+      if (raw == null || raw === '') return '';
+      try {
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return '';
+        const iso = esc(d.toISOString());
+        const label = esc(
+          d.toLocaleString(undefined, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })
+        );
+        return '<time class="chat-meta-time" datetime="' + iso + '">' + label + '</time>';
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function currentConversationId() {
+      const raw = sessionStorage.getItem(SUPPORT_CID_KEY);
+      return raw ? raw.trim() : null;
+    }
+
+    function setConversationId(id) {
+      if (id != null && String(id).trim()) {
+        sessionStorage.setItem(SUPPORT_CID_KEY, String(id).trim());
+      } else {
+        sessionStorage.removeItem(SUPPORT_CID_KEY);
+      }
+    }
+
+    function syncUrlConversation(id) {
+      try {
+        const url = new URL(window.location.href);
+        if (id) url.searchParams.set('conversation', String(id));
+        else url.searchParams.delete('conversation');
+        history.replaceState({}, '', url.pathname + url.search + url.hash);
+      } catch (_) { /* ignore */ }
+    }
+
+    function stopPoll() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      const ph = document.getElementById('poll-hint');
+      if (ph) ph.style.display = 'none';
+    }
+
+    function startPoll() {
+      stopPoll();
+      if (!currentConversationId()) return;
+      const ph = document.getElementById('poll-hint');
+      if (ph) ph.style.display = 'block';
+      pollTimer = setInterval(() => {
+        if (document.visibilityState !== 'visible') return;
+        if (!currentConversationId()) return;
+        refreshThread({ silent: true });
+      }, POLL_MS);
+    }
+
+    async function loadAccessNote() {
+      try {
+        const r = await SuperAffiliateAPI.getSupportAccess();
+        const access = r.support_access || 'none';
+        const el = document.getElementById('staff-note');
+        const body = document.getElementById('staff-note-body');
+        if (access !== 'none') {
+          el.style.display = 'block';
+          body.innerHTML = 'Support staff role: <span class="badge">' + esc(access) + '</span>. Use <a class="muted" href="support-inbox.html" style="color:var(--accent);">Support inbox</a> for escalated queues.';
+        } else {
+          el.style.display = 'none';
+        }
+      } catch (_) {
+        document.getElementById('staff-note').style.display = 'none';
+      }
+    }
+
+    async function loadFaqs() {
+      const loading = document.getElementById('faq-loading');
+      const err = document.getElementById('faq-error');
+      const list = document.getElementById('faq-list');
+      const retry = document.getElementById('faq-retry');
+      loading.style.display = 'block';
+      err.style.display = 'none';
+      list.style.display = 'none';
+      retry.style.display = 'none';
+      try {
+        const r = await SuperAffiliateAPI.getSupportFaqs(24);
+        const faqs = r.faqs || [];
+        list.innerHTML = faqs.map(f => `
+          <div class="faq-item">
+            <div class="faq-q">${esc(f.question)}</div>
+            <div class="muted">${esc(f.answer)}</div>
+          </div>`).join('');
+        if (!faqs.length) list.innerHTML = '<p class="muted">No FAQs returned yet.</p>';
+        list.style.display = 'block';
+      } catch (e) {
+        err.style.display = 'block';
+        err.textContent = e.message || String(e);
+        retry.style.display = 'inline-flex';
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    function syncAttachmentLabel() {
+      const input = document.getElementById('support-attach-input');
+      const nameEl = document.getElementById('attach-name');
+      const clearBtn = document.getElementById('btn-attach-clear');
+      const f = input && input.files && input.files[0] ? input.files[0] : null;
+      if (f) {
+        nameEl.style.display = 'inline';
+        nameEl.textContent = f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
+        clearBtn.style.display = 'inline-flex';
+      } else {
+        nameEl.style.display = 'none';
+        nameEl.textContent = '';
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    function renderMessages(payload) {
+      const wrap = document.getElementById('thread-wrap');
+      const messages = payload.messages || [];
+      wrap.innerHTML = messages
+        .map((m) => {
+          const who = m.sender_name || m.sender || '—';
+          const senderRaw = m.sender != null ? String(m.sender) : '';
+          const isMine = messageSenderIsMe(senderRaw);
+          const src = m.source || 'user';
+          const isBot = src === 'bot' || m.is_bot_response === true;
+          const isSystem = src === 'system';
+
+          let bubbleClass = 'chat-bubble--peer';
+          let avatarHtml = '';
+          if (isMine) {
+            bubbleClass = 'chat-bubble--mine';
+          } else if (isSystem) {
+            bubbleClass = 'chat-bubble--system';
+            avatarHtml =
+              '<div class="chat-avatar chat-avatar--system" aria-hidden="true"><i class="fas fa-info"></i></div>';
+          } else if (isBot) {
+            bubbleClass = 'chat-bubble--bot';
+            avatarHtml =
+              '<div class="chat-avatar chat-avatar--bot" aria-hidden="true"><i class="fas fa-robot"></i></div>';
+          } else if (src === 'agent') {
+            bubbleClass = 'chat-bubble--agent';
+            avatarHtml =
+              '<div class="chat-avatar chat-avatar--agent" aria-hidden="true"><i class="fas fa-headset"></i></div>';
+          } else {
+            avatarHtml =
+              '<div class="chat-avatar chat-avatar--user" aria-hidden="true"><i class="fas fa-user"></i></div>';
+          }
+
+          const mt = m.message_type || 'text';
+          const mediaUrl = m.media_url ? String(m.media_url).trim() : '';
+          let mediaHtml = '';
+          if (mediaUrl) {
+            if (mt === 'image') {
+              mediaHtml =
+                '<div class="msg-media"><a href="' +
+                esc(mediaUrl) +
+                '" target="_blank" rel="noopener noreferrer"><img src="' +
+                esc(mediaUrl) +
+                '" alt="attachment" loading="lazy" /></a></div>';
+            } else if (mt === 'video' || mt === 'audio') {
+              mediaHtml =
+                '<div class="msg-media"><a class="file-link" href="' +
+                esc(mediaUrl) +
+                '" target="_blank" rel="noopener noreferrer">Open ' +
+                esc(mt) +
+                '</a></div>';
+            } else {
+              mediaHtml =
+                '<div class="msg-media"><a class="file-link" href="' +
+                esc(mediaUrl) +
+                '" target="_blank" rel="noopener noreferrer">Download attachment</a></div>';
+            }
+          }
+
+          const bodyText = (m.content || '').trim();
+          const bodyHtml = bodyText ? '<div class="chat-body">' + esc(bodyText) + '</div>' : '';
+
+          let metaLabel = esc(String(who));
+          if (isMine) metaLabel = 'You';
+          else if (isBot) metaLabel = esc(String(who)) + ' · Assistant';
+          else if (src === 'agent') metaLabel = esc(String(who)) + ' · Support';
+          else if (isSystem) metaLabel = esc(String(who)) + ' · System';
+
+          const timePart = formatChatMessageTimeHtml(m.timestamp);
+          const metaInner =
+            '<span class="chat-meta-label">' +
+            metaLabel +
+            '</span>' +
+            (timePart
+              ? '<span class="chat-meta-sep" aria-hidden="true">·</span>' + timePart
+              : '');
+
+          if (isMine) {
+            return (
+              '<div class="chat-row chat-row--mine"><div class="chat-row-inner">' +
+              '<div class="chat-bubble chat-bubble--mine">' +
+              bodyHtml +
+              mediaHtml +
+              '</div>' +
+              '<div class="chat-meta">' +
+              metaInner +
+              '</div></div></div>'
+            );
+          }
+
+          return (
+            '<div class="chat-row chat-row--other">' +
+            avatarHtml +
+            '<div class="chat-row-inner">' +
+            '<div class="chat-bubble ' +
+            bubbleClass +
+            '">' +
+            bodyHtml +
+            mediaHtml +
+            '</div>' +
+            '<div class="chat-meta">' +
+            metaInner +
+            '</div></div></div>'
+          );
+        })
+        .join('');
+      wrap.style.display = messages.length ? 'block' : 'none';
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    async function refreshThread(opts) {
+      const silent = opts && opts.silent === true;
+      const errEl = document.getElementById('thread-error');
+      const hint = document.getElementById('send-hint');
+      if (!silent) {
+        errEl.style.display = 'none';
+        hint.textContent = '';
+      }
+      const cid = currentConversationId();
+      const line = document.getElementById('thread-id-line');
+      if (!cid) {
+        line.textContent = 'No conversation selected — pick a ticket or tap Start / resume.';
+        document.getElementById('thread-wrap').style.display = 'none';
+        document.getElementById('thread-wrap').innerHTML = '';
+        stopPoll();
+        return;
+      }
+      if (!silent) {
+        line.textContent = 'Loading conversation #' + cid + '…';
+      }
+      try {
+        const data = await SuperAffiliateAPI.getSupportConversation(cid);
+        if (data.conversation) {
+          const c = data.conversation;
+          line.innerHTML = 'Conversation #' + esc(cid) +
+            ' · status: <span class="badge">' + esc(c.status || '—') + '</span>' +
+            (c.escalated_to_human ? ' · escalated' : '');
+        }
+        renderMessages(data);
+        startPoll();
+      } catch (e) {
+        if (!silent) {
+          errEl.style.display = 'block';
+          errEl.textContent = e.message || String(e);
+        }
+        stopPoll();
+      }
+    }
+
+    function highlightListSelection() {
+      const cid = currentConversationId();
+      document.querySelectorAll('.conv-row').forEach((row) => {
+        row.classList.toggle('active', cid && row.getAttribute('data-conv-id') === String(cid));
+      });
+    }
+
+    async function loadConversationList() {
+      const loading = document.getElementById('conv-list-loading');
+      const err = document.getElementById('conv-list-error');
+      const wrap = document.getElementById('conv-list-wrap');
+      const empty = document.getElementById('conv-list-empty');
+      loading.style.display = 'block';
+      err.style.display = 'none';
+      err.textContent = '';
+      wrap.style.display = 'none';
+      empty.style.display = 'none';
+      try {
+        const r = await SuperAffiliateAPI.getSupportUserConversations();
+        const list = r.conversations || [];
+        loading.style.display = 'none';
+        if (!list.length) {
+          empty.style.display = 'block';
+          return;
+        }
+        wrap.innerHTML = list.map((c) => {
+          const id = c.id != null ? String(c.id) : '';
+          const preview = (c.last_message && c.last_message.content) ? String(c.last_message.content) : '—';
+          const when = fmtWhen(c.last_activity || c.created_at);
+          const statusEsc = esc(c.status || '');
+          const escFlag = c.escalated_to_human ? '<span class="badge">escalated</span>' : '';
+          return (
+            '<button type="button" class="conv-row" data-conv-id="' + esc(id) + '">' +
+            '<div class="conv-card-head">' +
+            '<span class="conv-subj">' + esc(c.subject || 'Support') + '</span>' +
+            '<div class="conv-badges-row"><span class="badge">' + statusEsc + '</span>' + escFlag + '</div>' +
+            '</div>' +
+            '<p class="conv-snippet">' + esc(preview) + '</p>' +
+            '<div class="conv-meta-footer">#' + esc(id) + (when ? ' · ' + esc(when) : '') + '</div>' +
+            '</button>'
+          );
+        }).join('');
+        wrap.style.display = 'block';
+        highlightListSelection();
+      } catch (e) {
+        loading.style.display = 'none';
+        err.style.display = 'block';
+        err.textContent = e.message || String(e);
+      }
+    }
+
+    function selectConversation(id, opts) {
+      const o = opts || {};
+      const raw = id != null ? String(id).trim() : '';
+      if (!raw) return;
+      setConversationId(raw);
+      if (!o.skipUrl) syncUrlConversation(raw);
+      highlightListSelection();
+      refreshThread();
+    }
+
+    function readConversationFromUrl() {
+      try {
+        const q = new URLSearchParams(window.location.search).get('conversation');
+        return q && String(q).trim() ? String(q).trim() : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function bootstrapConversationId() {
+      const fromUrl = readConversationFromUrl();
+      if (fromUrl) {
+        setConversationId(fromUrl);
+        return;
+      }
+      if (currentConversationId()) return;
+      try {
+        const r = await SuperAffiliateAPI.getSupportUserConversations();
+        const convs = r.conversations || [];
+        const active = convs.find(c => ['open', 'assigned', 'in_progress', 'waiting_user'].indexOf(c.status) !== -1);
+        if (active && active.id != null) setConversationId(active.id);
+      } catch (_) { /* ignore */ }
+    }
+
+    document.getElementById('conv-list-wrap').addEventListener('click', (e) => {
+      const btn = e.target.closest('.conv-row');
+      if (!btn) return;
+      const id = btn.getAttribute('data-conv-id');
+      selectConversation(id, {});
+    });
+
+    document.getElementById('faq-retry').addEventListener('click', loadFaqs);
+    document.getElementById('btn-reload-list').addEventListener('click', loadConversationList);
+
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      const errEl = document.getElementById('thread-error');
+      errEl.style.display = 'none';
+      try {
+        const r = await SuperAffiliateAPI.startSupportConversation({
+          subject: 'Web support',
+          support_type: 'general',
+          description: 'Started from Tanda web',
+        });
+        if (r.conversation_id != null) {
+          setConversationId(r.conversation_id);
+          syncUrlConversation(r.conversation_id);
+        }
+        await loadConversationList();
+        await refreshThread();
+      } catch (e) {
+        errEl.style.display = 'block';
+        errEl.textContent = e.message || String(e);
+      }
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click', async () => {
+      await refreshThread();
+      await loadConversationList();
+    });
+
+    document.getElementById('btn-attach').addEventListener('click', () => {
+      document.getElementById('support-attach-input').click();
+    });
+    document.getElementById('support-attach-input').addEventListener('change', syncAttachmentLabel);
+    document.getElementById('btn-attach-clear').addEventListener('click', () => {
+      const input = document.getElementById('support-attach-input');
+      input.value = '';
+      syncAttachmentLabel();
+    });
+
+    document.getElementById('btn-send').addEventListener('click', async () => {
+      const errEl = document.getElementById('thread-error');
+      const hint = document.getElementById('send-hint');
+      errEl.style.display = 'none';
+      hint.textContent = '';
+      const cid = currentConversationId();
+      if (!cid) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Select or start a conversation first.';
+        return;
+      }
+      const text = document.getElementById('msg-input').value.trim();
+      const fin = document.getElementById('support-attach-input');
+      const file = fin.files && fin.files[0] ? fin.files[0] : null;
+      if (!text && !file) return;
+      const btn = document.getElementById('btn-send');
+      btn.disabled = true;
+      try {
+        const out = await SuperAffiliateAPI.sendSupportMessage(cid, text, file || undefined);
+        document.getElementById('msg-input').value = '';
+        if (file) {
+          fin.value = '';
+          syncAttachmentLabel();
+        }
+        if (out.bot_response && out.bot_response.content) {
+          hint.textContent = 'Bot: ' + out.bot_response.content;
+        } else if (out.escalation && out.escalation.message) {
+          hint.textContent = 'Escalation: ' + out.escalation.message;
+        } else if (out.status) {
+          hint.textContent = out.status;
+        } else if (out.assistant_processing_failed) {
+          hint.textContent = String(out.assistant_fallback_message || out.assistant_error || 'Assistant unavailable.');
+        }
+        await Promise.all([refreshThread(), loadConversationList()]);
+      } catch (e) {
+        errEl.style.display = 'block';
+        errEl.textContent = e.message || String(e);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('btn-escalate').addEventListener('click', async () => {
+      const errEl = document.getElementById('thread-error');
+      const hint = document.getElementById('send-hint');
+      errEl.style.display = 'none';
+      hint.textContent = '';
+      const cid = currentConversationId();
+      if (!cid) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Select or start a conversation first.';
+        return;
+      }
+      try {
+        const out = await SuperAffiliateAPI.escalateSupportConversation(cid, 'Escalated from Tanda web');
+        hint.textContent = (out && out.message) ? out.message : 'Escalated.';
+        await Promise.all([refreshThread(), loadConversationList()]);
+      } catch (e) {
+        errEl.style.display = 'block';
+        errEl.textContent = e.message || String(e);
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentConversationId()) {
+        refreshThread({ silent: true });
+      }
+    });
+
+    (async function init() {
+      await ensureSupportViewerProfile();
+      await loadAccessNote();
+      loadFaqs();
+      await bootstrapConversationId();
+      if (currentConversationId()) syncUrlConversation(currentConversationId());
+      await loadConversationList();
+      await refreshThread();
+    })();
+  </script>
+</body>
+</html>

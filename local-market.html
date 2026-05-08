@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#0B6B3A">
+  <title>Local Market by Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --lm-green: #0B6B3A;
+      --lm-green-soft: #8FD9A8;
+      --text: #fff;
+      --muted: #aaa;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(145deg, #061208 0%, #0a1520 50%, #050508 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem 1.1rem 5rem;
+    }
+    .header {
+      max-width: 1100px;
+      margin: 0 auto 1.25rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 100;
+    }
+    .title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--lm-green-soft);
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    /* Same nav strip pattern as products.html — horizontal scroll when links overflow */
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      padding-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+      .title {
+        width: 100%;
+      }
+      .nav {
+        width: 100%;
+        flex: none;
+      }
+    }
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+    .nav > * {
+      flex-shrink: 0;
+    }
+    .nav .user-menu-dropdown {
+      overflow: visible;
+      position: relative;
+    }
+    .nav .user-menu-wrapper {
+      overflow: visible;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(143, 217, 168, 0.22);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.1rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: var(--lm-green-soft);
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .muted { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+    label { font-size: 0.8rem; color: var(--muted); display: block; margin-top: 0.5rem; }
+    input[type="text"], input[type="search"], select {
+      width: 100%;
+      max-width: 100%;
+      margin-top: 0.3rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    select { cursor: pointer; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-end; margin-top: 0.75rem; }
+    .row > div { flex: 1; min-width: 160px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--lm-green);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    details.market-details { margin-top: 0.75rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1); }
+    details.market-details summary {
+      cursor: pointer;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.88rem;
+      color: var(--lm-green-soft);
+      list-style: none;
+    }
+    details.market-details summary::-webkit-details-marker { display: none; }
+    .market-list-inner { max-height: 220px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.08); }
+    .market-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 0.5rem; padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.85rem;
+    }
+    .market-row:last-child { border-bottom: none; }
+    .pill { font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 0.35rem; background: rgba(143,217,168,0.2); color: var(--lm-green-soft); }
+    .status { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    .err { color: #ff9b9b; margin-top: 0.5rem; font-size: 0.88rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.85rem;
+      margin-top: 0.85rem;
+    }
+    .pcard {
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(143,217,168,0.18);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .pcard img { width: 100%; aspect-ratio: 1; object-fit: cover; background: #222; }
+    .pcard .pmeta { padding: 0.5rem 0.6rem 0.65rem; font-size: 0.8rem; }
+    .pcard .pname { font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pcard .pprice { color: var(--lm-green-soft); margin-top: 0.25rem; font-size: 0.78rem; }
+    .pcard .ploc { font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; }
+    .compare-table { margin-top: 0.85rem; overflow-x: auto; }
+    .compare-table table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .compare-table th, .compare-table td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.5rem 0.6rem;
+      vertical-align: top;
+    }
+    .compare-table th { background: rgba(11,107,58,0.25); color: var(--lm-green-soft); }
+    .chk { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.65rem; font-size: 0.85rem; color: var(--muted); }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.78rem; }
+  </style>
+</head>
+<body data-tanda-page-label="Local Market by Tanda – pick markets from the server list and compare prices.">
+  <div class="header">
+    <h1 class="title"><i class="fas fa-store"></i> Local Market by Tanda</h1>
+    <div class="nav" id="authNav" data-nav-mode="local_market"></div>
+  </div>
+
+  <div class="wrap">
+    <p class="muted" style="margin-bottom: 1rem;">
+      Same flow as the app: markets come from the backend; you <strong>select</strong> where you are shopping and <strong>Market A / Market B</strong> for price compare. Listings are seller products flagged for local market.
+    </p>
+
+    <div class="card">
+      <h2><i class="fas fa-list"></i> Markets from server</h2>
+      <p class="muted">Search narrows the list (optional). Nearby replaces the list with distance-sorted markets.</p>
+      <div class="row">
+        <div>
+          <label for="qMarket">Filter markets (name / area)</label>
+          <input type="search" id="qMarket" placeholder="Leave empty to load all (up to 50)" autocomplete="off">
+        </div>
+        <div>
+          <label for="qState">State (optional)</label>
+          <input type="text" id="qState" placeholder="Lagos" autocomplete="off">
+        </div>
+      </div>
+      <div class="row" style="margin-top: 0.85rem;">
+        <button type="button" class="btn" id="btnSearchMarkets"><i class="fas fa-search"></i> Refresh list</button>
+        <button type="button" class="btn btn-ghost" id="btnNearby"><i class="fas fa-location-dot"></i> Nearby</button>
+      </div>
+      <p class="status" id="marketStatus"></p>
+      <details class="market-details" id="marketDetails">
+        <summary id="marketSummary">Matching markets – tap to expand</summary>
+        <div class="market-list-inner" id="marketListInner"></div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-tags"></i> Local market listings</h2>
+      <p class="muted">Optional: choose one canonical market to focus. If you leave “Use filter text only”, we pass the filter text as <code>market_name</code> (like the app when no market is tapped).</p>
+      <div class="row">
+        <div style="flex: 2;">
+          <label for="browseMarket">Shopping focus</label>
+          <select id="browseMarket">
+            <option value="">Use filter text only (no single market)</option>
+          </select>
+        </div>
+        <div>
+          <button type="button" class="btn btn-ghost" style="margin-top: 1.55rem;" id="btnClearBrowse">Clear focus</button>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="prodSearch">Product search</label>
+          <input type="search" id="prodSearch" placeholder="Tomatoes, rice…" autocomplete="off">
+        </div>
+        <div>
+          <label for="latIn">Lat (optional)</label>
+          <input type="text" id="latIn" placeholder="From GPS" autocomplete="off">
+        </div>
+        <div>
+          <label for="lngIn">Lng (optional)</label>
+          <input type="text" id="lngIn" placeholder="" autocomplete="off">
+        </div>
+      </div>
+      <label class="chk"><input type="checkbox" id="wholesaleBrowse"> Wholesale listings only</label>
+      <p class="err" id="prodErr" hidden></p>
+      <div class="grid" id="productGrid"><p class="muted" id="prodPlaceholder">Loading listings…</p></div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-scale-balanced"></i> Compare two markets</h2>
+      <p class="muted">Pick <strong>Market A</strong> and <strong>Market B</strong> from the same backend list. Enter what you are comparing (at least 2 characters), same rule as the app.</p>
+      <div class="row">
+        <div>
+          <label for="selMarketA">Market A</label>
+          <select id="selMarketA"></select>
+        </div>
+        <div>
+          <label for="selMarketB">Market B</label>
+          <select id="selMarketB"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="compareSearch">Product to compare</label>
+          <input type="search" id="compareSearch" placeholder="e.g. rice, yam (2+ chars)" autocomplete="off">
+        </div>
+        <div>
+          <label for="compareCategory">Category slug (optional)</label>
+          <input type="text" id="compareCategory" placeholder="grains" autocomplete="off">
+        </div>
+        <div>
+          <label for="compareUnit">Unit (optional)</label>
+          <input type="text" id="compareUnit" placeholder="kg" autocomplete="off">
+        </div>
+      </div>
+      <label class="chk"><input type="checkbox" id="wholesaleCompare"> Wholesale only</label>
+      <div class="row" style="margin-top: 0.75rem;">
+        <button type="button" class="btn" id="btnCompare"><i class="fas fa-code-compare"></i> Compare prices</button>
+      </div>
+      <p class="err" id="compareErr" hidden></p>
+      <div class="compare-table" id="compareOut"></div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
+  <script>
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (typeof SuperAffiliateAPI.updateCartBadge === 'function') SuperAffiliateAPI.updateCartBadge();
+
+    const LS = {
+      browse: 'tanda_lm_browse_slug',
+      left: 'tanda_lm_compare_left',
+      right: 'tanda_lm_compare_right',
+    };
+
+    let marketsCache = [];
+    let productsLoadTimer = null;
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function thumb(p) {
+      if (!p || !p.images || !p.images.length) return '';
+      const im = p.images[0];
+      return (im && (im.image || im.url || im.file)) || '';
+    }
+
+    function priceStr(p) {
+      if (p == null) return '—';
+      const n = Number(p);
+      if (Number.isFinite(n)) return '₦' + Math.round(n).toLocaleString();
+      return esc(String(p));
+    }
+
+    function marketLabel(m) {
+      const name = (m.name || m.slug || '').toString();
+      const place = [m.city, m.state].filter(Boolean).join(', ');
+      return place ? `${name} – ${place}` : name;
+    }
+
+    function fillSelect(selectEl, markets, extraFirst) {
+      const preserve = selectEl.value;
+      selectEl.innerHTML = extraFirst || '';
+      for (const m of markets) {
+        const slug = (m.slug || '').toString();
+        if (!slug) continue;
+        const opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = marketLabel(m);
+        selectEl.appendChild(opt);
+      }
+      const slugs = new Set(markets.map((x) => (x.slug || '').toString()).filter(Boolean));
+      if (preserve && slugs.has(preserve)) selectEl.value = preserve;
+    }
+
+    function syncCompareSelectsFromCache() {
+      const a = document.getElementById('selMarketA');
+      const b = document.getElementById('selMarketB');
+      const slugs = marketsCache.map((m) => (m.slug || '').toString()).filter(Boolean);
+      if (!slugs.length) {
+        a.innerHTML = '<option value="">Load markets first</option>';
+        b.innerHTML = a.innerHTML;
+        return;
+      }
+
+      let left = '';
+      let right = '';
+      try {
+        left = localStorage.getItem(LS.left) || '';
+        right = localStorage.getItem(LS.right) || '';
+      } catch (_) {}
+
+      if (!left || !slugs.includes(left)) left = slugs[0];
+      if (!right || !slugs.includes(right)) right = slugs.length > 1 ? slugs[1] : slugs[0];
+      if (left === right && slugs.length > 1) {
+        right = slugs.find((s) => s !== left) || slugs[1];
+      }
+
+      fillSelect(a, marketsCache, '');
+      fillSelect(b, marketsCache, '');
+      a.value = left;
+      b.value = right;
+      if (a.value === b.value && slugs.length > 1) {
+        b.value = slugs.find((s) => s !== a.value) || slugs[1];
+      }
+    }
+
+    function syncBrowseSelect() {
+      const sel = document.getElementById('browseMarket');
+      const first = '<option value="">Use filter text only (no single market)</option>';
+      fillSelect(sel, marketsCache, first);
+      let stored = '';
+      try { stored = localStorage.getItem(LS.browse) || ''; } catch (_) {}
+      const slugs = new Set(marketsCache.map((m) => (m.slug || '').toString()).filter(Boolean));
+      if (stored && slugs.has(stored)) sel.value = stored;
+      else sel.value = '';
+    }
+
+    function renderMarketDetailsList(markets) {
+      const inner = document.getElementById('marketListInner');
+      const summary = document.getElementById('marketSummary');
+      summary.textContent = markets.length
+        ? `${markets.length} market(s) – tap a row to set shopping focus`
+        : 'No markets – adjust filter';
+      if (!markets.length) {
+        inner.innerHTML = '<p class="muted" style="padding:0.75rem;">Try clearing the list filter or search another state.</p>';
+        return;
+      }
+      inner.innerHTML = markets.map((m) => {
+        const slug = (m.slug || '').toString();
+        const dist = m.distance_km != null ? `<span class="pill">${esc(String(m.distance_km))} km</span>` : '';
+        return `<div class="market-row" role="button" tabindex="0" data-slug="${esc(slug)}">
+          <div><strong>${esc(m.name || slug)}</strong> <span class="muted">${esc([m.city, m.state].filter(Boolean).join(', '))}</span> ${dist}</div>
+          <button type="button" class="btn btn-sm btn-ghost set-focus-btn" data-slug="${esc(slug)}">Shop here</button>
+        </div>`;
+      }).join('');
+
+      function focusSlug(slug) {
+        if (!slug) return;
+        document.getElementById('browseMarket').value = slug;
+        try { localStorage.setItem(LS.browse, slug); } catch (_) {}
+        scheduleLoadProducts();
+      }
+
+      inner.querySelectorAll('.set-focus-btn').forEach((btn) => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          focusSlug(btn.getAttribute('data-slug'));
+        });
+      });
+      inner.querySelectorAll('.market-row').forEach((row) => {
+        row.addEventListener('click', () => focusSlug(row.getAttribute('data-slug')));
+      });
+    }
+
+    async function loadMarkets() {
+      const q = document.getElementById('qMarket').value.trim();
+      const state = document.getElementById('qState').value.trim();
+      document.getElementById('marketStatus').textContent = 'Loading markets…';
+      try {
+        const data = await SuperAffiliateAPI.searchLocalMarkets(q, state || undefined);
+        marketsCache = (data && data.markets) || [];
+        document.getElementById('marketStatus').textContent = marketsCache.length
+          ? `${marketsCache.length} market(s) loaded`
+          : 'No markets match this filter';
+        syncBrowseSelect();
+        syncCompareSelectsFromCache();
+        renderMarketDetailsList(marketsCache);
+        await loadProductsNow();
+      } catch (e) {
+        document.getElementById('marketStatus').textContent = '';
+        alert(e.message || 'Failed to load markets');
+      }
+    }
+
+    async function loadProductsNow() {
+      const err = document.getElementById('prodErr');
+      const grid = document.getElementById('productGrid');
+      const ph = document.getElementById('prodPlaceholder');
+      if (ph) ph.remove();
+      err.hidden = true;
+
+      const browseSlug = document.getElementById('browseMarket').value.trim();
+      const qMarket = document.getElementById('qMarket').value.trim();
+      const search = document.getElementById('prodSearch').value.trim();
+      const latRaw = document.getElementById('latIn').value.trim();
+      const lngRaw = document.getElementById('lngIn').value.trim();
+      const lat = latRaw ? parseFloat(latRaw) : null;
+      const lng = lngRaw ? parseFloat(lngRaw) : null;
+      const wholesaleOnly = document.getElementById('wholesaleBrowse').checked;
+
+      const opts = {
+        search: search || undefined,
+        lat: Number.isFinite(lat) ? lat : undefined,
+        lng: Number.isFinite(lng) ? lng : undefined,
+        radiusKm: 25,
+        wholesaleOnly,
+      };
+      if (browseSlug) {
+        opts.marketSlug = browseSlug;
+      } else if (qMarket) {
+        opts.marketName = qMarket;
+      }
+
+      grid.innerHTML = '<p class="muted">Loading listings…</p>';
+      try {
+        if (browseSlug) {
+          try { localStorage.setItem(LS.browse, browseSlug); } catch (_) {}
+        } else {
+          try { localStorage.removeItem(LS.browse); } catch (_) {}
+        }
+
+        const data = await SuperAffiliateAPI.getLocalMarketProducts(opts);
+        const products = (data && data.products) || [];
+        if (!products.length) {
+          grid.innerHTML = '<p class="muted">No listings for this focus. Pick another market or clear filter text.</p>';
+          return;
+        }
+        const root = SuperAffiliateAPI.getPathToSiteRoot();
+        grid.innerHTML = products.map((p) => {
+          const id = p.id;
+          const url = `${root}product-detail.html?id=${encodeURIComponent(id)}`;
+          const im = thumb(p);
+          const loc = (p.local_market_info && p.local_market_info.market_name) || '';
+          const dist = p.local_market_info && p.local_market_info.distance_km != null
+            ? ` · ${p.local_market_info.distance_km} km`
+            : '';
+          return `<a class="pcard" href="${esc(url)}">
+            ${im ? `<img src="${esc(im)}" alt="" loading="lazy">` : '<div style="aspect-ratio:1;background:#222;"></div>'}
+            <div class="pmeta">
+              <div class="pname">${esc(p.name)}</div>
+              <div class="pprice">${priceStr(p.price)}</div>
+              ${loc ? `<div class="ploc">${esc(loc)}${esc(dist)}</div>` : ''}
+            </div>
+          </a>`;
+        }).join('');
+      } catch (e) {
+        grid.innerHTML = '';
+        err.textContent = e.message || 'Failed to load';
+        err.hidden = false;
+      }
+    }
+
+    function scheduleLoadProducts() {
+      if (productsLoadTimer) clearTimeout(productsLoadTimer);
+      productsLoadTimer = setTimeout(() => loadProductsNow(), 380);
+    }
+
+    document.getElementById('btnSearchMarkets').addEventListener('click', () => loadMarkets());
+    document.getElementById('btnClearBrowse').addEventListener('click', async () => {
+      document.getElementById('browseMarket').value = '';
+      try { localStorage.removeItem(LS.browse); } catch (_) {}
+      await loadProductsNow();
+    });
+    document.getElementById('browseMarket').addEventListener('change', () => loadProductsNow());
+    document.getElementById('prodSearch').addEventListener('input', scheduleLoadProducts);
+    document.getElementById('wholesaleBrowse').addEventListener('change', () => loadProductsNow());
+
+    document.getElementById('qMarket').addEventListener('input', () => {
+      if (qDebounce) clearTimeout(qDebounce);
+      qDebounce = setTimeout(() => loadMarkets(), 450);
+    });
+    let qDebounce = null;
+
+    document.getElementById('btnNearby').addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation not available in this browser.');
+        return;
+      }
+      document.getElementById('marketStatus').textContent = 'Locating…';
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          document.getElementById('latIn').value = String(lat);
+          document.getElementById('lngIn').value = String(lng);
+          try {
+            const data = await SuperAffiliateAPI.getNearbyLocalMarkets(lat, lng, 25);
+            marketsCache = (data && data.markets) || [];
+            document.getElementById('marketStatus').textContent = marketsCache.length
+              ? `Nearby: ${marketsCache.length} market(s)`
+              : 'No markets in radius';
+            syncBrowseSelect();
+            syncCompareSelectsFromCache();
+            renderMarketDetailsList(marketsCache);
+            await loadProductsNow();
+          } catch (e) {
+            alert(e.message || 'Nearby failed');
+          }
+        },
+        () => alert('Could not read location. Check browser permissions.'),
+        { enableHighAccuracy: true, timeout: 12000 }
+      );
+    });
+
+    document.getElementById('selMarketA').addEventListener('change', () => {
+      const a = document.getElementById('selMarketA');
+      const b = document.getElementById('selMarketB');
+      if (a.value && a.value === b.value) {
+        const alt = marketsCache.find((m) => (m.slug || '') !== a.value);
+        if (alt) b.value = alt.slug;
+      }
+      try { localStorage.setItem(LS.left, a.value); } catch (_) {}
+    });
+    document.getElementById('selMarketB').addEventListener('change', () => {
+      const a = document.getElementById('selMarketA');
+      const b = document.getElementById('selMarketB');
+      if (b.value && b.value === a.value) {
+        const alt = marketsCache.find((m) => (m.slug || '') !== b.value);
+        if (alt) a.value = alt.slug;
+      }
+      try { localStorage.setItem(LS.right, b.value); } catch (_) {}
+    });
+
+    document.getElementById('btnCompare').addEventListener('click', async () => {
+      const out = document.getElementById('compareOut');
+      const err = document.getElementById('compareErr');
+      err.hidden = true;
+      out.innerHTML = '';
+
+      let search = document.getElementById('compareSearch').value.trim();
+      if (search.length < 2) {
+        search = document.getElementById('prodSearch').value.trim();
+      }
+      const category = document.getElementById('compareCategory').value.trim();
+      const unit = document.getElementById('compareUnit').value.trim();
+      const wholesaleOnly = document.getElementById('wholesaleCompare').checked;
+      const left = document.getElementById('selMarketA').value.trim();
+      const right = document.getElementById('selMarketB').value.trim();
+
+      if (!left || !right) {
+        err.textContent = 'Choose Market A and Market B from the lists.';
+        err.hidden = false;
+        return;
+      }
+      if (left === right) {
+        err.textContent = 'Pick two different markets.';
+        err.hidden = false;
+        return;
+      }
+      if (search.length < 2 && !category) {
+        err.textContent = 'Enter at least 2 characters for what to compare (or a category slug).';
+        err.hidden = false;
+        return;
+      }
+      try {
+        localStorage.setItem(LS.left, left);
+        localStorage.setItem(LS.right, right);
+      } catch (_) {}
+
+      out.innerHTML = '<p class="muted">Comparing…</p>';
+      try {
+        const data = await SuperAffiliateAPI.compareLocalMarketPrices({
+          leftMarketSlug: left,
+          rightMarketSlug: right,
+          search: search.length >= 2 ? search : undefined,
+          category: category || undefined,
+          unit: unit || undefined,
+          wholesaleOnly,
+        });
+        const paired = (data && data.paired) || [];
+        const leftM = data && data.left && data.left.market;
+        const rightM = data && data.right && data.right.market;
+        if (!paired.length) {
+          out.innerHTML = `<p class="muted">No paired matches. Try a broader product term.</p>
+            <p class="muted" style="margin-top:0.5rem;">Left: ${esc((leftM && leftM.name) || left)} – ${(data.left && data.left.products && data.left.products.length) || 0} listings · Right: ${esc((rightM && rightM.name) || right)} – ${(data.right && data.right.products && data.right.products.length) || 0}</p>`;
+          return;
+        }
+        const root = SuperAffiliateAPI.getPathToSiteRoot();
+        out.innerHTML = `
+          <p class="muted" style="margin-bottom:0.5rem;">${paired.length} matched pair(s)</p>
+          <table>
+            <thead><tr>
+              <th>${esc((leftM && leftM.name) || 'Market A')}</th>
+              <th>${esc((rightM && rightM.name) || 'Market B')}</th>
+            </tr></thead>
+            <tbody>
+              ${paired.map((row) => {
+                const lp = row.left;
+                const rp = row.right;
+                const lurl = lp && lp.id ? `${root}product-detail.html?id=${encodeURIComponent(lp.id)}` : '#';
+                const rurl = rp && rp.id ? `${root}product-detail.html?id=${encodeURIComponent(rp.id)}` : '#';
+                return `<tr>
+                  <td><a href="${esc(lurl)}" style="color:#8FD9A8;">${esc(lp && lp.name)}</a><br><strong>${priceStr(lp && lp.price)}</strong><br><span class="muted">score ${esc(row.match_score)}</span></td>
+                  <td><a href="${esc(rurl)}" style="color:#8FD9A8;">${esc(rp && rp.name)}</a><br><strong>${priceStr(rp && rp.price)}</strong></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`;
+      } catch (e) {
+        out.innerHTML = '';
+        err.textContent = e.message || 'Compare failed';
+        err.hidden = false;
+      }
+    });
+
+    loadMarkets();
+  </script>
+</body>
+</html>

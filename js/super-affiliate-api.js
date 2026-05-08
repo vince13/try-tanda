@@ -122,6 +122,550 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Mirrors Flutter `isTandaAppAdmin` (see tanda_app/lib/utils/tanda_role_utils.dart).
+   * Use for nav visibility and client-side route hints; backend must still enforce 403.
+   */
+  static isTandaWebAdmin(user) {
+    if (!user || typeof user !== 'object') return false;
+    if (user.is_staff === true || user.is_superuser === true) return true;
+    const role = user.role != null ? String(user.role).trim() : '';
+    return role === 'admin';
+  }
+
+  /**
+   * Prefix to reach site root from nested paths (e.g. /shops/, /admin-tools/).
+   */
+  static getPathToSiteRoot() {
+    const path = window.location.pathname || '';
+    if (path.indexOf('/shops/') !== -1) return '../';
+    if (path.indexOf('/admin-tools/') !== -1) return '../';
+    return '';
+  }
+
+  /**
+   * Logged-in web "home": video feed / primary app surface (not the marketing landing page).
+   */
+  static getWebAppHomeHref() {
+    return `${this.getPathToSiteRoot()}feed.html`;
+  }
+
+  /** Public marketing landing (`index.html`). Logout and campaigns typically land here. */
+  static getMarketingSiteHref() {
+    return `${this.getPathToSiteRoot()}index.html`;
+  }
+
+  /**
+   * Absolute URL to `payment-callback.html` next to the current page (works for static hosting and subfolders).
+   */
+  static getPaymentCallbackUrl() {
+    try {
+      return new URL('payment-callback.html', window.location.href).href;
+    } catch (_) {
+      return `${window.location.origin}/payment-callback.html`;
+    }
+  }
+
+  /**
+   * Host origin for Django routes outside `/api/*` (instant watch HTML at `/w/`, `/i/`, etc.).
+   * `API_BASE_URL` is typically `https://host/api`.
+   */
+  static getBackendOrigin() {
+    const base = String(API_BASE_URL || '').replace(/\/$/, '');
+    return base.replace(/\/api$/, '') || '';
+  }
+
+  /** Server-rendered instant watch / checkout page (video: `/w/`, still image: `/i/`). */
+  static getInstantWatchPageUrl(slug, mediaType) {
+    const s = String(slug || '').trim();
+    if (!s) return '';
+    const m = String(mediaType || '').toLowerCase();
+    const path = m === 'image' ? `/i/${encodeURIComponent(s)}/` : `/w/${encodeURIComponent(s)}/`;
+    const o = this.getBackendOrigin();
+    return o ? `${o}${path}` : path;
+  }
+
+  /**
+   * Append a short-lived auth handoff to an instant watch URL (fragment only — not sent to server).
+   * The watch page consumes `_tt`, stores `tanda_auth_token`, and strips the hash.
+   * Use when opening `/w/` or `/i/` from Tanda web so checkout can load email + saved address.
+   */
+  static appendInstantAuthTransferHash(url) {
+    const u = String(url || '').trim();
+    if (!u) return u;
+    try {
+      const t = this.getToken();
+      if (!t) return u;
+      const iHash = u.indexOf('#');
+      const base = iHash >= 0 ? u.slice(0, iHash) : u;
+      const existing = iHash >= 0 ? u.slice(iHash + 1) : '';
+      const params = new URLSearchParams(existing);
+      params.set('_tt', t);
+      return `${base}#${params.toString()}`;
+    } catch (_) {
+      return u;
+    }
+  }
+
+  /** Public instant discover feed (JSON). Same path as Flutter `ApiService` under `/api`. */
+  static fetchInstantPublicFeed(limit) {
+    const lim = Math.max(1, Math.min(50, Number(limit) || 30));
+    return this.apiRequest(`/instant/feed/?limit=${lim}`, { method: 'GET' });
+  }
+
+  /** Hotspots + media metadata for an instant link (parity with `InstantWatchBundleView`). */
+  static fetchInstantWatchBundle(slug) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/watch/${s}/bundle/`, { method: 'GET' });
+  }
+
+  static searchLocalMarkets(query, state) {
+    const p = new URLSearchParams();
+    const q = query != null ? String(query).trim() : '';
+    if (q) p.set('q', q);
+    const st = state != null ? String(state).trim() : '';
+    if (st) p.set('state', st);
+    return this.apiRequest(`/commerce/local-market/markets/search/?${p}`, { method: 'GET' });
+  }
+
+  static getNearbyLocalMarkets(lat, lng, radiusKm) {
+    const p = new URLSearchParams();
+    p.set('lat', String(lat));
+    p.set('lng', String(lng));
+    if (radiusKm != null && radiusKm !== '') p.set('radius_km', String(radiusKm));
+    return this.apiRequest(`/commerce/local-market/markets/nearby/?${p}`, { method: 'GET' });
+  }
+
+  static getLocalMarketProducts(opts) {
+    const o = opts || {};
+    const p = new URLSearchParams();
+    if (o.marketSlug) p.set('market_slug', String(o.marketSlug).trim());
+    if (o.marketName) p.set('market_name', String(o.marketName).trim());
+    if (o.search) p.set('search', String(o.search).trim());
+    if (o.category) p.set('category', String(o.category).trim());
+    if (o.lat != null) p.set('lat', String(o.lat));
+    if (o.lng != null) p.set('lng', String(o.lng));
+    if (o.radiusKm != null) p.set('radius_km', String(o.radiusKm));
+    if (o.wholesaleOnly) p.set('wholesale_only', '1');
+    return this.apiRequest(`/commerce/local-market/products/?${p}`, { method: 'GET' });
+  }
+
+  static compareLocalMarketPrices(opts) {
+    const o = opts || {};
+    const p = new URLSearchParams();
+    if (o.leftMarketSlug) p.set('left_market_slug', String(o.leftMarketSlug).trim());
+    if (o.rightMarketSlug) p.set('right_market_slug', String(o.rightMarketSlug).trim());
+    if (o.leftMarket) p.set('left_market', String(o.leftMarket).trim());
+    if (o.rightMarket) p.set('right_market', String(o.rightMarket).trim());
+    if (o.search) p.set('search', String(o.search).trim());
+    if (o.category) p.set('category', String(o.category).trim());
+    if (o.unit) p.set('unit', String(o.unit).trim());
+    if (o.wholesaleOnly) p.set('wholesale_only', '1');
+    return this.apiRequest(`/commerce/local-market/compare-prices/?${p}`, { method: 'GET' });
+  }
+
+  static shoppingAssistantChat(messages, limit, context) {
+    const msgs = Array.isArray(messages) ? messages : [];
+    const payload = {
+      messages: msgs
+        .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && String(m.content || '').trim())
+        .map((m) => ({ role: m.role, content: String(m.content).trim() })),
+      limit: limit != null ? limit : 12,
+    };
+    const ctx = context && typeof context === 'object' ? context : {};
+    const ids = ctx.productIds != null ? ctx.productIds : ctx.product_ids;
+    if (Array.isArray(ids) && ids.length) {
+      payload.context = {
+        product_ids: ids.filter(Boolean).map((id) => String(id)).slice(0, 8),
+      };
+    }
+    return this.apiRequest('/commerce/assistant/chat/', {
+      method: 'POST',
+      body: payload,
+    });
+  }
+
+  static shoppingAssistantSearch(query, limit) {
+    return this.apiRequest('/commerce/assistant/search/', {
+      method: 'POST',
+      body: {
+        query: String(query || '').trim(),
+        limit: limit != null ? limit : 12,
+      },
+    });
+  }
+
+  static fetchCommerceDiscoveryPage(page, perPage) {
+    const pg = Math.max(1, parseInt(page, 10) || 1);
+    const pp = Math.max(1, Math.min(100, parseInt(perPage, 10) || 24));
+    return this.apiRequest(`/commerce/commerce-discovery/?page=${pg}&per_page=${pp}`, { method: 'GET' });
+  }
+
+  /** §T3 village / batch buying – paths align with mobile `ApiService` / `commerce` routes. */
+  static getVillageAgentMe() {
+    return this.apiRequest('/commerce/village/agent/me/');
+  }
+
+  static getVillageBatchesMine() {
+    return this.apiRequest('/commerce/village/batches/mine/');
+  }
+
+  static getVillageBatchDetail(batchId) {
+    const id = encodeURIComponent(String(batchId).trim());
+    return this.apiRequest(`/commerce/village/batches/${id}/`);
+  }
+
+  static joinVillageBatch(batchId, quantity = 1) {
+    const id = encodeURIComponent(String(batchId).trim());
+    const q = parseInt(quantity, 10);
+    return this.apiRequest(`/commerce/village/batches/${id}/join/`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity: Number.isFinite(q) && q >= 1 ? q : 1 }),
+    });
+  }
+
+  static setVillageBatchMyQuantity(batchId, quantity) {
+    const id = encodeURIComponent(String(batchId).trim());
+    const q = parseInt(quantity, 10);
+    return this.apiRequest(`/commerce/village/batches/${id}/my-quantity/`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity: Number.isFinite(q) ? q : 0 }),
+    });
+  }
+
+  /** Approved village agent only — POST `/commerce/village/batches/`. */
+  static createVillageBatch(payload) {
+    const body = payload && typeof payload === 'object' ? payload : {};
+    return this.apiRequest('/commerce/village/batches/', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /** §A0 Delivery / field operator – paths align with `DeliveryLogisticsService` (Flutter). */
+  static getCommerceOperatorMe() {
+    return this.apiRequest('/commerce/operator/me/');
+  }
+
+  static getCommerceDeliveryPartnerMe() {
+    return this.apiRequest('/commerce/delivery/partner/me/');
+  }
+
+  /** Multipart partner profile / KYC – same path as mobile `postMultipart`. Default 10m timeout for large photos on mobile networks. */
+  static updateCommerceDeliveryPartnerProfile(formData, options = {}) {
+    const timeoutMs = options.timeoutMs != null ? options.timeoutMs : 600000;
+    return this.multipartRequest('/commerce/delivery/partner/me/', formData, { method: 'POST', timeoutMs });
+  }
+
+  static getCommerceDeliveryJobsMine() {
+    return this.apiRequest('/commerce/delivery/jobs/mine/');
+  }
+
+  static getCommerceDeliveryJobsOpen() {
+    return this.apiRequest('/commerce/delivery/jobs/open/');
+  }
+
+  static postCommerceDeliveryJobAccept(jobId) {
+    const id = encodeURIComponent(String(jobId).trim());
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/accept/`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  static postCommerceDeliveryJobPickup(jobId, otp, opts) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const code = (otp != null ? String(otp) : '').trim();
+    const payload = { otp: code };
+    if (opts && opts.latitude != null && opts.longitude != null) {
+      payload.latitude = opts.latitude;
+      payload.longitude = opts.longitude;
+    }
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/pickup/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static postCommerceDeliveryJobDeliver(jobId, otp, opts) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const code = (otp != null ? String(otp) : '').trim();
+    const payload = { otp: code };
+    if (opts && opts.latitude != null && opts.longitude != null) {
+      payload.latitude = opts.latitude;
+      payload.longitude = opts.longitude;
+    }
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/deliver/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /** Hub scan proof (+ optional GPS). Matches mobile `hubScan` / `delivery_job_hub_scan`. */
+  static postCommerceDeliveryJobHubScan(jobId, note, opts) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const payload = {
+      note: (note != null && String(note).trim()) ? String(note).trim().slice(0, 500) : 'Hub scan',
+    };
+    if (opts && opts.latitude != null && opts.longitude != null) {
+      payload.latitude = opts.latitude;
+      payload.longitude = opts.longitude;
+    }
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/hub-scan/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /** §A2 Org logistics (pilot) — paths align with `DeliveryLogisticsService` (Flutter). */
+  static getCommerceDeliveryOrgsMine() {
+    return this.apiRequest('/commerce/delivery/orgs/mine/');
+  }
+
+  /** Seller-facing approved org list; optional `order_id` filters by dropoff coverage (Flutter parity). */
+  static getCommerceDeliverySellerOrgs(params = {}) {
+    const oid = params && params.order_id != null ? String(params.order_id).trim() : '';
+    const q = oid ? `?order_id=${encodeURIComponent(oid)}` : '';
+    return this.apiRequest(`/commerce/delivery/orgs/${q}`);
+  }
+
+  /** GET `/commerce/seller/delivery/jobs/` – seller's delivery jobs (Flutter: `loadSellerJobs`). */
+  static getCommerceSellerDeliveryJobs() {
+    return this.apiRequest('/commerce/seller/delivery/jobs/');
+  }
+
+  /**
+   * POST `/commerce/seller/delivery/jobs/` JSON body – creates outbound delivery job (pickup/delivery OTPs).
+   * @param {object} body - { order_id, mode, delivery_fee, package_weight_kg, package_description?, collateral_required?, org_id?, notes? }
+   */
+  static postCommerceSellerDeliveryJobJson(body) {
+    return this.apiRequest('/commerce/seller/delivery/jobs/', {
+      method: 'POST',
+      body: JSON.stringify(body && typeof body === 'object' ? body : {}),
+    });
+  }
+
+  /**
+   * POST `/commerce/seller/delivery/jobs/` multipart – same fields as JSON + optional `package_photo` file.
+   * @param {FormData} formData
+   */
+  static postCommerceSellerDeliveryJobMultipart(formData) {
+    return this.multipartRequest('/commerce/seller/delivery/jobs/', formData, {
+      method: 'POST',
+      timeoutMs: 120000,
+    });
+  }
+
+  static getCommerceDeliveryOrgJobs() {
+    return this.apiRequest('/commerce/delivery/orgs/jobs/');
+  }
+
+  static getCommerceDeliveryOrgOpenJobs() {
+    return this.apiRequest('/commerce/delivery/orgs/jobs/open/');
+  }
+
+  static getCommerceDeliveryOrgDrivers() {
+    return this.apiRequest('/commerce/delivery/orgs/drivers/');
+  }
+
+  static getCommerceDeliveryOrgResolveDriver(opts = {}) {
+    const raw = String(opts && opts.username != null ? opts.username : '')
+      .trim()
+      .replace(/^@+/, '');
+    if (!raw) {
+      return Promise.reject(new Error('Username is required'));
+    }
+    const qs = [`username=${encodeURIComponent(raw)}`];
+    const orgId = opts && opts.org_id != null ? String(opts.org_id).trim() : '';
+    if (orgId) {
+      qs.push(`org_id=${encodeURIComponent(orgId)}`);
+    }
+    return this.apiRequest(`/commerce/delivery/orgs/drivers/resolve/?${qs.join('&')}`);
+  }
+
+  static postCommerceDeliveryOrgDriversLink(body) {
+    const payload = body && typeof body === 'object' ? body : {};
+    return this.apiRequest('/commerce/delivery/orgs/drivers/link/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static postCommerceDeliveryOrgDriversUnlink(body) {
+    const payload = body && typeof body === 'object' ? body : {};
+    return this.apiRequest('/commerce/delivery/orgs/drivers/unlink/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static postCommerceDeliveryJobAssignDriver(jobId, partnerId) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const pid = partnerId != null ? String(partnerId).trim() : '';
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/assign-driver/`, {
+      method: 'POST',
+      body: JSON.stringify({ partner_id: pid }),
+    });
+  }
+
+  /** Org or rider open bid; org bids must pass `org_id` (see `delivery_job_bid`). */
+  static postCommerceDeliveryJobBid(jobId, fields = {}) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const payload = {};
+    if (fields.org_id != null && String(fields.org_id).trim()) {
+      payload.org_id = String(fields.org_id).trim();
+    }
+    if (fields.amount != null && String(fields.amount).trim() !== '') {
+      payload.amount = String(fields.amount).trim();
+    }
+    if (fields.note != null && String(fields.note).trim()) {
+      payload.note = String(fields.note).trim().slice(0, 1000);
+    }
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/bid/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static postCommerceDeliveryJobDispute(jobId, fields = {}) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const payload = {};
+    if (fields.reason != null && String(fields.reason).trim()) {
+      payload.reason = String(fields.reason).trim().slice(0, 64);
+    }
+    if (fields.description != null) {
+      payload.description = String(fields.description).trim().slice(0, 5000);
+    }
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/dispute/`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static getCommerceDeliveryJobDisputeThread(jobId) {
+    const id = encodeURIComponent(String(jobId).trim());
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/dispute-thread/`, { method: 'GET' });
+  }
+
+  static postCommerceDeliveryDisputeMessage(jobId, bodyText) {
+    const id = encodeURIComponent(String(jobId).trim());
+    const body = (bodyText != null ? String(bodyText) : '').trim().slice(0, 5000);
+    return this.apiRequest(`/commerce/delivery/jobs/${id}/dispute/messages/`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    });
+  }
+
+  /** §B0 In-app support – `chat/support_views` + `support_admin_views`. */
+  static getSupportFaqs(limit = 24) {
+    const n = parseInt(limit, 10);
+    const safe = Number.isFinite(n) ? Math.min(50, Math.max(1, n)) : 24;
+    return this.apiRequest(`/chat/support/faqs/?limit=${safe}`);
+  }
+
+  static getSupportAccess() {
+    return this.apiRequest('/chat/support/access/');
+  }
+
+  static getSupportInbox(scope = 'mine') {
+    const s = encodeURIComponent(String(scope || 'mine').trim());
+    return this.apiRequest(`/chat/support/inbox/?scope=${s}`);
+  }
+
+  /** §B2 Staff inbox — claim/release ticket (`action`: `assign` | `unassign`). */
+  static postSupportAssign(conversationId, action = 'assign') {
+    return this.apiRequest('/chat/support/assign/', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        action: action || 'assign',
+      }),
+    });
+  }
+
+  /** §B2 Update ticket `status`, `priority`, optional `resolution_notes` (agents/admins). */
+  static postSupportStatus(conversationId, fields = {}) {
+    const payload = { conversation_id: conversationId };
+    if (fields.status != null && String(fields.status).trim()) {
+      payload.status = String(fields.status).trim();
+    }
+    if (fields.priority != null && String(fields.priority).trim()) {
+      payload.priority = String(fields.priority).trim();
+    }
+    if (fields.resolution_notes !== undefined && fields.resolution_notes !== null) {
+      payload.resolution_notes = fields.resolution_notes;
+    }
+    return this.apiRequest('/chat/support/status/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static startSupportConversation(payload = {}) {
+    return this.apiRequest('/chat/support/start/', {
+      method: 'POST',
+      body: JSON.stringify({
+        support_type: payload.support_type || 'general',
+        subject: payload.subject || 'Support Request',
+        description: payload.description || '',
+        priority: payload.priority || 'medium',
+      }),
+    });
+  }
+
+  static getSupportConversation(conversationId) {
+    const id = encodeURIComponent(String(conversationId).trim());
+    return this.apiRequest(`/chat/support/conversation/${id}/`);
+  }
+
+  static getSupportUserConversations() {
+    return this.apiRequest('/chat/support/conversations/');
+  }
+
+  static sendSupportMessage(conversationId, message, attachmentFile) {
+    const cid = String(conversationId).trim();
+    const text = message != null ? String(message).trim() : '';
+    if (attachmentFile instanceof File) {
+      const fd = new FormData();
+      fd.append('conversation_id', cid);
+      fd.append('message', text);
+      fd.append('attachment', attachmentFile, attachmentFile.name);
+      return this.multipartRequest('/chat/support/send/', fd, {
+        method: 'POST',
+        timeoutMs: 120000,
+      });
+    }
+    if (!text) {
+      return Promise.reject(new Error('Enter a message or attach a file.'));
+    }
+    return this.apiRequest('/chat/support/send/', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: cid,
+        message: text,
+      }),
+    });
+  }
+
+  static escalateSupportConversation(conversationId, reason) {
+    return this.apiRequest('/chat/support/escalate/', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        reason: (reason != null && String(reason).trim()) ? String(reason).trim() : 'User requested human assistance',
+      }),
+    });
+  }
+
+  /** Subscription / overlay quota – same paths as `SubscriptionService` in the app. */
+  static getVideoOverlayQuota() {
+    return this.apiRequest('/videos/overlay-quota/');
+  }
+
+  static getVideoOverlayPlans() {
+    return this.apiRequest('/videos/overlay-plans/');
+  }
+
+  /**
    * Make authenticated API request
    */
   static async apiRequest(endpoint, options = {}) {
@@ -285,7 +829,10 @@ class SuperAffiliateAPI {
             errorMessage.includes('not found') ||
             errorMessage.includes('Seller profile not found') ||
             errorMessage.includes('Affiliate profile not found') ||
-            errorMessage.includes('No Super Affiliate invitation found');
+            errorMessage.includes('No Super Affiliate invitation found') ||
+            (endpoint.includes('/commerce/orders/') &&
+              endpoint.includes('/tracking') &&
+              errorMessage.includes('No delivery tracking for digital-only order'));
           
           if (isExpectedError) {
             // Return null for expected 404s instead of throwing
@@ -348,18 +895,34 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Single in-flight refresh so parallel 401s do not race with ROTATE_REFRESH_TOKENS
+   * (a second /token/refresh/ with a just-blacklisted refresh forces logout on web).
+   * Mirrors Flutter `ApiService._tokenRefreshFuture`.
+   */
+  static _refreshInFlight = null;
+
+  /**
    * Refresh authentication token
    */
   static async refreshToken() {
-    const refreshToken = this.getRefreshToken();
+    if (SuperAffiliateAPI._refreshInFlight) {
+      return SuperAffiliateAPI._refreshInFlight;
+    }
+    SuperAffiliateAPI._refreshInFlight = SuperAffiliateAPI._refreshTokenOnce().finally(() => {
+      SuperAffiliateAPI._refreshInFlight = null;
+    });
+    return SuperAffiliateAPI._refreshInFlight;
+  }
+
+  static async _refreshTokenOnce() {
+    const refreshToken = SuperAffiliateAPI.getRefreshToken();
     if (!refreshToken) {
       return false;
     }
 
     try {
-      // Add timeout using Promise.race for better browser compatibility
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Token refresh timeout')), 10000); // 10 second timeout
+        setTimeout(() => reject(new Error('Token refresh timeout')), 10000);
       });
 
       const fetchPromise = fetch(`${API_BASE_URL}/users/token/refresh/`, {
@@ -373,36 +936,30 @@ class SuperAffiliateAPI {
       const response = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (!response.ok) {
-        // If refresh token is invalid, clear tokens
         if (response.status === 401 || response.status === 403) {
-          this.clearTokens();
+          SuperAffiliateAPI.clearTokens();
         }
         return false;
       }
 
       const data = await response.json();
       if (data.access) {
-        this.setToken(data.access);
-        // If new refresh token provided, update it
+        SuperAffiliateAPI.setToken(data.access);
         if (data.refresh) {
-          this.setRefreshToken(data.refresh);
+          SuperAffiliateAPI.setRefreshToken(data.refresh);
         }
         return true;
       }
 
       return false;
     } catch (error) {
-      // Handle network errors, timeouts, and other failures
       if (error.message === 'Token refresh timeout' || error.name === 'TypeError') {
-        // Network error or timeout - don't clear tokens, might be temporary
-        // Only log in development
-        if (typeof process === 'undefined' || process.env?.NODE_ENV === 'development') {
+        if (isDevelopment) {
           console.error('Token refresh network error:', error);
         }
       } else {
-        // Other errors - clear tokens as they might be invalid
-        this.clearTokens();
-        if (typeof process === 'undefined' || process.env?.NODE_ENV === 'development') {
+        SuperAffiliateAPI.clearTokens();
+        if (isDevelopment) {
           console.error('Token refresh error:', error);
         }
       }
@@ -528,7 +1085,7 @@ class SuperAffiliateAPI {
    */
   static logout() {
     this.clearTokens();
-    window.location.href = 'index.html';
+    window.location.href = this.getMarketingSiteHref();
   }
 
   /**
@@ -662,6 +1219,23 @@ class SuperAffiliateAPI {
   }
 
   /**
+   * Display name for web chrome (sidebar footer, etc.).
+   * Prefers full name, then username, then email local-part.
+   */
+  static getWebProfileDisplayName(user) {
+    if (!user || typeof user !== 'object') return 'Account';
+    const fn = user.first_name != null ? String(user.first_name).trim() : '';
+    const ln = user.last_name != null ? String(user.last_name).trim() : '';
+    const full = [fn, ln].filter(Boolean).join(' ').trim();
+    if (full) return full;
+    const u = user.username != null ? String(user.username).trim() : '';
+    if (u) return u;
+    const email = user.email != null ? String(user.email).trim() : '';
+    if (email && email.includes('@')) return email.split('@')[0];
+    return 'Account';
+  }
+
+  /**
    * Search users by username, name, or bio
    * @param {string} query - Search query
    * @returns {Promise<Object>} - Search results with users array
@@ -671,6 +1245,35 @@ class SuperAffiliateAPI {
       return { results: [], count: 0 };
     }
     return await this.apiRequest(`/users/search/?query=${encodeURIComponent(query.trim())}`);
+  }
+
+  /**
+   * Unified search (same contract as mobile `SearchService`): GET /videos/search/
+   * @param {string} query
+   * @param {'videos'|'users'} category
+   * @param {number} [page=1]
+   */
+  static async unifiedVideoSearch(query, category, page = 1) {
+      const q = String(query || '').trim();
+      if (!q) {
+        return category === 'users'
+          ? { users: [], has_next: false }
+          : { videos: [], has_next: false };
+      }
+      const qp = new URLSearchParams({
+        q: q,
+        category,
+        page: String(page),
+      }).toString();
+      return await this.apiRequest(`/videos/search/?${qp}`, { method: 'GET' });
+  }
+
+  /**
+   * Discovery payloads for search home (trending hashtags, popular queries).
+   * Same endpoint as mobile `SearchService.loadSearchDiscovery`.
+   */
+  static async getSearchDiscovery() {
+    return await this.apiRequest('/videos/search-discovery/', { method: 'GET' });
   }
 
   /**
@@ -791,32 +1394,162 @@ class SuperAffiliateAPI {
 
   /**
    * Multipart upload helper (FormData). Keeps Authorization header.
+   * @param {object} options - { method, timeoutMs } – optional timeout aborts the request.
    */
   static async multipartRequest(endpoint, formData, options = {}) {
+    const timeoutMs = options.timeoutMs;
+    const controller = new AbortController();
+    let timeoutId;
+    if (timeoutMs != null && timeoutMs > 0) {
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    }
+
     const token = this.getToken();
     const headers = { ...(options.headers || {}) };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: options.method || 'POST',
-      headers, // NOTE: do NOT set Content-Type, browser will set boundary
-      body: formData,
-    });
-
-    const rawText = await response.text();
-    let data = null;
     try {
-      data = rawText ? JSON.parse(rawText) : null;
-    } catch (_) {
-      data = null;
-    }
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: options.method || 'POST',
+        headers, // NOTE: do NOT set Content-Type, browser will set boundary
+        body: formData,
+        signal: controller.signal,
+        cache: 'no-store',
+      });
 
-    if (!response.ok) {
-      const errorText = (data && (data.error || data.detail || data.message)) || rawText || `Upload failed (${response.status})`;
-      throw new Error(errorText);
-    }
+      const rawText = await response.text();
+      let data = null;
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch (_) {
+        data = null;
+      }
 
-    return data;
+      if (!response.ok) {
+        let errorText =
+          (data && (data.error || data.detail || data.message)) || rawText || `Upload failed (${response.status})`;
+        if (
+          data &&
+          typeof data === 'object' &&
+          !Array.isArray(data) &&
+          !data.error &&
+          !data.detail &&
+          !data.message
+        ) {
+          const parts = [];
+          Object.entries(data).forEach(([k, v]) => {
+            if (v == null) return;
+            parts.push(`${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+          });
+          if (parts.length) {
+            errorText = parts.join('; ');
+          }
+        }
+        const err = new Error(errorText);
+        if (data) err.responseData = data;
+        throw err;
+      }
+
+      return data;
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        throw new Error('Request timed out. Please check your connection and try again.');
+      }
+      throw e;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+  }
+
+  /** Product Video Studio – curated templates + tiers (Flutter: getProductVideoCatalog). */
+  static async getProductVideoCatalog() {
+    return await this.apiRequest('/ai/product-video/catalog/', { method: 'GET' });
+  }
+
+  static async getProductVideoPreference() {
+    return await this.apiRequest('/ai/product-video/preference/', { method: 'GET' });
+  }
+
+  static async putProductVideoPreference(payload) {
+    return await this.apiRequest('/ai/product-video/preference/', {
+      method: 'PUT',
+      body: payload,
+    });
+  }
+
+  static async getProductVideoCreditsBalance() {
+    return await this.apiRequest('/ai/product-video/credits/balance/', { method: 'GET' });
+  }
+
+  /**
+   * Multipart POST /ai/product-video/generate/ – field `image` (file). Optional tier, prompt, template_id, options JSON string.
+   * @param {File} file
+   * @param {object} fields - { tier, prompt, templateId, options, seller_watermark_* }
+   */
+  static async generateProductVideoFromFile(file, fields = {}, timeoutMs = 360000) {
+    const form = new FormData();
+    form.append('image', file);
+    if (fields.tier) form.append('tier', fields.tier);
+    if (fields.prompt) form.append('prompt', fields.prompt);
+    if (fields.templateId) form.append('template_id', fields.templateId);
+    if (fields.options && typeof fields.options === 'object') {
+      form.append('options', JSON.stringify(fields.options));
+    }
+    if (fields.seller_watermark_enabled != null && fields.seller_watermark_enabled !== '') {
+      form.append('seller_watermark_enabled', String(fields.seller_watermark_enabled));
+    }
+    if (fields.seller_watermark_text) form.append('seller_watermark_text', fields.seller_watermark_text);
+    if (fields.seller_watermark_position) form.append('seller_watermark_position', fields.seller_watermark_position);
+    return await this.multipartRequest('/ai/product-video/generate/', form, {
+      method: 'POST',
+      timeoutMs,
+    });
+  }
+
+  /** JSON POST with image_url (server fetches). Same optional body fields as mobile ApiService.generateProductPreviewVideoFromImageUrl. */
+  static async generateProductVideoFromImageUrl(imageUrl, body = {}, timeoutMs = 360000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await this.apiRequest('/ai/product-video/generate/', {
+        method: 'POST',
+        body: { image_url: imageUrl, ...body },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  static async attachProductPreviewReel({ productId, videoUrl, sourceStoragePath }, timeoutMs = 120000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const body = { product_id: productId };
+      if (videoUrl) body.video_url = videoUrl;
+      if (sourceStoragePath) body.source_storage_path = sourceStoragePath;
+      return await this.apiRequest('/ai/product-video/attach/', {
+        method: 'POST',
+        body,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  static async clearProductPreviewReel(productId, timeoutMs = 60000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await this.apiRequest('/ai/product-video/clear-preview/', {
+        method: 'POST',
+        body: { product_id: productId },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   /**
@@ -828,36 +1561,94 @@ class SuperAffiliateAPI {
    * - privacy_settings: JSON string
    * - advanced_settings: JSON string
    */
-  static async publishVideo({ file, caption = '', isPublic = true }) {
+  static async publishVideo({ file, caption = '', isPublic = true, timeoutMs = 600000 } = {}) {
     const form = new FormData();
     form.append('video', file);
     form.append('caption', caption);
     form.append('privacy_settings', JSON.stringify({ isPublic }));
     form.append('advanced_settings', JSON.stringify({}));
 
-    return await this.multipartRequest('/videos/publish/', form, { method: 'POST' });
+    return await this.multipartRequest('/videos/publish/', form, { method: 'POST', timeoutMs });
   }
 
   /**
    * List current user's videos
    * Backend endpoint: GET /api/videos/my-videos/
    */
-  static async getMyVideos(page = 1) {
-    const qp = new URLSearchParams({ page: String(page) }).toString();
+  static async getMyVideos(page = 1, opts = {}) {
+    const o = opts && typeof opts === 'object' ? opts : {};
+    const qp = new URLSearchParams({ page: String(page) });
+    if (o.excludeImported) qp.set('exclude_imported', 'true');
+    if (o.perPage != null) qp.set('per_page', String(o.perPage));
     return await this.apiRequest(`/videos/my-videos/?${qp}`, { method: 'GET' });
+  }
+
+  /** Seller: list instant watch links (GET /api/instant/seller/watch-links/). */
+  static fetchSellerInstantWatchLinks() {
+    return this.apiRequest('/instant/seller/watch-links/', { method: 'GET' });
+  }
+
+  /** Seller: create link — multipart (video_id, uploaded_video, image, video_url, etc.). */
+  static createSellerInstantWatchLink(formData, options = {}) {
+    return this.multipartRequest('/instant/seller/watch-links/', formData, {
+      method: 'POST',
+      timeoutMs: options.timeoutMs || 180000,
+    });
+  }
+
+  static updateSellerInstantWatchLink(slug, body) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/seller/watch-links/${s}/`, { method: 'PUT', body: body || {} });
+  }
+
+  static deleteSellerInstantWatchLink(slug) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/seller/watch-links/${s}/`, { method: 'DELETE' });
+  }
+
+  static fetchSellerInstantHotspot(slug) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/seller/watch-links/${s}/hotspots/`, { method: 'GET' });
+  }
+
+  static createSellerInstantHotspot(slug, body) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/seller/watch-links/${s}/hotspots/`, { method: 'POST', body: body || {} });
+  }
+
+  static updateSellerInstantHotspot(slug, body) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    return this.apiRequest(`/instant/seller/watch-links/${s}/hotspots/`, { method: 'PUT', body: body || {} });
+  }
+
+  /** Remove one hotspot (pass id) or all (omit id). */
+  static deleteSellerInstantHotspots(slug, hotspotId) {
+    const s = encodeURIComponent(String(slug || '').trim());
+    const body = hotspotId ? { hotspot_id: String(hotspotId) } : {};
+    return this.apiRequest(`/instant/seller/watch-links/${s}/hotspots/`, { method: 'DELETE', body });
   }
 
   /**
    * Get the main video feed (TikTok-like infinite feed).
-   * Backend endpoint: GET /api/videos/feed/?page=1&per_page=20
+   * Backend endpoint: GET /api/videos/feed/?page=1&per_page=…
+   * Page size defaults to 30 to match the mobile app (`VideoService`).
    */
-  static async getFeed({ page = 1, perPage = 10, refresh = false } = {}) {
+  static async getFeed({ page = 1, perPage = 30, refresh = false } = {}) {
     const qp = new URLSearchParams({
       page: String(page),
       per_page: String(perPage),
       refresh: refresh ? '1' : '0',
     }).toString();
     return await this.apiRequest(`/videos/feed/?${qp}`, { method: 'GET' });
+  }
+
+  /** Authenticated — same endpoint as mobile trending (`VideoService` / `/videos/trending/`). */
+  static async getTrendingVideos({ page = 1, perPage = 30 } = {}) {
+    const qp = new URLSearchParams({
+      page: String(page),
+      per_page: String(perPage),
+    }).toString();
+    return await this.apiRequest(`/videos/trending/?${qp}`, { method: 'GET' });
   }
 
   /**
@@ -944,6 +1735,27 @@ class SuperAffiliateAPI {
    */
   static async getProductDetails(productId) {
     return await this.apiRequest(`/commerce/products/${encodeURIComponent(productId)}/`);
+  }
+
+  /**
+   * Seller: PATCH product (partial update). Same endpoint as mobile; supports stock_quantity, status, etc.
+   */
+  static async updateSellerProduct(productId, data) {
+    const id = encodeURIComponent(String(productId).trim());
+    return await this.apiRequest(`/commerce/products/${id}/update/`, {
+      method: 'PATCH',
+      body: data && typeof data === 'object' ? data : {},
+    });
+  }
+
+  /**
+   * Seller: DELETE own product.
+   */
+  static async deleteSellerProduct(productId) {
+    const id = encodeURIComponent(String(productId).trim());
+    return await this.apiRequest(`/commerce/products/${id}/delete/`, {
+      method: 'DELETE',
+    });
   }
 
   /**
@@ -1297,15 +2109,171 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 }
 
 /**
+ * Highlight sidebar, dropdown, and top bar links for the current HTML page.
+ * Safe to call after async menu inserts (seller/affiliate/admin links).
+ */
+SuperAffiliateAPI.applyActiveNavState = function() {
+  try {
+    const path = window.location.pathname || '';
+    let file = (path.split('/').pop() || '').split('?')[0].trim().toLowerCase();
+    if (!file) file = 'index.html';
+
+    const normalizeHrefToFile = (href) => {
+      if (!href || href === '#' || String(href).startsWith('javascript:')) return '';
+      try {
+        const u = new URL(href, window.location.href);
+        let seg = (u.pathname.split('/').pop() || '').split('?')[0].trim().toLowerCase();
+        if (!seg) seg = 'index.html';
+        return seg;
+      } catch (_) {
+        return '';
+      }
+    };
+
+    const apply = (a, active) => {
+      a.classList.toggle('tanda-nav-link-active', active);
+      if (active) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    };
+
+    document.querySelectorAll('.tanda-desktop-sidebar-nav a.user-menu-item, #userMenu a.user-menu-item').forEach((a) => {
+      const target = normalizeHrefToFile(a.getAttribute('href'));
+      apply(a, Boolean(target && target === file));
+    });
+
+    document.querySelectorAll('.nav-link-btn').forEach((a) => {
+      const target = normalizeHrefToFile(a.getAttribute('href'));
+      apply(a, Boolean(target && target === file));
+    });
+
+    const profileFooter = document.querySelector('.tanda-desktop-sidebar-user');
+    if (profileFooter) {
+      const pf = normalizeHrefToFile(profileFooter.getAttribute('href'));
+      const active = Boolean(pf && pf === file);
+      profileFooter.classList.toggle('tanda-sidebar-profile-active', active);
+      if (active) profileFooter.setAttribute('aria-current', 'page');
+      else profileFooter.removeAttribute('aria-current');
+    }
+  } catch (_) { /* ignore */ }
+};
+
+/**
  * Render a standard auth header area.
  * - If logged out: Login / Sign up
- * - If logged in: Upload / My Videos / Logout
+ * - If logged in: strip actions + account menu (desktop also mounts the left sidebar).
  *
- * Usage: <div id="authNav"></div> then SuperAffiliateAPI.renderAuthNav('authNav')
+ * Optional on `#authNav`: `data-nav-mode` — `instant_shop` | `immersive_shop` | `local_market` | `village_hub`
+ * (underscores; hyphens normalized). Shapes the top strip for mobile commerce chrome.
+ *
+ * Usage: <div id="authNav" data-nav-mode="instant_shop"></div> then SuperAffiliateAPI.renderAuthNav('authNav')
  */
+function buildTandaAccountMenuItemsHTML(siteRoot, opts) {
+  const o = opts || {};
+  const prependMarketing = o.prependMarketingSiteItem
+    ? `
+          <a href="${siteRoot}index.html" class="user-menu-item">
+            <i class="fas fa-globe"></i>
+            <span>Tanda website</span>
+          </a>`
+    : '';
+  const profileRow = o.omitProfileNavItem
+    ? ''
+    : `
+          <a href="${siteRoot}profile.html" class="user-menu-item">
+            <i class="fas fa-user"></i>
+            <span>Profile & Settings</span>
+          </a>`;
+  return `${prependMarketing}
+          <a href="${siteRoot}search.html" class="user-menu-item">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+          </a>
+          <a href="${siteRoot}products.html" class="user-menu-item">
+            <i class="fas fa-shopping-bag"></i>
+            <span>Shop</span>
+          </a>
+          <a href="${siteRoot}local-market.html" class="user-menu-item">
+            <i class="fas fa-store"></i>
+            <span>Local Market by Tanda</span>
+          </a>
+          <a href="${siteRoot}instant-shop.html" class="user-menu-item">
+            <i class="fas fa-bolt"></i>
+            <span>Instant checkout</span>
+          </a>
+          <a href="${siteRoot}product-experience.html" class="user-menu-item">
+            <i class="fas fa-layer-group"></i>
+            <span>Immersive shop</span>
+          </a>${profileRow}
+          <a href="${siteRoot}subscription.html" class="user-menu-item">
+            <i class="fas fa-crown"></i>
+            <span>Subscription</span>
+          </a>
+          <a href="${siteRoot}wallet.html" class="user-menu-item">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet & Transactions</span>
+          </a>
+          <a href="${siteRoot}village-hub.html" class="user-menu-item">
+            <i class="fas fa-people-group"></i>
+            <span>Village batch buying</span>
+          </a>
+          <a href="${siteRoot}analytics.html" class="user-menu-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+          </a>
+          <a href="${siteRoot}wishlist.html" class="user-menu-item">
+            <i class="fas fa-heart"></i>
+            <span>My Wishlist</span>
+          </a>
+          <a href="${siteRoot}orders.html" class="user-menu-item">
+            <i class="fas fa-shopping-bag"></i>
+            <span>My Orders</span>
+          </a>
+          <a href="${siteRoot}my-videos.html" class="user-menu-item">
+            <i class="fas fa-film"></i>
+            <span>My Videos</span>
+          </a>
+          <a href="${siteRoot}help-support.html" class="user-menu-item">
+            <i class="fas fa-life-ring"></i>
+            <span>Help &amp; support</span>
+          </a>
+          <a href="${siteRoot}driver-dashboard.html" class="user-menu-item">
+            <i class="fas fa-motorcycle"></i>
+            <span>Delivery console</span>
+          </a>
+          <a href="${siteRoot}support-inbox.html" class="user-menu-item">
+            <i class="fas fa-inbox"></i>
+            <span>Support inbox (staff)</span>
+          </a>
+          <div class="user-menu-divider" style="margin: 0.5rem 0; border-top: 1px solid rgba(255,255,255,0.1);"></div>
+          <span class="sellerAffiliateMenuPlaceholder"></span>
+          <span class="dashboardMenuPlaceholder"></span>
+          <div class="user-menu-divider"></div>
+          <a href="#" class="user-menu-item user-menu-item-danger tanda-logout-trigger">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>`;
+}
+
 SuperAffiliateAPI.renderAuthNav = function(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
+
+  el.classList.remove('tanda-nav-mode-instant_shop', 'tanda-nav-mode-immersive_shop');
+  const navModeRaw = (el.getAttribute('data-nav-mode') || '').trim().toLowerCase().replace(/-/g, '_');
+  const isInstantShopMode = navModeRaw === 'instant_shop';
+  const isImmersiveShopMode = navModeRaw === 'immersive_shop';
+  const isLocalMarketMode = navModeRaw === 'local_market';
+  const isVillageHubMode = navModeRaw === 'village_hub';
+
+  const existingSidebar = document.getElementById('tandaDesktopSidebar');
+  if (existingSidebar) {
+    existingSidebar.remove();
+  }
+  const existingRightRail = document.getElementById('tandaDesktopRightRail');
+  if (existingRightRail) {
+    existingRightRail.remove();
+  }
+  document.body.classList.remove('tanda-desktop-sidebar-on');
 
   const isAuthed = SuperAffiliateAPI.isAuthenticated();
   // Check if we're on the home page - hide "Home" link when already on index.html
@@ -1320,18 +2288,21 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
   const isUploadPage = currentPath.endsWith('upload.html') || currentFile === 'upload.html';
   // Check if we're on my-videos page - don't add "Home" link as it's already there statically
   const isMyVideosPage = currentPath.endsWith('my-videos.html') || currentFile === 'my-videos.html';
+  const isFeedPage = currentPath.endsWith('feed.html') || currentFile === 'feed.html';
 
   if (!isAuthed) {
     const homeLink = (isHomePage || isUploadPage || isMyVideosPage) ? '' : `
         <a href="index.html" class="nav-link-btn" aria-label="Home">
           <i class="fas fa-home"></i> Home
         </a>`;
+    const feedLink = isFeedPage ? '' : `
+        <a href="feed.html" class="nav-link-btn" aria-label="Feed">
+          <i class="fas fa-play"></i> Feed
+        </a>`;
     el.innerHTML = `
       <div class="auth-nav-buttons">
         ${homeLink}
-        <a href="feed.html" class="nav-link-btn" aria-label="Feed">
-          <i class="fas fa-play"></i> Feed
-      </a>
+        ${feedLink}
         <a href="super-affiliate-login.html" class="nav-link-btn" aria-label="Login">
           Login
       </a>
@@ -1343,86 +2314,144 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     return;
   }
 
-  // Create elegant user menu dropdown
-  // Don't add "Home" link on home page, upload page, or my-videos page (these pages have static Home link)
-  const homeLink = (isHomePage || isUploadPage || isMyVideosPage) ? '' : `
-      <a href="index.html" class="nav-link-btn" aria-label="Home">
+  if (isInstantShopMode) el.classList.add('tanda-nav-mode-instant_shop');
+  if (isImmersiveShopMode) el.classList.add('tanda-nav-mode-immersive_shop');
+
+  document.body.classList.add('tanda-desktop-sidebar-on');
+
+  const siteRoot = SuperAffiliateAPI.getPathToSiteRoot();
+
+  const accountMenuItemsHTML = buildTandaAccountMenuItemsHTML(siteRoot, {
+    prependMarketingSiteItem: isFeedPage,
+  });
+  const accountMenuItemsSidebarHTML = buildTandaAccountMenuItemsHTML(siteRoot, {
+    omitProfileNavItem: true,
+  });
+
+  const hideInstantMobile = isInstantShopMode ? ' tanda-nav-strip-hide-instant-mobile' : '';
+  const hideImmersive = isImmersiveShopMode ? ' tanda-nav-strip-hide-immersive' : '';
+
+  // App "Home" → feed (single entry); marketing site is in the account menu where relevant.
+  const homeLink = (isFeedPage || isUploadPage || isMyVideosPage) ? '' : `
+      <a href="${siteRoot}feed.html" class="nav-link-btn${hideInstantMobile}${hideImmersive}" aria-label="Home">
         <i class="fas fa-home"></i> Home
+      </a>`;
+  const feedLink = '';
+  const uploadSlotHtml = (isLocalMarketMode || isVillageHubMode)
+    ? `<a href="${siteRoot}products.html" class="nav-link-btn" aria-label="Shop">
+        <i class="fas fa-shopping-bag"></i> Shop
+      </a>`
+    : `<a href="${siteRoot}upload.html" class="nav-link-btn${hideInstantMobile}${hideImmersive}" aria-label="Upload">
+        <i class="fas fa-cloud-upload-alt"></i> Upload
+      </a>`;
+  let stripShopHtml = '';
+  if (isImmersiveShopMode) {
+    stripShopHtml = `<a href="${siteRoot}products.html" class="nav-link-btn tanda-nav-strip-shop tanda-nav-immersive-strip-shop" aria-label="Shop">
+        <i class="fas fa-shopping-bag"></i> Shop
+      </a>`;
+  } else if (isInstantShopMode) {
+    stripShopHtml = `<a href="${siteRoot}products.html" class="nav-link-btn tanda-nav-strip-shop tanda-nav-instant-shop-mobile-only" aria-label="Shop">
+        <i class="fas fa-shopping-bag"></i> Shop
+      </a>`;
+  }
+  const cartLink = `<a href="${siteRoot}cart.html" class="nav-link-btn${hideInstantMobile}" aria-label="Shopping Cart" style="position: relative; overflow: visible;" onclick="if(!SuperAffiliateAPI.isAuthenticated()) { event.preventDefault(); window.location.href='super-affiliate-login.html?redirect=' + encodeURIComponent('cart.html'); }">
+        <i class="fas fa-shopping-cart"></i> Cart
+        <span id="cart-badge" style="display: none; position: absolute; top: 0; right: -4px; background: #ff0050; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; overflow: visible;">0</span>
       </a>`;
   const userMenuHTML = `
     <div class="user-menu-wrapper">
       ${homeLink}
-      <a href="feed.html" class="nav-link-btn" aria-label="Feed">
-        <i class="fas fa-play"></i> Feed
-      </a>
-      <a href="upload.html" class="nav-link-btn" aria-label="Upload">
-        <i class="fas fa-cloud-upload-alt"></i> Upload
-      </a>
-      <a href="cart.html" class="nav-link-btn" aria-label="Shopping Cart" style="position: relative; overflow: visible;" onclick="if(!SuperAffiliateAPI.isAuthenticated()) { event.preventDefault(); window.location.href='super-affiliate-login.html?redirect=' + encodeURIComponent('cart.html'); }">
-        <i class="fas fa-shopping-cart"></i> Cart
-        <span id="cart-badge" style="display: none; position: absolute; top: -6px; right: -6px; background: #ff0050; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; overflow: visible;">0</span>
-      </a>
+      ${feedLink}
+      ${uploadSlotHtml}
+      ${stripShopHtml}
+      ${cartLink}
       <div class="user-menu-dropdown">
-        <button class="user-menu-toggle" id="userMenuToggle" aria-label="User menu">
+        <button type="button" class="user-menu-toggle" id="userMenuToggle" aria-label="Open account menu" aria-expanded="false">
           <i class="fas fa-user-circle"></i>
           <i class="fas fa-chevron-down"></i>
         </button>
         <div class="user-menu" id="userMenu">
-          <a href="search.html" class="user-menu-item">
-            <i class="fas fa-search"></i>
-            <span>Search</span>
-          </a>
-          <a href="products.html" class="user-menu-item">
-            <i class="fas fa-shopping-bag"></i>
-            <span>Shop</span>
-          </a>
-          <a href="profile.html" class="user-menu-item">
-            <i class="fas fa-user"></i>
-            <span>Profile & Settings</span>
-          </a>
-          <a href="subscription.html" class="user-menu-item">
-            <i class="fas fa-crown"></i>
-            <span>Subscription</span>
-          </a>
-          <a href="wallet.html" class="user-menu-item">
-            <i class="fas fa-wallet"></i>
-            <span>Wallet & Transactions</span>
-          </a>
-          <a href="analytics.html" class="user-menu-item">
-            <i class="fas fa-chart-line"></i>
-            <span>Analytics</span>
-          </a>
-          <a href="wishlist.html" class="user-menu-item">
-            <i class="fas fa-heart"></i>
-            <span>My Wishlist</span>
-          </a>
-          <a href="orders.html" class="user-menu-item">
-            <i class="fas fa-shopping-bag"></i>
-            <span>My Orders</span>
-          </a>
-          <a href="my-videos.html" class="user-menu-item">
-            <i class="fas fa-film"></i>
-            <span>My Videos</span>
-          </a>
-          <div class="user-menu-divider" style="margin: 0.5rem 0; border-top: 1px solid rgba(255,255,255,0.1);"></div>
-          <span id="sellerAffiliateMenuPlaceholder"></span>
-          <span id="dashboardMenuPlaceholder"></span>
-          <div class="user-menu-divider"></div>
-          <a href="#" class="user-menu-item user-menu-item-danger" id="logoutBtn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </a>
+          ${accountMenuItemsHTML}
         </div>
       </div>
     </div>
   `;
   
   el.innerHTML = userMenuHTML;
-  
-  // Inject navigation and user menu styles if not already present
-  if (!document.getElementById('user-menu-styles')) {
+
+  const sidebar = document.createElement('aside');
+  sidebar.id = 'tandaDesktopSidebar';
+  sidebar.className = 'tanda-desktop-sidebar';
+  sidebar.setAttribute('aria-label', 'Account navigation');
+  sidebar.innerHTML = `
+    <div class="tanda-desktop-sidebar-brand">
+      <a href="${siteRoot}feed.html" class="tanda-desktop-sidebar-logo">
+        <i class="fas fa-play-circle" aria-hidden="true"></i>
+        <span>Tanda</span>
+      </a>
+    </div>
+    <nav class="tanda-desktop-sidebar-nav" id="userMenuSidebar" aria-label="Your account">
+      ${accountMenuItemsSidebarHTML}
+    </nav>
+    <a href="${siteRoot}profile.html" class="tanda-desktop-sidebar-user" aria-label="Profile and settings">
+      <span class="tanda-desktop-sidebar-user-avatar" aria-hidden="true">
+        <img alt="" class="tanda-desktop-sidebar-user-img" id="tandaDesktopSidebarUserImg" width="44" height="44" decoding="async" />
+        <span class="tanda-desktop-sidebar-user-fallback" id="tandaDesktopSidebarUserFallback"><i class="fas fa-user"></i></span>
+      </span>
+      <span class="tanda-desktop-sidebar-user-meta">
+        <span class="tanda-desktop-sidebar-user-name" id="tandaDesktopSidebarUserName">…</span>
+        <span class="tanda-desktop-sidebar-user-caption">Profile & settings</span>
+      </span>
+    </a>
+  `;
+  document.body.insertBefore(sidebar, document.body.firstChild);
+
+  (function hydrateDesktopSidebarProfile() {
+    const img = document.getElementById('tandaDesktopSidebarUserImg');
+    const fb = document.getElementById('tandaDesktopSidebarUserFallback');
+    const nameEl = document.getElementById('tandaDesktopSidebarUserName');
+    if (!nameEl) return;
+    const showFallback = () => {
+      if (img) {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+      }
+      if (fb) fb.style.display = 'flex';
+    };
+    const showImg = () => {
+      if (img) img.style.display = 'block';
+      if (fb) fb.style.display = 'none';
+    };
+    showFallback();
+    nameEl.textContent = '…';
+    SuperAffiliateAPI.getCurrentUser()
+      .then((me) => {
+        nameEl.textContent = SuperAffiliateAPI.getWebProfileDisplayName(me);
+        const av = me && me.avatar ? String(me.avatar).trim() : '';
+        if (!av || !img || !fb) return;
+        img.onload = () => { showImg(); };
+        img.onerror = () => { showFallback(); };
+        const bust = av.includes('?') ? `${av}&_sb=${Date.now()}` : `${av}?_sb=${Date.now()}`;
+        img.src = bust;
+      })
+      .catch(() => {
+        nameEl.textContent = 'Account';
+      });
+  })();
+
+  const rightRail = document.createElement('aside');
+  rightRail.id = 'tandaDesktopRightRail';
+  rightRail.className = 'tanda-desktop-right-rail';
+  rightRail.setAttribute('aria-hidden', 'true');
+  sidebar.insertAdjacentElement('afterend', rightRail);
+
+  const legacyNavStyles = document.getElementById('user-menu-styles');
+  if (legacyNavStyles) {
+    legacyNavStyles.remove();
+  }
+  if (!document.getElementById('user-menu-styles-v2')) {
     const styleSheet = document.createElement('style');
-    styleSheet.id = 'user-menu-styles';
+    styleSheet.id = 'user-menu-styles-v2';
     styleSheet.textContent = `
       /* Navigation link buttons - Feed, Upload, etc. */
       .nav-link-btn,
@@ -1466,6 +2495,13 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         transform: translateY(-2px) !important;
         box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3) !important;
         color: white !important;
+      }
+      .nav-link-btn.tanda-nav-link-active,
+      .nav-link-btn.tanda-nav-link-active:link,
+      .nav-link-btn.tanda-nav-link-active:visited {
+        color: #00f2ea !important;
+        background: rgba(0, 242, 234, 0.12) !important;
+        border: 1px solid rgba(0, 242, 234, 0.4) !important;
       }
       
       /* User menu wrapper - container for Feed, Upload, and user button */
@@ -1527,8 +2563,8 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       /* Cart badge styling */
       #cart-badge {
         position: absolute !important;
-        top: -6px !important;
-        right: -6px !important;
+        top: 0 !important;
+        right: -4px !important;
         background: #ff0050 !important;
         color: white !important;
         border-radius: 50% !important;
@@ -1648,6 +2684,12 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         background: rgba(255, 255, 255, 0.05) !important;
         text-decoration: none !important;
       }
+      .user-menu-dropdown .user-menu a.user-menu-item.tanda-nav-link-active {
+        color: #ffffff !important;
+        background: linear-gradient(90deg, rgba(255,0,80,0.15), rgba(0,242,234,0.12)) !important;
+        border-left: 3px solid #00f2ea !important;
+        padding-left: calc(1.25rem - 3px) !important;
+      }
       .user-menu-dropdown .user-menu a.user-menu-item span {
         display: inline-block !important;
         color: inherit !important;
@@ -1699,6 +2741,308 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         text-decoration: none !important;
         outline: none !important;
       }
+
+      /* Desktop left sidebar – account links (mobile keeps dropdown only) */
+      .tanda-desktop-sidebar {
+        display: none;
+        box-sizing: border-box;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        z-index: 10002;
+        flex-direction: column;
+        background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+        border-right: 1px solid rgba(255,255,255,0.12);
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        padding-left: calc(12px + env(safe-area-inset-left, 0px));
+        padding-right: 12px;
+      }
+
+      .tanda-desktop-sidebar-brand {
+        padding: 0 0.5rem 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 0.75rem;
+      }
+
+      .tanda-desktop-sidebar-logo {
+        display: flex !important;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none !important;
+        color: #fff !important;
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: 0.02em;
+      }
+
+      .tanda-desktop-sidebar-logo i {
+        font-size: 1.35rem;
+        background: linear-gradient(135deg, #ff0050, #00f2ea);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        color: transparent !important;
+      }
+
+      .tanda-desktop-sidebar-nav {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.25rem 0 1rem;
+      }
+
+      .tanda-desktop-sidebar-user {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        margin-top: auto !important;
+        flex-shrink: 0 !important;
+        padding: 0.85rem 0.5rem 0.35rem !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        text-decoration: none !important;
+        outline: none !important;
+        border-radius: 0.65rem !important;
+        color: #fff !important;
+        box-sizing: border-box !important;
+        min-height: 52px !important;
+      }
+
+      .tanda-desktop-sidebar-user:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+      }
+
+      .tanda-desktop-sidebar-user:focus-visible {
+        box-shadow: 0 0 0 2px rgba(0, 242, 234, 0.45) !important;
+      }
+
+      .tanda-desktop-sidebar-user-avatar {
+        position: relative !important;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .tanda-desktop-sidebar-user-img {
+        display: none;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+      }
+
+      .tanda-desktop-sidebar-user-fallback {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        color: #888 !important;
+        font-size: 1.05rem !important;
+      }
+
+      .tanda-desktop-sidebar-user-meta {
+        display: flex !important;
+        flex-direction: column !important;
+        min-width: 0 !important;
+        gap: 0.12rem !important;
+      }
+
+      .tanda-desktop-sidebar-user-name {
+        font-size: 0.92rem !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        color: #fff !important;
+      }
+
+      .tanda-desktop-sidebar-user-caption {
+        font-size: 0.68rem !important;
+        color: #888 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+      }
+
+      .tanda-desktop-sidebar .user-menu-item,
+      .tanda-desktop-sidebar a.user-menu-item:link,
+      .tanda-desktop-sidebar a.user-menu-item:visited,
+      .tanda-desktop-sidebar a.user-menu-item:active {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        padding: 0.7rem 0.85rem !important;
+        margin: 0.1rem 0 !important;
+        border-radius: 0.6rem !important;
+        color: #cccccc !important;
+        text-decoration: none !important;
+        font-size: 0.92rem !important;
+        font-weight: 500 !important;
+        font-family: 'Inter', sans-serif !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border: none !important;
+        background: transparent !important;
+        cursor: pointer !important;
+        outline: none !important;
+        text-align: left !important;
+        min-height: 44px;
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item:hover {
+        color: #00f2ea !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item i {
+        width: 22px !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item.user-menu-item-highlight {
+        background: linear-gradient(135deg, rgba(255,0,80,0.12), rgba(0,242,234,0.1)) !important;
+        border-left: 3px solid #00f2ea !important;
+        padding-left: calc(0.85rem - 3px) !important;
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item.tanda-nav-link-active,
+      .tanda-desktop-sidebar a.user-menu-item.tanda-nav-link-active:link,
+      .tanda-desktop-sidebar a.user-menu-item.tanda-nav-link-active:visited {
+        color: #ffffff !important;
+        background: linear-gradient(90deg, rgba(255,0,80,0.18), rgba(0,242,234,0.14)) !important;
+        border-left: 3px solid #00f2ea !important;
+        padding-left: calc(0.85rem - 3px) !important;
+        box-shadow: inset 0 0 0 1px rgba(0,242,234,0.12);
+      }
+
+      .tanda-desktop-sidebar-user.tanda-sidebar-profile-active {
+        background: rgba(0, 242, 234, 0.1) !important;
+        box-shadow: inset 0 0 0 1px rgba(0, 242, 234, 0.35);
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item.user-menu-item-danger {
+        color: #ff6b6b !important;
+        margin-top: 0.5rem !important;
+      }
+
+      .tanda-desktop-sidebar a.user-menu-item.user-menu-item-danger:hover {
+        color: #ff5252 !important;
+        background: rgba(255, 107, 107, 0.08) !important;
+      }
+
+      .tanda-desktop-sidebar .user-menu-divider {
+        margin: 0.4rem 0.25rem !important;
+      }
+
+      /* Empty right rail – balances layout so main column stays centered (desktop only) */
+      .tanda-desktop-right-rail {
+        display: none;
+        box-sizing: border-box;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 260px;
+        z-index: 10001;
+        background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+        border-left: 1px solid rgba(255,255,255,0.12);
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        padding-right: calc(12px + env(safe-area-inset-right, 0px));
+        padding-left: 12px;
+        pointer-events: none;
+      }
+
+      @media (min-width: 1024px) {
+        body.tanda-desktop-sidebar-on .tanda-desktop-sidebar {
+          display: flex !important;
+        }
+
+        body.tanda-desktop-sidebar-on .tanda-desktop-right-rail {
+          display: block !important;
+        }
+
+        body.tanda-desktop-sidebar-on {
+          padding-left: calc(260px + env(safe-area-inset-left, 0px)) !important;
+          padding-right: calc(260px + env(safe-area-inset-right, 0px)) !important;
+        }
+
+        body.tanda-desktop-sidebar-on .topbar {
+          left: calc(260px + env(safe-area-inset-left, 0px)) !important;
+          width: calc(100% - 520px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+          right: auto !important;
+        }
+
+        body.tanda-desktop-sidebar-on .header {
+          margin-left: 0 !important;
+          padding-left: calc(2rem + env(safe-area-inset-left, 0px)) !important;
+          padding-right: calc(2rem + env(safe-area-inset-right, 0px)) !important;
+          max-width: none !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* Reel pages: fixed chrome ignores body padding – inset from L/R rails so nav is not covered (desktop only) */
+        body.tanda-desktop-sidebar-on.instant-page .instant-chrome {
+          left: calc(260px + env(safe-area-inset-left, 0px)) !important;
+          right: auto !important;
+          width: calc(100% - 520px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+        }
+        body.tanda-desktop-sidebar-on.discover-page .disc-chrome {
+          left: calc(260px + env(safe-area-inset-left, 0px)) !important;
+          right: auto !important;
+          width: calc(100% - 520px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+          padding-left: 12px !important;
+          padding-right: 12px !important;
+        }
+
+        .user-menu-toggle {
+          display: none !important;
+        }
+
+        .user-menu-dropdown .user-menu {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      }
+
+      /* Instant checkout: mobile strip = Shop + account only */
+      .tanda-nav-instant-shop-mobile-only {
+        display: none !important;
+      }
+      @media (max-width: 1023px) {
+        #authNav.tanda-nav-mode-instant_shop .tanda-nav-instant-shop-mobile-only {
+          display: inline-flex !important;
+        }
+        #authNav.tanda-nav-mode-instant_shop .tanda-nav-strip-hide-instant-mobile {
+          display: none !important;
+        }
+      }
+
+      /* Immersive shop: no Home / Upload. Desktop strip adds Shop; mobile = Cart + account only (parity with instant-shop strip, Shop → Cart). */
+      #authNav.tanda-nav-mode-immersive_shop .tanda-nav-strip-hide-immersive {
+        display: none !important;
+      }
+      #authNav.tanda-nav-mode-immersive_shop .tanda-nav-immersive-strip-shop {
+        display: none !important;
+      }
+      @media (min-width: 1024px) {
+        #authNav.tanda-nav-mode-immersive_shop .tanda-nav-immersive-strip-shop {
+          display: inline-flex !important;
+        }
+      }
     `;
     document.head.appendChild(styleSheet);
   }
@@ -1725,6 +3069,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     // iOS Safari fix: Add touch event handlers in addition to click
     // This ensures the menu works on real iOS devices
     const handleMenuToggle = (e) => {
+      if (window.matchMedia('(min-width: 1024px)').matches) return;
       e.stopPropagation();
       e.preventDefault();
       const isActive = userMenu.classList.contains('active');
@@ -1734,6 +3079,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.classList.add('closing');
         userMenu.classList.remove('active');
         userMenuDropdown.classList.remove('active');
+        menuToggle.setAttribute('aria-expanded', 'false');
         userMenu.style.opacity = '0';
         userMenu.style.visibility = 'hidden';
         userMenu.style.transform = 'none';
@@ -1871,6 +3217,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.style.display = 'block';
         userMenu.classList.add('active');
         userMenuDropdown.classList.add('active');
+        menuToggle.setAttribute('aria-expanded', 'true');
         userMenu.style.opacity = '1';
         userMenu.style.visibility = 'visible';
         userMenu.style.transform = 'none';
@@ -1939,6 +3286,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
             userMenu.classList.add('closing');
             userMenu.classList.remove('active');
             userMenuDropdown.classList.remove('active');
+            menuToggle.setAttribute('aria-expanded', 'false');
             userMenu.style.opacity = '0';
             userMenu.style.visibility = 'hidden';
             userMenu.style.transform = 'none';
@@ -2007,134 +3355,146 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
     menuToggle.addEventListener('click', handleMenuToggle);
   }, 50);
   
-  // Setup logout button
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
+  document.querySelectorAll('.tanda-logout-trigger').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
       SuperAffiliateAPI.logout();
     });
-  }
+  });
 
-  // Check seller/affiliate status and add appropriate links
+  // Check seller/affiliate status and add appropriate links (mobile + desktop sidebar)
   (async function() {
-    const sellerAffiliatePlaceholder = document.getElementById('sellerAffiliateMenuPlaceholder');
-    if (!sellerAffiliatePlaceholder) return;
+    const placeholders = document.querySelectorAll('.sellerAffiliateMenuPlaceholder');
+    if (!placeholders.length) return;
 
+    const root = SuperAffiliateAPI.getPathToSiteRoot();
     let isSeller = false;
     let isAffiliate = false;
 
+    function applySellerAffiliateSpecs(linkSpecs) {
+      placeholders.forEach((ph) => {
+        linkSpecs.forEach((spec) => {
+          const a = document.createElement('a');
+          a.href = spec.href;
+          a.className = spec.className;
+          a.innerHTML = spec.inner;
+          ph.parentNode.insertBefore(a, ph);
+        });
+        ph.remove();
+      });
+    }
+
+    const linkSpecs = [];
+
+    const pushLink = (href, inner, className) => {
+      linkSpecs.push({
+        href,
+        inner,
+        className: className || 'user-menu-item',
+      });
+    };
+
     try {
-      // Check seller status
+      try {
+        const me = await SuperAffiliateAPI.getCurrentUser();
+        if (me && SuperAffiliateAPI.isTandaWebAdmin(me)) {
+          pushLink(
+            root + 'admin-tools/strategic-analysis.html',
+            '<i class="fas fa-shield-alt"></i><span>Admin tools</span>'
+          );
+        }
+      } catch (_) {
+        /* omit admin link if profile unavailable */
+      }
+
       try {
         const sellerProfile = await SuperAffiliateAPI.apiRequest('/commerce/seller/profile/');
         if (sellerProfile && sellerProfile.id) {
           isSeller = true;
-          const sellerDashboardLink = document.createElement('a');
-          sellerDashboardLink.href = 'seller-dashboard.html';
-          sellerDashboardLink.className = 'user-menu-item';
-          sellerDashboardLink.innerHTML = '<i class="fas fa-store"></i><span>Seller Dashboard</span>';
-          sellerAffiliatePlaceholder.parentNode.insertBefore(sellerDashboardLink, sellerAffiliatePlaceholder);
+          pushLink(
+            root + 'seller-dashboard.html',
+            '<i class="fas fa-store"></i><span>Seller Dashboard</span>'
+          );
         }
       } catch (e) {
-        // Not a seller - 404 is expected for non-sellers, don't log as error
-        // Only log if it's not a 404 or "not found" error
         const errorMsg = e.message || '';
-        const isExpectedError = errorMsg.includes('404') || 
-                               errorMsg.includes('not found') || 
+        const isExpectedError = errorMsg.includes('404') ||
+                               errorMsg.includes('not found') ||
                                errorMsg.includes('Seller profile not found');
         if (!isExpectedError) {
           console.warn('Error checking seller status:', e);
         }
       }
 
-      // Check affiliate status
       try {
         const affiliateProfile = await SuperAffiliateAPI.apiRequest('/commerce/affiliate/profile/');
         if (affiliateProfile && affiliateProfile.id) {
           isAffiliate = true;
-          const affiliateDashboardLink = document.createElement('a');
-          affiliateDashboardLink.href = 'affiliate-dashboard.html';
-          affiliateDashboardLink.className = 'user-menu-item';
-          affiliateDashboardLink.innerHTML = '<i class="fas fa-user-tie"></i><span>Affiliate Dashboard</span>';
-          sellerAffiliatePlaceholder.parentNode.insertBefore(affiliateDashboardLink, sellerAffiliatePlaceholder);
+          pushLink(
+            root + 'affiliate-dashboard.html',
+            '<i class="fas fa-user-tie"></i><span>Affiliate Dashboard</span>'
+          );
         }
-        // If affiliateProfile is null, it's an expected 404 (user is not an affiliate)
       } catch (e) {
-        // Only log unexpected errors (apiRequest should return null for 404s, not throw)
         console.warn('Unexpected error checking affiliate status:', e);
       }
 
-      // Only show "Become" links if user is NOT already registered
       if (!isSeller && !isAffiliate) {
-        const becomeSellerLink = document.createElement('a');
-        becomeSellerLink.href = 'become-seller.html';
-        becomeSellerLink.className = 'user-menu-item';
-        becomeSellerLink.innerHTML = '<i class="fas fa-store"></i><span>Become a Seller</span>';
-        sellerAffiliatePlaceholder.parentNode.insertBefore(becomeSellerLink, sellerAffiliatePlaceholder);
-
-        const becomeAffiliateLink = document.createElement('a');
-        becomeAffiliateLink.href = 'become-affiliate.html';
-        becomeAffiliateLink.className = 'user-menu-item';
-        becomeAffiliateLink.innerHTML = '<i class="fas fa-user-tie"></i><span>Become an Affiliate</span>';
-        sellerAffiliatePlaceholder.parentNode.insertBefore(becomeAffiliateLink, sellerAffiliatePlaceholder);
+        pushLink(root + 'become-seller.html', '<i class="fas fa-store"></i><span>Become a Seller</span>');
+        pushLink(root + 'become-affiliate.html', '<i class="fas fa-user-tie"></i><span>Become an Affiliate</span>');
       } else {
-        // If user is seller or affiliate, add quick action links
         if (isSeller) {
-          const addProductLink = document.createElement('a');
-          addProductLink.href = 'add-product.html';
-          addProductLink.className = 'user-menu-item';
-          addProductLink.innerHTML = '<i class="fas fa-plus-circle"></i><span>Add Product</span>';
-          sellerAffiliatePlaceholder.parentNode.insertBefore(addProductLink, sellerAffiliatePlaceholder);
+          pushLink(root + 'add-product.html', '<i class="fas fa-plus-circle"></i><span>Add Product</span>');
+          pushLink(
+            root + 'seller-instant-checkout.html',
+            '<i class="fas fa-bolt"></i><span>Instant checkout</span>'
+          );
         }
         if (isAffiliate) {
-          const promoteProductsLink = document.createElement('a');
-          promoteProductsLink.href = 'promote-products.html';
-          promoteProductsLink.className = 'user-menu-item';
-          promoteProductsLink.innerHTML = '<i class="fas fa-tag"></i><span>Promote Products</span>';
-          sellerAffiliatePlaceholder.parentNode.insertBefore(promoteProductsLink, sellerAffiliatePlaceholder);
+          pushLink(root + 'promote-products.html', '<i class="fas fa-tag"></i><span>Promote Products</span>');
         }
       }
 
-      // Remove placeholder
-      sellerAffiliatePlaceholder.remove();
+      applySellerAffiliateSpecs(linkSpecs);
+      SuperAffiliateAPI.applyActiveNavState();
     } catch (e) {
-      // On error, show "Become" links as fallback
+      const fallback = [];
       if (!isSeller && !isAffiliate) {
-        const becomeSellerLink = document.createElement('a');
-        becomeSellerLink.href = 'become-seller.html';
-        becomeSellerLink.className = 'user-menu-item';
-        becomeSellerLink.innerHTML = '<i class="fas fa-store"></i><span>Become a Seller</span>';
-        sellerAffiliatePlaceholder.parentNode.insertBefore(becomeSellerLink, sellerAffiliatePlaceholder);
-
-        const becomeAffiliateLink = document.createElement('a');
-        becomeAffiliateLink.href = 'become-affiliate.html';
-        becomeAffiliateLink.className = 'user-menu-item';
-        becomeAffiliateLink.innerHTML = '<i class="fas fa-user-tie"></i><span>Become an Affiliate</span>';
-        sellerAffiliatePlaceholder.parentNode.insertBefore(becomeAffiliateLink, sellerAffiliatePlaceholder);
+        fallback.push({
+          href: root + 'become-seller.html',
+          className: 'user-menu-item',
+          inner: '<i class="fas fa-store"></i><span>Become a Seller</span>',
+        });
+        fallback.push({
+          href: root + 'become-affiliate.html',
+          className: 'user-menu-item',
+          inner: '<i class="fas fa-user-tie"></i><span>Become an Affiliate</span>',
+        });
       }
-      sellerAffiliatePlaceholder.remove();
+      applySellerAffiliateSpecs(fallback.length ? fallback : linkSpecs);
+      SuperAffiliateAPI.applyActiveNavState();
     }
   })();
 
   // Check Super Affiliate status and add Dashboard link if applicable
   SuperAffiliateAPI.getMyStatus().then(status => {
-    const placeholder = document.getElementById('dashboardMenuPlaceholder');
-    if (placeholder && status && (status.status === 'active' || status.status === 'invited')) {
-      placeholder.outerHTML = `
-        <a href="super-affiliate-dashboard.html" class="user-menu-item user-menu-item-highlight">
-          <i class="fas fa-tachometer-alt"></i>
-          <span>Super Affiliate Dashboard</span>
-        </a>
-      `;
-    } else if (placeholder) {
-      placeholder.remove();
-    }
+    const dashRoot = SuperAffiliateAPI.getPathToSiteRoot();
+    document.querySelectorAll('.dashboardMenuPlaceholder').forEach((placeholder) => {
+      if (placeholder && status && (status.status === 'active' || status.status === 'invited')) {
+        const a = document.createElement('a');
+        a.href = dashRoot + 'super-affiliate-dashboard.html';
+        a.className = 'user-menu-item user-menu-item-highlight';
+        a.innerHTML = '<i class="fas fa-tachometer-alt"></i><span>Super Affiliate Dashboard</span>';
+        placeholder.replaceWith(a);
+      } else if (placeholder) {
+        placeholder.remove();
+      }
+    });
+    SuperAffiliateAPI.applyActiveNavState();
   }).catch(() => {
-    const placeholder = document.getElementById('dashboardMenuPlaceholder');
-    if (placeholder) {
-      placeholder.remove();
-    }
+    document.querySelectorAll('.dashboardMenuPlaceholder').forEach((placeholder) => {
+      if (placeholder) placeholder.remove();
+    });
   });
 
   // Update cart badge if authenticated
@@ -2150,13 +3510,20 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       // Silently fail
     });
   }
+
+  SuperAffiliateAPI.applyActiveNavState();
+  setTimeout(() => SuperAffiliateAPI.applyActiveNavState(), 450);
 };
 
 // Add helper functions
+/** Above desktop L/R rails (10001–10002), user menu (10000), shopping assistant (10051–10055). */
+window.TANDA_WEB_TOAST_Z_INDEX = 100600;
+
 window.showToast = function(message, type = 'success') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
+  const z = typeof window.TANDA_WEB_TOAST_Z_INDEX === 'number' ? window.TANDA_WEB_TOAST_Z_INDEX : 100600;
   toast.style.cssText = `
     position: fixed;
     top: 2rem;
@@ -2166,7 +3533,7 @@ window.showToast = function(message, type = 'success') {
     padding: 1rem 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 9999;
+    z-index: ${z};
     animation: slideIn 0.3s ease-out;
   `;
   

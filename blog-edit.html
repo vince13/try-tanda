@@ -11,7 +11,7 @@
   <title>Edit Blog Post - Tanda</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="js/ios-enhancements.js"></script>
   
@@ -340,7 +340,7 @@
       padding: 1rem 1.5rem;
       color: var(--text-primary);
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-      z-index: 10000;
+      z-index: 100600;
       display: none;
       align-items: center;
       gap: 0.75rem;
@@ -566,7 +566,7 @@
 
       try {
         const user = await SuperAffiliateAPI.getCurrentUser();
-        isAdmin = user.is_superuser || user.is_staff || user.role === 'admin';
+        isAdmin = SuperAffiliateAPI.isTandaWebAdmin(user);
         
         if (!isAdmin) {
           showToast('Admin access required', 'error');

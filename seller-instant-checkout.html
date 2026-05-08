@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Instant checkout – Seller – Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #aaa;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+    .header {
+      max-width: 900px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 0.85rem;
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="text"], input[type="url"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    input[type="file"] { margin-bottom: 0.75rem; color: var(--muted); }
+    .row { display: grid; gap: 0.75rem; }
+    @media (min-width: 640px) {
+      .row.cols-2 { grid-template-columns: 1fr 1fr; }
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.65rem 1.1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-decoration: none;
+      color: #fff;
+      background: var(--primary-gradient);
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    .btn-danger { background: rgba(220, 50, 50, 0.85); }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .link-row {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 1rem 0;
+    }
+    .link-row:last-child { border-bottom: none; }
+    .badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.35rem;
+      background: rgba(0,242,234,0.15);
+      color: var(--accent);
+      margin-right: 0.35rem;
+    }
+    .badge-off { background: rgba(255,255,255,0.1); color: var(--muted); }
+    .hotspot-panel {
+      display: none;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .hotspot-panel.open { display: block; }
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    .err { color: #ff8a8a; font-size: 0.9rem; margin-top: 0.5rem; }
+    #toast {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      background: rgba(20,20,24,0.95);
+      border: 1px solid rgba(255,255,255,0.12);
+      z-index: 100600;
+      display: none;
+      max-width: 90vw;
+    }
+    .source-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .source-tabs button {
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .source-tabs button.active {
+      background: rgba(0,242,234,0.15);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .hidden { display: none !important; }
+    .hotspot-panel > .hp-callout {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      margin-bottom: 1rem;
+    }
+    .hp-callout strong { color: #fff; }
+    .hp-stage {
+      position: relative;
+      width: 100%;
+      max-height: min(70vh, 520px);
+      margin: 0.5rem 0 0.35rem;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0a0a0c;
+      border: 1px solid rgba(255,255,255,0.12);
+      touch-action: none;
+    }
+    .hp-stage-video, .hp-stage-img, .hp-stage-static {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: min(70vh, 520px);
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hp-stage-placeholder {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .hp-draw-layer {
+      position: absolute;
+      inset: 0;
+      cursor: crosshair;
+      z-index: 2;
+      touch-action: none;
+    }
+    .hp-rect {
+      display: none;
+      position: absolute;
+      z-index: 3;
+      left: 0; top: 0;
+      pointer-events: none;
+      border-radius: 10px;
+      box-shadow:
+        0 0 0 2px rgba(139, 92, 246, 0.95),
+        0 0 0 4px rgba(34, 211, 238, 0.45),
+        0 4px 20px rgba(34, 211, 238, 0.25);
+      background: rgba(15, 23, 42, 0.42);
+    }
+    .hp-draw-hint {
+      font-size:0.82rem;
+      color: var(--muted);
+      margin: 0.25rem 0 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .hp-draw-hint i { color: var(--accent); }
+    .hp-strip-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.65);
+      margin: 0.5rem 0 0.35rem;
+    }
+    .hp-strip-tiles {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .hp-strip-tile {
+      flex: 0 0 auto;
+      width: 68px;
+      height: 68px;
+      padding: 0;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.4);
+      cursor: pointer;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .hp-strip-tile.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5);
+    }
+    .hp-strip-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hp-strip-tile.hp-strip-auto {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+    details.hp-advanced {
+      margin: 0.75rem 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+    }
+    details.hp-advanced summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .hp-footlinks { margin-top: 0.75rem; font-size: 0.82rem; }
+    .hp-footlinks a { color: var(--accent); }
+  </style>
+</head>
+<body data-tanda-page-label="Seller – instant checkout links (video & image).">
+  <div class="header">
+    <a href="seller-dashboard.html" class="btn btn-ghost" style="text-decoration:none;"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <h1 class="title"><i class="fas fa-bolt"></i> Instant checkout</h1>
+    <div id="authNav"></div>
+  </div>
+
+  <div class="container">
+    <p class="muted" style="margin-bottom:1rem;">
+      Create shoppable watch pages from your library videos, uploads, or a product image. Each link needs a <strong style="color:#fff;">product tag</strong> (product + draggable frame + optional listing photo) so buyers can check out – same flow as the Tanda app.
+    </p>
+
+    <div class="card">
+      <h2>Create link</h2>
+      <form id="create-form">
+        <div class="row">
+          <div>
+            <label for="c-title">Title</label>
+            <input type="text" id="c-title" required maxlength="160" placeholder="e.g. Summer drop – featured bag" autocomplete="off">
+          </div>
+          <div>
+            <label for="c-media">Media type</label>
+            <select id="c-media">
+              <option value="video">Video</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="video-block">
+          <label>Video source</label>
+          <div class="source-tabs" id="video-source-tabs">
+            <button type="button" data-src="library" class="active">My videos</button>
+            <button type="button" data-src="upload">Upload MP4</button>
+            <button type="button" data-src="url">External URL</button>
+          </div>
+          <div id="v-library">
+            <label for="c-video-id">Library video</label>
+            <select id="c-video-id"><option value="">Loading…</option></select>
+          </div>
+          <div id="v-upload" class="hidden">
+            <label for="c-video-file">Video file</label>
+            <input type="file" id="c-video-file" accept="video/mp4,video/webm,video/quicktime">
+            <label for="c-poster-file">Share poster (optional)</label>
+            <input type="file" id="c-poster-file" accept="image/jpeg,image/png,image/webp">
+            <label for="c-src-product-upload">Link to catalog product (optional)</label>
+            <select id="c-src-product-upload"><option value="">—</option></select>
+          </div>
+          <div id="v-url" class="hidden">
+            <label for="c-video-url">Video URL</label>
+            <input type="url" id="c-video-url" placeholder="https://…">
+            <label for="c-src-product-url">Source product (optional)</label>
+            <select id="c-src-product-url"><option value="">—</option></select>
+          </div>
+        </div>
+
+        <div id="image-block" class="hidden">
+          <label for="c-image-file">Image file</label>
+          <input type="file" id="c-image-file" accept="image/jpeg,image/png,image/webp">
+        </div>
+
+        <button type="submit" class="btn" id="c-submit"><i class="fas fa-plus"></i> Create link</button>
+        <p id="create-err" class="err" style="display:none;"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Your instant links</h2>
+      <div id="list-loading" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>
+      <div id="list-empty" class="muted" style="display:none;">No links yet. Create one above.</div>
+      <div id="list-host"></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    if (typeof SuperAffiliateAPI.updateCartBadge === 'function') SuperAffiliateAPI.updateCartBadge();
+
+    const root = SuperAffiliateAPI.getPathToSiteRoot();
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(window._toastT);
+      window._toastT = setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fullWatchUrl(watchPath) {
+      const o = SuperAffiliateAPI.getBackendOrigin();
+      const path = (watchPath || '').startsWith('/') ? watchPath : '/' + watchPath;
+      let u = (o ? o + path : path);
+      if (typeof SuperAffiliateAPI.appendInstantAuthTransferHash === 'function') {
+        u = SuperAffiliateAPI.appendInstantAuthTransferHash(u);
+      }
+      return u;
+    }
+
+    /** `/w/slug/` or `/i/slug/` only – strips hash and absolute URL wrapper. */
+    function normalizedWatchPath(watchPath) {
+      let p = String(watchPath == null ? '' : watchPath).trim();
+      if (!p) return '';
+      const hash = p.indexOf('#');
+      if (hash >= 0) p = p.slice(0, hash);
+      try {
+        if (p.startsWith('http://') || p.startsWith('https://')) {
+          const u = new URL(p);
+          p = u.pathname + (u.search || '');
+        }
+      } catch (_) {}
+      p = p.replace(/\s+/g, '');
+      if (!p.startsWith('/')) p = '/' + p;
+      if (!p.endsWith('/')) p += '/';
+      return p;
+    }
+
+    /** Full URL that opens in a new tab (`https://host/w/slug/`) – no `#_tt` handoff token. */
+    function shareableWatchUrl(watchPath) {
+      const path = normalizedWatchPath(watchPath);
+      if (!path) return '';
+      let origin = '';
+      if (typeof SuperAffiliateAPI.getBackendOrigin === 'function') {
+        origin = String(SuperAffiliateAPI.getBackendOrigin() || '').replace(/\/$/, '');
+      }
+      if (!origin && typeof window !== 'undefined' && window.location && window.location.origin) {
+        origin = String(window.location.origin).replace(/\/$/, '');
+      }
+      return origin ? origin + path : path;
+    }
+
+    const productsById = new Map();
+    const videoUrlById = new Map();
+
+    function absoluteMediaUrl(path) {
+      const p = (path == null ? '' : String(path)).trim();
+      if (!p) return '';
+      if (p.startsWith('http://') || p.startsWith('https://')) return p;
+      let origin = '';
+      if (typeof SuperAffiliateAPI.getBackendOrigin === 'function') {
+        origin = String(SuperAffiliateAPI.getBackendOrigin() || '').replace(/\/$/, '');
+      }
+      if (!origin) return p.startsWith('/') ? p : '/' + p;
+      return p.startsWith('/') ? origin + p : `${origin}/${p}`;
+    }
+
+    async function refreshVideoUrlMapForId(vidId) {
+      const want = String(vidId || '').trim();
+      if (!want || videoUrlById.has(want)) return;
+      let page = 1;
+      let hasNext = true;
+      while (hasNext && page < 20) {
+        const r = await SuperAffiliateAPI.getMyVideos(page, { excludeImported: true, perPage: 50 });
+        const vids = (r && r.videos) || [];
+        vids.forEach((v) => {
+          const id = String(v.id);
+          const u = (v.video_url || v.video_file || '').trim();
+          if (u) videoUrlById.set(id, u);
+        });
+        if (videoUrlById.has(want)) return;
+        hasNext = !!(r && r.has_next);
+        page++;
+      }
+    }
+
+    function listingImagesSorted(product) {
+      const raw = product && product.images;
+      if (!Array.isArray(raw)) return [];
+      const out = raw.map((e) => (e && typeof e === 'object' ? e : null)).filter(Boolean);
+      out.sort((a, b) => {
+        const ap = a.is_primary === true ? 0 : 1;
+        const bp = b.is_primary === true ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        const ao = parseInt(a.order, 10) || 0;
+        const bo = parseInt(b.order, 10) || 0;
+        return ao - bo;
+      });
+      return out;
+    }
+
+    function redrawRectFromInputs(hp) {
+      const rect = hp.querySelector('.hp-rect');
+      const stage = hp.querySelector('.hp-stage');
+      if (!rect || !stage) return;
+      const x = parseFloat(hp.querySelector('.hp-x').value);
+      const y = parseFloat(hp.querySelector('.hp-y').value);
+      const w = parseFloat(hp.querySelector('.hp-w').value);
+      const h = parseFloat(hp.querySelector('.hp-h').value);
+      const rw = stage.clientWidth;
+      const rh = stage.clientHeight;
+      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(w) || !Number.isFinite(h) || rw < 4 || rh < 4) {
+        rect.style.display = 'none';
+        return;
+      }
+      if (w < 0.008 || h < 0.008) {
+        rect.style.display = 'none';
+        return;
+      }
+      rect.style.display = 'block';
+      rect.style.left = `${x * rw}px`;
+      rect.style.top = `${y * rh}px`;
+      rect.style.width = `${w * rw}px`;
+      rect.style.height = `${h * rh}px`;
+    }
+
+    function paintRectFromDrag(hp) {
+      const d = hp._drag;
+      const stage = hp.querySelector('.hp-stage');
+      const rect = hp.querySelector('.hp-rect');
+      if (!d || !d.p0 || !d.p1 || !stage || !rect) return;
+      const rw = stage.clientWidth;
+      const rh = stage.clientHeight;
+      const x0 = d.p0.x;
+      const y0 = d.p0.y;
+      const x1 = d.p1.x;
+      const y1 = d.p1.y;
+      const left = Math.max(0, Math.min(x0, x1));
+      const top = Math.max(0, Math.min(y0, y1));
+      const right = Math.min(rw, Math.max(x0, x1));
+      const bottom = Math.min(rh, Math.max(y0, y1));
+      const w = right - left;
+      const h = bottom - top;
+      if (w < 8 || h < 8) {
+        rect.style.display = 'none';
+        return;
+      }
+      rect.style.display = 'block';
+      rect.style.left = `${left}px`;
+      rect.style.top = `${top}px`;
+      rect.style.width = `${w}px`;
+      rect.style.height = `${h}px`;
+    }
+
+    function finalizeDragToInputs(hp) {
+      const d = hp._drag;
+      const stage = hp.querySelector('.hp-stage');
+      if (!d || !d.p0 || !d.p1 || !stage) return;
+      const rw = stage.clientWidth;
+      const rh = stage.clientHeight;
+      if (rw < 8 || rh < 8) return;
+      const x0 = d.p0.x;
+      const y0 = d.p0.y;
+      const x1 = d.p1.x;
+      const y1 = d.p1.y;
+      const left = Math.max(0, Math.min(x0, x1));
+      const top = Math.max(0, Math.min(y0, y1));
+      const right = Math.min(rw, Math.max(x0, x1));
+      const bottom = Math.min(rh, Math.max(y0, y1));
+      let w = right - left;
+      let h = bottom - top;
+      if (w < 12 || h < 12) {
+        toast('Drag a larger rectangle around the product');
+        return;
+      }
+      hp.querySelector('.hp-x').value = (left / rw).toFixed(4);
+      hp.querySelector('.hp-y').value = (top / rh).toFixed(4);
+      hp.querySelector('.hp-w').value = (w / rw).toFixed(4);
+      hp.querySelector('.hp-h').value = (h / rh).toFixed(4);
+      redrawRectFromInputs(hp);
+    }
+
+    function localPointInStage(hp, clientX, clientY) {
+      const stage = hp.querySelector('.hp-stage');
+      if (!stage) return null;
+      const r = stage.getBoundingClientRect();
+      return {
+        x: clientX - r.left,
+        y: clientY - r.top,
+        w: r.width,
+        h: r.height,
+      };
+    }
+
+    function wireHotspotInteraction(hp) {
+      const layer = hp.querySelector('.hp-draw-layer');
+      if (layer && !layer.dataset.bound) {
+        layer.dataset.bound = '1';
+        layer.addEventListener('pointerdown', (ev) => {
+          const p = localPointInStage(hp, ev.clientX, ev.clientY);
+          if (!p || p.x < 0 || p.y < 0 || p.x > p.w || p.y > p.h) return;
+          hp._drag = { p0: { x: p.x, y: p.y }, p1: { x: p.x, y: p.y }, active: true };
+          try {
+            layer.setPointerCapture(ev.pointerId);
+          } catch (_) {}
+          ev.preventDefault();
+        });
+        layer.addEventListener('pointermove', (ev) => {
+          if (!hp._drag || !hp._drag.active) return;
+          const p = localPointInStage(hp, ev.clientX, ev.clientY);
+          if (!p) return;
+          hp._drag.p1 = {
+            x: Math.max(0, Math.min(p.w, p.x)),
+            y: Math.max(0, Math.min(p.h, p.y)),
+          };
+          paintRectFromDrag(hp);
+        });
+        const endDrag = (ev) => {
+          if (!hp._drag || !hp._drag.active) return;
+          hp._drag.active = false;
+          try {
+            layer.releasePointerCapture(ev.pointerId);
+          } catch (_) {}
+          finalizeDragToInputs(hp);
+        };
+        layer.addEventListener('pointerup', endDrag);
+        layer.addEventListener('pointercancel', endDrag);
+      }
+
+      if (!hp.dataset.inputsWired) {
+        hp.dataset.inputsWired = '1';
+        ['hp-x', 'hp-y', 'hp-w', 'hp-h'].forEach((cl) => {
+          const el = hp.querySelector('.' + cl);
+          if (el) el.addEventListener('input', () => redrawRectFromInputs(hp));
+        });
+      }
+    }
+
+    function renderListingImageStrip(hp) {
+      const wrap = hp.querySelector('.hp-image-strip');
+      if (!wrap) return;
+      const sel = hp.querySelector('.hp-product');
+      const pid = (sel && sel.value || '').trim();
+      const pr = pid ? productsById.get(pid) : null;
+      const selectedId = (hp.querySelector('.hp-imgid').value || '').trim();
+      const imgs = pr ? listingImagesSorted(pr) : [];
+      if (!imgs.length) {
+        wrap.innerHTML =
+          '<p class="muted" style="font-size:0.82rem;margin:0.35rem 0;">No listing photos on this product – the default catalog image is used. Add photos on the product to pick a hotspot thumbnail.</p>';
+        return;
+      }
+      let html =
+        '<div class="hp-strip-label">Hotspot thumbnail (checkout)</div><div class="hp-strip-tiles">';
+      html += `<button type="button" class="hp-strip-tile hp-strip-auto${!selectedId ? ' selected' : ''}" data-imgid="">Auto</button>`;
+      imgs.forEach((im) => {
+        const id = String(im.id || '');
+        const u = absoluteMediaUrl(im.image);
+        const selClass = id && selectedId === id ? ' selected' : '';
+        html += `<button type="button" class="hp-strip-tile${selClass}" data-imgid="${esc(id)}"><img src="${esc(u)}" alt=""></button>`;
+      });
+      html += '</div>';
+      wrap.innerHTML = html;
+      wrap.querySelectorAll('.hp-strip-tile').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          wrap.querySelectorAll('.hp-strip-tile').forEach((x) => x.classList.remove('selected'));
+          btn.classList.add('selected');
+          const iid = btn.getAttribute('data-imgid') || '';
+          hp.querySelector('.hp-imgid').value = iid;
+        });
+      });
+    }
+
+    async function mountHotspotStage(hp, item) {
+      const vidEl = hp.querySelector('.hp-stage-video');
+      const imgEl = hp.querySelector('.hp-stage-img');
+      const staticEl = hp.querySelector('.hp-stage-static');
+      const hint = hp.querySelector('.hp-stage-hint');
+      const placeholder = hp.querySelector('.hp-stage-placeholder');
+      if (!vidEl || !imgEl || !placeholder) return;
+
+      vidEl.classList.add('hidden');
+      imgEl.classList.add('hidden');
+      if (staticEl) staticEl.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      if (hint) hint.textContent = '';
+      vidEl.removeAttribute('src');
+      vidEl.removeAttribute('poster');
+      imgEl.removeAttribute('src');
+      if (staticEl) staticEl.removeAttribute('src');
+      delete hp._drag;
+
+      if ((item.media_type || '') === 'image') {
+        const u = absoluteMediaUrl(item.image_url);
+        if (!u) {
+          if (hint) hint.textContent = 'No image URL for this link – try refreshing.';
+          return;
+        }
+        placeholder.classList.add('hidden');
+        imgEl.src = u;
+        imgEl.classList.remove('hidden');
+        imgEl.onload = () => redrawRectFromInputs(hp);
+        return;
+      }
+
+      let url =
+        ((item.uploaded_video_url || '') + '').trim() ||
+        ((item.video_url_override || '') + '').trim();
+      const vidId = ((item.video_id || '') + '').trim();
+      if (!url && vidId) url = (videoUrlById.get(String(vidId)) || '').trim();
+      if (!url && vidId) {
+        await refreshVideoUrlMapForId(vidId);
+        url = (videoUrlById.get(String(vidId)) || '').trim();
+      }
+
+      const poster = absoluteMediaUrl(item.share_poster_url);
+      if (url) {
+        placeholder.classList.add('hidden');
+        vidEl.classList.remove('hidden');
+        if (poster) vidEl.setAttribute('poster', poster);
+        vidEl.src = absoluteMediaUrl(url);
+        vidEl.onloadedmetadata = () => {
+          const d = vidEl.duration;
+          const et = hp.querySelector('.hp-et');
+          if (Number.isFinite(d) && d > 0 && et && !hp.dataset.hotspotLoaded) {
+            et.value = String(Math.round(d * 100) / 100);
+          }
+          const durHint = hp.querySelector('.hp-video-duration-hint');
+          if (durHint && Number.isFinite(d) && d > 0) {
+            durHint.textContent = `Length ~${d.toFixed(1)}s – hotspot visible from start to end below (match the app).`;
+          }
+          redrawRectFromInputs(hp);
+        };
+        return;
+      }
+
+      if (poster && staticEl) {
+        placeholder.classList.add('hidden');
+        staticEl.src = poster;
+        staticEl.classList.remove('hidden');
+        if (hint) {
+          hint.textContent =
+            'Showing share poster for placement. If playback URL is unavailable, draw the frame to match your video.';
+        }
+        staticEl.onload = () => redrawRectFromInputs(hp);
+        return;
+      }
+
+      if (hint) {
+        hint.textContent =
+          'Could not load preview. Open Preview in another tab or use Fine-tune numbers below.';
+      }
+    }
+
+    async function loadSellerProductsIntoSelects() {
+      const selA = document.getElementById('c-src-product-upload');
+      const selB = document.getElementById('c-src-product-url');
+      const addOpts = async () => {
+        const products = [];
+        let page = 1;
+        let hasNext = true;
+        while (hasNext && page < 40) {
+          const p = new URLSearchParams({ page: String(page), per_page: '50' });
+          const r = await SuperAffiliateAPI.apiRequest(`/commerce/seller/products/?${p}`);
+          const chunk = r && Array.isArray(r.products) ? r.products : [];
+          products.push(...chunk);
+          hasNext = !!(r && r.has_next);
+          page++;
+        }
+        products.forEach((pr) => {
+          const id = String(pr.id || pr.pk || '');
+          if (id) productsById.set(id, pr);
+        });
+        const frag = '<option value="">—</option>' + products.map((pr) => {
+          const id = pr.id || pr.pk;
+          const name = (pr.name || 'Product').slice(0, 80);
+          return `<option value="${esc(id)}">${esc(name)}</option>`;
+        }).join('');
+        selA.innerHTML = frag;
+        selB.innerHTML = frag;
+      };
+      try {
+        await addOpts();
+      } catch (_) {
+        selA.innerHTML = '<option value="">—</option>';
+        selB.innerHTML = '<option value="">—</option>';
+      }
+    }
+
+    async function loadLibraryVideosSelect() {
+      const sel = document.getElementById('c-video-id');
+      try {
+        const r = await SuperAffiliateAPI.getMyVideos(1, { excludeImported: true, perPage: 100 });
+        const vids = (r && r.videos) || [];
+        vids.forEach((v) => {
+          const id = String(v.id);
+          const u = (v.video_url || v.video_file || '').trim();
+          if (id && u) videoUrlById.set(id, u);
+        });
+        if (!vids.length) {
+          sel.innerHTML = '<option value="">No eligible videos (upload in My Videos)</option>';
+          return;
+        }
+        sel.innerHTML = vids.map((v) => {
+          const id = v.id;
+          const title = (v.title || 'Untitled').slice(0, 60);
+          return `<option value="${esc(id)}">${esc(title)}</option>`;
+        }).join('');
+      } catch (_) {
+        sel.innerHTML = '<option value="">Could not load videos</option>';
+      }
+    }
+
+    function setVideoSource(src) {
+      document.querySelectorAll('#video-source-tabs button').forEach((b) => {
+        b.classList.toggle('active', b.getAttribute('data-src') === src);
+      });
+      document.getElementById('v-library').classList.toggle('hidden', src !== 'library');
+      document.getElementById('v-upload').classList.toggle('hidden', src !== 'upload');
+      document.getElementById('v-url').classList.toggle('hidden', src !== 'url');
+    }
+    document.querySelectorAll('#video-source-tabs button').forEach((b) => {
+      b.addEventListener('click', () => setVideoSource(b.getAttribute('data-src')));
+    });
+
+    document.getElementById('c-media').addEventListener('change', () => {
+      const m = document.getElementById('c-media').value;
+      document.getElementById('video-block').classList.toggle('hidden', m !== 'video');
+      document.getElementById('image-block').classList.toggle('hidden', m !== 'image');
+    });
+
+    let listCache = [];
+
+    function itemBySlug(slug) {
+      return listCache.find((x) => x.slug === slug);
+    }
+
+    async function refreshList() {
+      const host = document.getElementById('list-host');
+      const loadEl = document.getElementById('list-loading');
+      const emptyEl = document.getElementById('list-empty');
+      loadEl.style.display = 'block';
+      host.innerHTML = '';
+      emptyEl.style.display = 'none';
+      try {
+        const data = await SuperAffiliateAPI.fetchSellerInstantWatchLinks();
+        listCache = (data && data.results) || [];
+        loadEl.style.display = 'none';
+        if (!listCache.length) {
+          emptyEl.style.display = 'block';
+          return;
+        }
+        host.innerHTML = listCache.map((item) => rowHtml(item)).join('');
+        wireRows();
+        document.querySelectorAll('.hotspot-panel.open').forEach((hp) => {
+          const row = hp.closest('.link-row');
+          const sl = row && row.getAttribute('data-slug');
+          if (sl) openHotspotPanel(hp, sl);
+        });
+      } catch (e) {
+        loadEl.style.display = 'none';
+        host.innerHTML = `<p class="err">${esc(e.message || 'Failed to load links')}</p>`;
+      }
+    }
+
+    function rowHtml(item) {
+      const active = item.is_active !== false;
+      const openHotspot = !item.has_hotspot;
+      const hot = item.has_hotspot ? '<span class="badge">Hotspot</span>' : '<span class="badge badge-off">No hotspot</span>';
+      const type = item.media_type === 'image' ? 'Image' : 'Video';
+      return `
+        <div class="link-row" data-slug="${esc(item.slug)}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.75rem;flex-wrap:wrap;">
+            <div>
+              <strong>${esc(item.title || 'Untitled')}</strong>
+              <div style="margin-top:0.35rem;font-size:0.8rem;color:var(--muted);">
+                <span class="badge">${esc(type)}</span>
+                ${hot}
+                ${active ? '' : '<span class="badge badge-off">Inactive</span>'}
+                <br><code style="font-size:0.72rem;opacity:0.85;">${esc(item.slug)}</code>
+              </div>
+            </div>
+            <div class="actions" style="margin-top:0;">
+              <a class="btn btn-ghost" style="font-size:0.85rem;" href="${esc(fullWatchUrl(item.watch_url))}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Preview</a>
+              <button type="button" class="btn btn-ghost js-copy" data-path="${esc(item.watch_url)}" title="Copies full URL without the long #_tt token – safe to share" style="font-size:0.85rem;"><i class="fas fa-link"></i> Copy link</button>
+              <button type="button" class="btn btn-ghost js-toggle" style="font-size:0.85rem;"><i class="fas fa-toggle-on"></i> ${active ? 'Deactivate' : 'Activate'}</button>
+              <button type="button" class="btn btn-ghost js-rename" style="font-size:0.85rem;"><i class="fas fa-pen"></i> Edit title</button>
+              <button type="button" class="btn btn-ghost js-hotspot-toggle" style="font-size:0.85rem;"><i class="fas fa-crosshairs"></i> ${item.has_hotspot ? 'Edit product tag' : 'Add product tag'}</button>
+              <button type="button" class="btn btn-danger js-delete" style="font-size:0.85rem;"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+          <div class="hotspot-panel ${openHotspot ? 'open' : ''}">
+            <div class="hp-callout">
+              <strong>Product tag</strong> – choose the catalog product, optionally a listing thumbnail, then <strong>drag diagonally</strong> on the video or image to frame what buyers tap (same as the app). Save when done.
+            </div>
+            <p class="hp-stage-hint muted" style="font-size:0.82rem;margin-bottom:0.35rem;"></p>
+            <div class="hp-stage">
+              <p class="hp-stage-placeholder">Loading preview…</p>
+              <video class="hp-stage-video hidden" playsinline muted loop preload="metadata"></video>
+              <img class="hp-stage-img hidden" alt="Video or product preview">
+              <img class="hp-stage-static hidden" alt="Poster preview">
+              <div class="hp-draw-layer"></div>
+              <div class="hp-rect"></div>
+            </div>
+            <p class="hp-draw-hint"><i class="fas fa-hand-pointer"></i> Drag on the preview to draw the shoppable rectangle.</p>
+            <p class="hp-video-duration-hint muted" style="font-size:0.78rem;margin:-0.25rem 0 0.5rem;"></p>
+            <div class="row cols-2">
+              <div>
+                <label>Product</label>
+                <select class="hp-product"></select>
+              </div>
+            </div>
+            <div class="hp-image-strip"></div>
+            <input type="hidden" class="hp-imgid" value="">
+            <details class="hp-advanced">
+              <summary>Fine-tune rectangle and timing (optional)</summary>
+              <div class="row cols-2" style="margin-top:0.65rem;">
+                <div><label>X (0–1)</label><input type="number" class="hp-x" step="0.001" min="0" max="1" value="0.42"></div>
+                <div><label>Y (0–1)</label><input type="number" class="hp-y" step="0.001" min="0" max="1" value="0.38"></div>
+                <div><label>Width (0–1)</label><input type="number" class="hp-w" step="0.001" min="0" max="1" value="0.16"></div>
+                <div><label>Height (0–1)</label><input type="number" class="hp-h" step="0.001" min="0" max="1" value="0.16"></div>
+              </div>
+              <div class="row cols-2 hp-times ${item.media_type === 'image' ? 'hidden' : ''}">
+                <div><label>Start time (s)</label><input type="number" class="hp-st" step="0.1" min="0" value="0"></div>
+                <div><label>End time (s)</label><input type="number" class="hp-et" step="0.1" min="0" value="12"></div>
+              </div>
+            </details>
+            <div class="actions">
+              <button type="button" class="btn js-hp-save"><i class="fas fa-save"></i> Save product tag</button>
+              <button type="button" class="btn btn-danger js-hp-clear"><i class="fas fa-times"></i> Remove tag</button>
+            </div>
+            <p class="hp-footlinks">
+              <a href="seller-shipping.html">Shipping areas</a> – buyers only see checkout if you ship to them.
+            </p>
+            <p class="hp-status muted" style="margin-top:0.5rem;"></p>
+          </div>
+        </div>`;
+    }
+
+    let sellerHotspotSelectOptionsHtml = null;
+
+    async function fillProductSelects(panel) {
+      const sel = panel.querySelector('.hp-product');
+      if (!sel || sel.dataset.loaded) return;
+      sel.innerHTML = '<option value="">Loading…</option>';
+      try {
+        if (!sellerHotspotSelectOptionsHtml) {
+          const products = [];
+          let page = 1;
+          let hasNext = true;
+          while (hasNext && page < 40) {
+            const p = new URLSearchParams({ page: String(page), per_page: '50' });
+            const r = await SuperAffiliateAPI.apiRequest(`/commerce/seller/products/?${p}`);
+            const chunk = r && Array.isArray(r.products) ? r.products : [];
+            products.push(...chunk);
+            hasNext = !!(r && r.has_next);
+            page++;
+          }
+          products.forEach((pr) => {
+            const id = String(pr.id || pr.pk || '');
+            if (id) productsById.set(id, pr);
+          });
+          sellerHotspotSelectOptionsHtml =
+            '<option value="">Choose product</option>' +
+            products
+              .map((pr) => {
+                const id = pr.id || pr.pk;
+                return `<option value="${esc(id)}">${esc((pr.name || '').slice(0, 70))}</option>`;
+              })
+              .join('');
+        }
+        sel.innerHTML = sellerHotspotSelectOptionsHtml;
+        sel.dataset.loaded = '1';
+      } catch (_) {
+        sel.innerHTML = '<option value="">Could not load products</option>';
+      }
+    }
+
+    async function openHotspotPanel(hp, slug) {
+      const cur = itemBySlug(slug);
+      if (!cur || !hp) return;
+      await fillProductSelects(hp);
+      delete hp.dataset.hotspotLoaded;
+      const st = hp.querySelector('.hp-status');
+      try {
+        const hs = await SuperAffiliateAPI.fetchSellerInstantHotspot(slug);
+        const h = hs && hs.hotspot;
+        if (h) {
+          hp.dataset.hotspotId = h.id || '';
+          hp.querySelector('.hp-product').value = h.product_id || '';
+          hp.querySelector('.hp-imgid').value = h.product_image_id != null ? String(h.product_image_id) : '';
+          hp.querySelector('.hp-x').value = h.x;
+          hp.querySelector('.hp-y').value = h.y;
+          hp.querySelector('.hp-w').value = h.width;
+          hp.querySelector('.hp-h').value = h.height;
+          if (cur.media_type !== 'image') {
+            hp.querySelector('.hp-st').value = h.start_time;
+            hp.querySelector('.hp-et').value = h.end_time;
+          }
+          hp.dataset.hotspotLoaded = '1';
+          st.textContent = 'Tag loaded – drag to adjust, then save.';
+        } else {
+          delete hp.dataset.hotspotId;
+          delete hp.dataset.hotspotLoaded;
+          st.textContent = 'Choose product, drag a rectangle on the preview, then save.';
+        }
+      } catch (e) {
+        st.textContent = e.message || 'Could not load tag.';
+      }
+      await mountHotspotStage(hp, cur);
+      renderListingImageStrip(hp);
+      wireHotspotInteraction(hp);
+      requestAnimationFrame(() => redrawRectFromInputs(hp));
+
+      const sel = hp.querySelector('.hp-product');
+      if (sel && !sel.dataset.stripChangeBound) {
+        sel.dataset.stripChangeBound = '1';
+        sel.addEventListener('change', () => renderListingImageStrip(hp));
+      }
+    }
+
+    function wireRows() {
+      document.querySelectorAll('.link-row').forEach((row) => {
+        const slug = row.getAttribute('data-slug');
+        if (!slug || !itemBySlug(slug)) return;
+
+        row.querySelector('.js-copy').addEventListener('click', async () => {
+          const path = row.querySelector('.js-copy').getAttribute('data-path');
+          const url = shareableWatchUrl(path);
+          const ok = await SuperAffiliateAPI.copyToClipboard(url || path);
+          toast(ok ? 'Link copied – paste to open' : 'Copy failed');
+        });
+
+        row.querySelector('.js-toggle').addEventListener('click', async () => {
+          const cur = itemBySlug(slug);
+          if (!cur) return;
+          try {
+            const active = cur.is_active !== false;
+            await SuperAffiliateAPI.updateSellerInstantWatchLink(slug, {
+              title: cur.title,
+              is_active: !active,
+            });
+            toast(!active ? 'Activated' : 'Deactivated');
+            await refreshList();
+          } catch (e) {
+            toast(e.message || 'Update failed');
+          }
+        });
+
+        row.querySelector('.js-rename').addEventListener('click', async () => {
+          const cur = itemBySlug(slug);
+          if (!cur) return;
+          const t = prompt('Link title', cur.title || '');
+          if (t == null || !String(t).trim()) return;
+          try {
+            await SuperAffiliateAPI.updateSellerInstantWatchLink(slug, {
+              title: String(t).trim(),
+              is_active: cur.is_active !== false,
+            });
+            toast('Title updated');
+            await refreshList();
+          } catch (e) {
+            toast(e.message || 'Update failed');
+          }
+        });
+
+        row.querySelector('.js-delete').addEventListener('click', async () => {
+          if (!confirm('Delete this instant link? This cannot be undone.')) return;
+          try {
+            await SuperAffiliateAPI.deleteSellerInstantWatchLink(slug);
+            toast('Deleted');
+            await refreshList();
+          } catch (e) {
+            toast(e.message || 'Delete failed');
+          }
+        });
+
+        const hp = row.querySelector('.hotspot-panel');
+        if (!hp) return;
+        row.querySelector('.js-hotspot-toggle').addEventListener('click', async () => {
+          const cur = itemBySlug(slug);
+          if (!cur) return;
+          hp.classList.toggle('open');
+          if (hp.classList.contains('open')) {
+            await openHotspotPanel(hp, slug);
+          }
+        });
+
+        hp.querySelector('.js-hp-save').addEventListener('click', async () => {
+          const cur = itemBySlug(slug);
+          if (!cur) return;
+          const st = hp.querySelector('.hp-status');
+          const productId = (hp.querySelector('.hp-product').value || '').trim();
+          if (!productId) {
+            st.textContent = 'Choose a product.';
+            return;
+          }
+          const x = parseFloat(hp.querySelector('.hp-x').value);
+          const y = parseFloat(hp.querySelector('.hp-y').value);
+          const bw = parseFloat(hp.querySelector('.hp-w').value);
+          const bh = parseFloat(hp.querySelector('.hp-h').value);
+          if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(bw) || !Number.isFinite(bh) || bw < 0.01 || bh < 0.01) {
+            st.textContent = 'Draw a rectangle on the preview around the product (or edit numbers under Fine-tune).';
+            return;
+          }
+          const imgRaw = (hp.querySelector('.hp-imgid').value || '').trim();
+          const body = {
+            product_id: productId,
+            x,
+            y,
+            width: bw,
+            height: bh,
+            published: true,
+          };
+          if (cur.media_type !== 'image') {
+            body.start_time = parseFloat(hp.querySelector('.hp-st').value);
+            body.end_time = parseFloat(hp.querySelector('.hp-et').value);
+          }
+          try {
+            const has = cur.has_hotspot;
+            if (has) {
+              body.product_image_id = imgRaw;
+              const hid = (hp.dataset.hotspotId || '').trim();
+              if (hid) body.hotspot_id = hid;
+              await SuperAffiliateAPI.updateSellerInstantHotspot(slug, body);
+            } else {
+              if (imgRaw) body.product_image_id = imgRaw;
+              await SuperAffiliateAPI.createSellerInstantHotspot(slug, body);
+            }
+            st.textContent = 'Saved.';
+            toast('Product tag saved');
+            await refreshList();
+          } catch (e) {
+            st.textContent = e.message || 'Save failed';
+          }
+        });
+
+        hp.querySelector('.js-hp-clear').addEventListener('click', async () => {
+          const cur = itemBySlug(slug);
+          if (!cur || !cur.has_hotspot) return;
+          if (!confirm('Remove the product tag from this link?')) return;
+          try {
+            const hs = await SuperAffiliateAPI.fetchSellerInstantHotspot(slug);
+            const hid = hs && hs.hotspot && hs.hotspot.id;
+            await SuperAffiliateAPI.deleteSellerInstantHotspots(slug, hid || '');
+            toast('Tag removed');
+            hp.classList.remove('open');
+            delete hp.dataset.hotspotId;
+            await refreshList();
+          } catch (e) {
+            hp.querySelector('.hp-status').textContent = e.message || 'Remove failed';
+          }
+        });
+      });
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const errEl = document.getElementById('create-err');
+      errEl.style.display = 'none';
+      const btn = document.getElementById('c-submit');
+      btn.disabled = true;
+      const title = document.getElementById('c-title').value.trim();
+      const media = document.getElementById('c-media').value;
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('media_type', media);
+      try {
+        if (media === 'image') {
+          const img = document.getElementById('c-image-file').files[0];
+          if (!img) {
+            errEl.textContent = 'Choose an image file.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            return;
+          }
+          fd.append('image', img);
+        } else {
+          const srcBtn = document.querySelector('#video-source-tabs button.active');
+          const src = srcBtn ? srcBtn.getAttribute('data-src') : 'library';
+          if (src === 'library') {
+            const vid = document.getElementById('c-video-id').value;
+            if (!vid) throw new Error('Select a video');
+            fd.append('video_id', vid);
+          } else if (src === 'upload') {
+            const vf = document.getElementById('c-video-file').files[0];
+            if (!vf) throw new Error('Choose a video file');
+            fd.append('uploaded_video', vf);
+            const poster = document.getElementById('c-poster-file').files[0];
+            if (poster) fd.append('share_poster', poster);
+            const sp = document.getElementById('c-src-product-upload').value;
+            if (sp) fd.append('source_product_id', sp);
+          } else {
+            const url = document.getElementById('c-video-url').value.trim();
+            if (!url) throw new Error('Enter a video URL');
+            fd.append('video_url', url);
+            const sp = document.getElementById('c-src-product-url').value;
+            if (sp) fd.append('source_product_id', sp);
+          }
+        }
+        await SuperAffiliateAPI.createSellerInstantWatchLink(fd, { timeoutMs: 180000 });
+        document.getElementById('c-title').value = '';
+        toast('Link created');
+        await refreshList();
+      } catch (e) {
+        errEl.textContent = e.message || 'Create failed';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    (async function init() {
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('.hotspot-panel.open').forEach((p) => redrawRectFromInputs(p));
+      });
+      await Promise.all([loadLibraryVideosSelect(), loadSellerProductsIntoSelects()]);
+      await refreshList();
+    })();
+  </script>
+</body>
+</html>

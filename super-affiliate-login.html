@@ -312,9 +312,24 @@
 
   <!-- API Helper -->
   <script src="js/error-handler.js"></script>
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
 
   <script>
+    function getSafeRelativeRedirect(raw) {
+      if (!raw || raw === 'accept') return null;
+      let s;
+      try {
+        s = decodeURIComponent(String(raw).trim());
+      } catch (_) {
+        return null;
+      }
+      if (!s) return null;
+      if (/^https?:\/\//i.test(s)) return null;
+      if (s.includes('//')) return null;
+      if (s.startsWith('/')) return null;
+      return s;
+    }
+
     // Pre-fill email/username if provided in URL (invite flows pass email)
     const urlParams = new URLSearchParams(window.location.search);
     const emailParam = urlParams.get('email');
@@ -327,12 +342,14 @@
 
     // Check if already logged in
     if (SuperAffiliateAPI.isAuthenticated()) {
-      // Check if there's a pending invitation
       const pendingToken = localStorage.getItem('pending_invitation_token');
+      const next = getSafeRelativeRedirect(urlParams.get('redirect'));
       if (pendingToken && urlParams.get('redirect') === 'accept') {
-        window.location.href = `super-affiliate-accept.html?token=${pendingToken}&redirect=accept`;
+        window.location.href = `super-affiliate-accept.html?token=${encodeURIComponent(pendingToken)}&redirect=accept`;
+      } else if (next) {
+        window.location.href = next;
       } else {
-        window.location.href = 'super-affiliate-dashboard.html';
+        window.location.href = 'feed.html';
       }
     }
 
@@ -374,14 +391,15 @@
         const redirect = urlParams.get('redirect');
         
         setTimeout(() => {
+          const next = getSafeRelativeRedirect(urlParams.get('redirect'));
           if (pendingToken && redirect === 'accept') {
-            // Redirect back to acceptance page - it will auto-accept
-            window.location.href = `super-affiliate-accept.html?token=${pendingToken}&redirect=accept`;
+            window.location.href = `super-affiliate-accept.html?token=${encodeURIComponent(pendingToken)}&redirect=accept`;
+          } else if (next) {
+            window.location.href = next;
           } else {
-            // Redirect to home page
-            window.location.href = 'index.html';
+            window.location.href = 'feed.html';
           }
-        }, 1000);
+        }, 600);
         
       } catch (error) {
         console.error('Login error:', error);

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#ff0050">
+  <title>Village batch buying - Tanda</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #ff0050, #00f2ea);
+      --accent: #00f2ea;
+      --text: #fff;
+      --muted: #bbb;
+      --card: rgba(255,255,255,0.06);
+      --radius: 1rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+    }
+    .header {
+      max-width: 900px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav { display: flex; align-items: center; gap: 0.5rem; }
+    @media (max-width: 768px) {
+      .nav {
+        width: 100%;
+        overflow-x: auto;
+        gap: 0.25rem;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+      }
+      .nav::-webkit-scrollbar { display: none; }
+      .nav > * { flex-shrink: 0; }
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card h2 { font-size: 1.1rem; color: var(--accent); margin-bottom: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+    .loading, .err { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      max-width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 1rem;
+      margin-top: 0.35rem;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
+    .batch-row {
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .batch-row:last-child { border-bottom: none; }
+    .batch-row-body {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .batch-row-text { min-width: 0; flex: 1; }
+    .batch-thumb-wrap {
+      width: 72px;
+      height: 72px;
+      flex-shrink: 0;
+      border-radius: 0.55rem;
+      overflow: hidden;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+    }
+    .batch-thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .batch-thumb-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 1.25rem;
+      background: rgba(0,0,0,0.2);
+    }
+    .batch-thumb-wrap--empty .batch-thumb-fallback { display: flex; }
+    .batch-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+    .badge {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+      background: rgba(0,242,234,0.15);
+      color: var(--accent);
+    }
+    a.link { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title"><i class="fas fa-people-group"></i> Village hub</h1>
+    <div class="nav" id="authNav" data-nav-mode="village_hub"></div>
+  </div>
+
+  <div class="container">
+    <div id="hub-loading" class="loading">
+      <i class="fas fa-spinner fa-spin" style="font-size: 1.75rem;"></i>
+      <p style="margin-top: 0.75rem;">Loading your batches…</p>
+    </div>
+
+    <div id="hub-error" class="err" style="display: none;">
+      <p style="margin-bottom: 1rem;">Could not load village data.</p>
+      <button type="button" class="btn" id="hub-retry"><i class="fas fa-redo"></i> Try again</button>
+    </div>
+
+    <div id="hub-main" style="display: none;">
+      <div id="product-hint" class="card" style="display: none;"></div>
+
+      <div id="agent-create-card" class="card" style="display: none;">
+        <h2>Start a batch (approved agent)</h2>
+        <p class="muted" style="margin-bottom: 1rem;">Creates a village batch for a product you promote. Requires an approved village agent profile.</p>
+        <form id="create-batch-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label for="create-product-id">Product ID (UUID)</label>
+            <input type="text" id="create-product-id" name="product_id" placeholder="From product page URL or Share" autocomplete="off" required>
+          </div>
+          <div>
+            <label for="create-fee-pct">Max agent fee (%)</label>
+            <p class="muted" style="margin-top: 0.35rem; margin-bottom: 0.5rem;">
+              This is the <strong>highest</strong> share of the <strong>seller’s list price</strong> you can earn per unit for running this batch. Tanda calculates the actual fee in naira from the real price at lock – you don’t set a custom price per neighbour.
+            </p>
+            <p class="muted" style="margin-bottom: 0.65rem;">
+              <strong>Example:</strong> A product lists at <strong>₦1,000</strong> per unit and you choose <strong>3%</strong>. After the batch locks, each unit adds about <strong>₦30</strong> for your agent fee on top of what neighbours pay for the goods (the exact amount follows the locked list price and rounding).
+            </p>
+            <p class="muted" style="margin-bottom: 0.65rem;">
+              <strong>How overcharging is limited:</strong> Tanda also applies a <strong>platform-wide maximum</strong> set by admins (a percent cap and, on the server, an optional per-unit flat cap). Your number here cannot exceed that ceiling – so agents cannot set extreme percentages that would gouge the group.
+            </p>
+            <input type="number" id="create-fee-pct" name="max_agent_fee_percent" min="0" max="100" step="0.1" value="3">
+          </div>
+          <div>
+            <label for="create-closes">Closes at (optional, local time)</label>
+            <input type="datetime-local" id="create-closes" name="closes_at">
+          </div>
+          <button type="submit" class="btn" id="create-batch-submit"><i class="fas fa-plus"></i> Create batch</button>
+        </form>
+        <p id="create-batch-msg" class="muted" style="margin-top: 0.75rem; display: none;"></p>
+      </div>
+
+      <div class="card">
+        <h2>Your batches</h2>
+        <p class="muted" style="margin-bottom: 1rem;">Groups you run as an agent or have joined as a buyer.</p>
+        <div id="batch-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Join with a batch ID</h2>
+        <p class="muted" style="margin-bottom: 1rem;">Paste the full UUID your agent shared (with dashes).</p>
+        <form id="join-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label for="join-id">Batch ID</label>
+            <input type="text" id="join-id" name="batch_id" placeholder="e.g. 8f2f3c2a-…" autocomplete="off" required>
+          </div>
+          <div>
+            <label for="join-qty">Quantity</label>
+            <input type="number" id="join-qty" name="quantity" min="1" value="1" required>
+          </div>
+          <button type="submit" class="btn" id="join-submit"><i class="fas fa-sign-in-alt"></i> Join batch</button>
+        </form>
+        <p class="muted" style="margin-top: 1rem; font-size: 0.85rem;">
+          Anyone with a batch link can join from the web. <strong>Approved village agents</strong> can also start a batch here (same API as the app).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script>
+    if (!SuperAffiliateAPI.isAuthenticated()) {
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
+    }
+    SuperAffiliateAPI.renderAuthNav('authNav');
+    SuperAffiliateAPI.updateCartBadge();
+
+    const qs = new URLSearchParams(window.location.search);
+    const productHintId = qs.get('product');
+
+    function escapeAttr(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /** `village/batches/mine/` rows include `product.image_url` (see `_batch_dict`). */
+    function resolveVillageBatchImageUrl(batch) {
+      const pc = batch && batch.product;
+      if (!pc || typeof pc !== 'object') return '';
+      const u = pc.image_url;
+      if (u == null || u === '') return '';
+      const s = String(u).trim();
+      if (!s) return '';
+      if (/^https?:\/\//i.test(s)) return s;
+      if (s.startsWith('//')) return window.location.protocol + s;
+      const origin = SuperAffiliateAPI.getBackendOrigin();
+      if (s.startsWith('/') && origin) return origin + s;
+      return s;
+    }
+
+    function batchListThumbHtml(batch) {
+      const url = resolveVillageBatchImageUrl(batch);
+      const name = (batch && batch.product_name) ? String(batch.product_name) : 'Product';
+      const alt = escapeAttr(name);
+      if (!url) {
+        return `<div class="batch-thumb-wrap batch-thumb-wrap--empty" aria-hidden="true">
+          <div class="batch-thumb-fallback"><i class="fas fa-image"></i></div>
+        </div>`;
+      }
+      return `<div class="batch-thumb-wrap">
+        <img src="${escapeAttr(url)}" alt="${alt}" loading="lazy"
+          onerror="this.style.display='none'; var f=this.parentElement.querySelector('.batch-thumb-fallback'); if(f) f.style.display='flex';">
+        <div class="batch-thumb-fallback"><i class="fas fa-image"></i></div>
+      </div>`;
+    }
+
+    function renderProductHint() {
+      const el = document.getElementById('product-hint');
+      if (!productHintId) {
+        el.style.display = 'none';
+        return;
+      }
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+      el.style.display = 'block';
+      el.innerHTML = `
+        <h2>Product context</h2>
+        <p class="muted">You opened the hub from a product page.</p>
+        <a class="btn btn-ghost" style="margin-top: 0.75rem; text-decoration: none; display: inline-flex;" href="${root}product-detail.html?id=${encodeURIComponent(productHintId)}">
+          <i class="fas fa-box"></i> Back to product
+        </a>`;
+    }
+
+    async function loadHub() {
+      document.getElementById('hub-loading').style.display = 'block';
+      document.getElementById('hub-error').style.display = 'none';
+      document.getElementById('hub-main').style.display = 'none';
+      try {
+        const [mine, agentMe] = await Promise.all([
+          SuperAffiliateAPI.getVillageBatchesMine(),
+          SuperAffiliateAPI.getVillageAgentMe(),
+        ]);
+        const prof = agentMe && agentMe.profile;
+        const createCard = document.getElementById('agent-create-card');
+        const productField = document.getElementById('create-product-id');
+        if (prof && prof.status === 'approved') {
+          createCard.style.display = 'block';
+          if (productHintId && productField) productField.value = productHintId;
+        } else {
+          createCard.style.display = 'none';
+        }
+        const batches = (mine && mine.batches) ? mine.batches : [];
+        const list = document.getElementById('batch-list');
+        const root = SuperAffiliateAPI.getPathToSiteRoot();
+        if (!batches.length) {
+          list.innerHTML = '<p class="muted">No batches yet. Join one with an ID above, or use the app to start a batch as an agent.</p>';
+        } else {
+          list.innerHTML = batches.map((b) => `
+            <div class="batch-row">
+              <div class="batch-row-body">
+                ${batchListThumbHtml(b)}
+                <div class="batch-row-text">
+                  <strong>${escapeHtml(b.product_name || 'Product')}</strong>
+                  <div class="batch-meta">
+                    <span class="badge">${escapeHtml((b.status || '').toString())}</span>
+                    · ID <code style="font-size: 0.75rem;">${escapeHtml(String(b.id).substring(0, 8))}…</code>
+                  </div>
+                </div>
+              </div>
+              <a class="btn btn-ghost" style="text-decoration: none;" href="${root}village-batch.html?id=${encodeURIComponent(b.id)}">Open</a>
+            </div>`).join('');
+        }
+        document.getElementById('hub-loading').style.display = 'none';
+        document.getElementById('hub-main').style.display = 'block';
+        renderProductHint();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('hub-loading').style.display = 'none';
+        document.getElementById('hub-error').style.display = 'block';
+      }
+    }
+
+    document.getElementById('create-batch-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const productId = document.getElementById('create-product-id').value.trim();
+      const feeRaw = document.getElementById('create-fee-pct').value;
+      const closesLocal = document.getElementById('create-closes').value.trim();
+      const msgEl = document.getElementById('create-batch-msg');
+      const btn = document.getElementById('create-batch-submit');
+      msgEl.style.display = 'none';
+      btn.disabled = true;
+      try {
+        const payload = { product_id: productId, max_agent_fee_percent: feeRaw };
+        if (closesLocal) {
+          const d = new Date(closesLocal);
+          if (!Number.isNaN(d.getTime())) {
+            payload.closes_at = d.toISOString();
+          }
+        }
+        const created = await SuperAffiliateAPI.createVillageBatch(payload);
+        const newId = created && created.id ? created.id : null;
+        if (newId) {
+          const root = SuperAffiliateAPI.getPathToSiteRoot();
+          window.location.href = `${root}village-batch.html?id=${encodeURIComponent(newId)}`;
+          return;
+        }
+        msgEl.textContent = 'Batch created but no id in response.';
+        msgEl.style.display = 'block';
+      } catch (err) {
+        msgEl.textContent = err.message || String(err);
+        msgEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('hub-retry').addEventListener('click', loadHub);
+
+    document.getElementById('join-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = document.getElementById('join-id').value.trim();
+      const qty = document.getElementById('join-qty').value;
+      const btn = document.getElementById('join-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining…';
+      try {
+        await SuperAffiliateAPI.joinVillageBatch(id, qty);
+        const root = SuperAffiliateAPI.getPathToSiteRoot();
+        window.location.href = `${root}village-batch.html?id=${encodeURIComponent(id)}`;
+      } catch (err) {
+        console.error(err);
+        const msg = err.message || 'Could not join.';
+        alert(msg.includes('402') || msg.toLowerCase().includes('wallet') ? msg + '\n\nTop up your wallet and try again.' : msg);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Join batch';
+      }
+    });
+
+    loadHub();
+  </script>
+</body>
+</html>

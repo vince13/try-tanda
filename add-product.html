@@ -138,6 +138,33 @@
       }
     }
 
+    .danger-zone {
+      border-color: rgba(244, 67, 54, 0.4) !important;
+    }
+
+    .danger-zone .section-title {
+      color: #ff8a80 !important;
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: #ff8a80;
+      border: 2px solid rgba(244, 67, 54, 0.55);
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(244, 67, 54, 0.12);
+    }
+
     .container {
       max-width: 1000px;
       margin: 0 auto;
@@ -534,6 +561,32 @@
 
   <div class="container">
     <div id="alert-container"></div>
+
+    <div id="ai-studio-banner" class="card" style="display: none; margin-bottom: 1.5rem; border: 1px solid rgba(0, 242, 234, 0.28); background: rgba(0, 242, 234, 0.07);">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+        <div>
+          <strong style="color: #00f2ea;"><i class="fas fa-film"></i> AI product preview reel</strong>
+          <p style="margin: 0.35rem 0 0; font-size: 0.9rem; color: #aaa; max-width: 36rem; line-height: 1.45;">
+            Generate a short video from a product still and attach it to this listing (same APIs as the mobile <strong>Product Video Studio</strong>).
+          </p>
+        </div>
+        <a id="ai-studio-link" href="product-video-studio.html" class="btn" style="white-space: nowrap;"><i class="fas fa-magic"></i> Open Video Studio</a>
+      </div>
+    </div>
+
+    <div id="edit-share-banner" class="card" style="display: none; margin-bottom: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.03);">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+        <div>
+          <strong style="color: #fff;"><i class="fas fa-link"></i> Share this listing</strong>
+          <p style="margin: 0.35rem 0 0; font-size: 0.9rem; color: #aaa; max-width: 36rem; line-height: 1.45;">
+            Copy the link and share it yourself (social, chat, email). Platform bulk messaging to buyers is not available—manual sharing only.
+          </p>
+        </div>
+        <button type="button" id="edit-copy-share-btn" class="btn btn-secondary" style="white-space: nowrap;">
+          <i class="fas fa-copy"></i> Copy link
+        </button>
+      </div>
+    </div>
 
     <div class="card">
       <form id="product-form" onsubmit="handleSubmit(event)">
@@ -935,9 +988,21 @@
         </button>
       </form>
     </div>
+
+    <div class="card danger-zone" id="edit-danger-zone" style="display: none;">
+      <h2 class="section-title">
+        <i class="fas fa-exclamation-triangle"></i> Danger zone
+      </h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5;">
+        Permanently delete this listing. Products that have already been ordered cannot be deleted (you can deactivate them or clear stock instead).
+      </p>
+      <button type="button" class="btn-danger-outline" id="delete-product-btn">
+        <i class="fas fa-trash-alt"></i> Delete this product
+      </button>
+    </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=3"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script>
     let selectedImages = [];
 
@@ -949,6 +1014,19 @@
     // Render auth nav
     SuperAffiliateAPI.renderAuthNav('authNav');
     SuperAffiliateAPI.updateCartBadge();
+
+    (function addMyProductsNavLink() {
+      const nav = document.getElementById('authNav');
+      if (!nav || nav.querySelector('a[data-tanda-my-products-link]')) return;
+      const root = SuperAffiliateAPI.getPathToSiteRoot();
+      const a = document.createElement('a');
+      a.href = root + 'products.html?my=true';
+      a.className = 'nav-link-btn';
+      a.setAttribute('data-tanda-my-products-link', '1');
+      a.setAttribute('aria-label', 'My products');
+      a.innerHTML = '<i class="fas fa-boxes-stacked"></i><span>My Products</span>';
+      nav.insertBefore(a, nav.firstChild);
+    })();
 
     // Check if user is an approved seller
     async function checkSellerStatus() {
@@ -1331,6 +1409,30 @@
         const titleEl = document.querySelector('.title');
         if (titleEl) titleEl.textContent = 'Edit Product';
 
+        const aiBanner = document.getElementById('ai-studio-banner');
+        const aiLink = document.getElementById('ai-studio-link');
+        if (aiBanner && aiLink) {
+          aiBanner.style.display = 'block';
+          aiLink.href = `product-video-studio.html?product=${encodeURIComponent(productId)}`;
+        }
+
+        const shareBanner = document.getElementById('edit-share-banner');
+        const shareBtn = document.getElementById('edit-copy-share-btn');
+        if (shareBanner && shareBtn) {
+          shareBanner.style.display = 'block';
+          const link =
+            (product.share_link && String(product.share_link).trim()) ||
+            (function () {
+              try {
+                const base = SuperAffiliateAPI.getPathToSiteRoot();
+                return new URL(`${base}product-detail.html?id=${encodeURIComponent(productId)}`, window.location.href).href;
+              } catch (_) {
+                return '';
+              }
+            })();
+          shareBtn.dataset.shareUrl = link;
+        }
+
         // Update submit button
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
@@ -1455,6 +1557,10 @@
             }
           });
         }
+
+        const dz = document.getElementById('edit-danger-zone');
+        if (dz) dz.style.display = 'block';
+        wireEditModeDelete();
       } catch (error) {
         console.error('Error loading product:', error);
         showAlert('Failed to load product. Redirecting...', 'error');
@@ -1465,6 +1571,28 @@
     }
 
     let imagesToDelete = [];
+
+    function wireEditModeDelete() {
+      const btn = document.getElementById('delete-product-btn');
+      if (!btn || btn.dataset.wired === '1') return;
+      btn.dataset.wired = '1';
+      btn.addEventListener('click', async () => {
+        const id = new URLSearchParams(window.location.search).get('edit');
+        if (!id) return;
+        const nameEl = document.getElementById('name');
+        const label = (nameEl && nameEl.value) ? nameEl.value.trim() : 'this product';
+        if (!confirm('Delete "' + label + '" permanently? This cannot be undone.')) return;
+        try {
+          await SuperAffiliateAPI.deleteSellerProduct(id);
+          showAlert('Product deleted.', 'success');
+          setTimeout(() => {
+            window.location.href = SuperAffiliateAPI.getPathToSiteRoot() + 'products.html?my=true';
+          }, 900);
+        } catch (e) {
+          showAlert(e.message || 'Delete failed', 'error');
+        }
+      });
+    }
 
     function removeExistingImage(imageId) {
       imagesToDelete.push(imageId);
@@ -1633,6 +1761,21 @@
           : '<i class="fas fa-check"></i> Create Product';
       }
     };
+
+    document.getElementById('edit-copy-share-btn')?.addEventListener('click', async function () {
+      const u = (this.dataset.shareUrl || '').trim();
+      if (!u) {
+        showAlert('No share link available yet.', 'error');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(u);
+        showAlert('Link copied to clipboard.', 'success');
+      } catch (err) {
+        console.warn('clipboard', err);
+        window.prompt('Copy this link:', u);
+      }
+    });
 
     // Initialize page
     (async () => {

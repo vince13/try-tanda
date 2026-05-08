@@ -425,6 +425,24 @@
       <p>Loading your dashboard...</p>
     </div>
 
+    <div id="sa-dash-load-error" class="main-card" style="display: none;" role="alert">
+      <h2 style="color: #ff8a80; margin-bottom: 0.75rem;"><i class="fas fa-plug"></i> Couldn’t load dashboard</h2>
+      <p id="sa-dash-load-error-detail" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.45;"></p>
+      <button type="button" class="btn" id="sa-dash-retry-btn"><i class="fas fa-redo"></i> Try again</button>
+    </div>
+
+    <div id="sa-not-enrolled" class="main-card" style="display: none;">
+      <h2 style="color: var(--accent-color); margin-bottom: 0.75rem;">Not a Super Affiliate on this account</h2>
+      <p style="color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+        You’re signed in, but this login isn’t enrolled in the invitation-only Super Affiliate program. You can still use the commerce affiliate dashboard, feed, and wallet.
+      </p>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+        <a href="affiliate-dashboard.html" class="btn"><i class="fas fa-user-tie"></i> Affiliate dashboard</a>
+        <a href="feed.html" class="btn btn-secondary"><i class="fas fa-play"></i> Feed</a>
+        <a href="wallet.html" class="btn btn-secondary"><i class="fas fa-wallet"></i> Wallet</a>
+      </div>
+    </div>
+
     <!-- Dashboard Content -->
     <div id="dashboard-section" style="display: none;">
       <!-- Stats Grid -->
@@ -467,7 +485,7 @@
       <div class="main-card">
         <h2>Your Referral Link</h2>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-          Share this link to earn up to 30% commission on all referrals:
+          Copy a link and share it on your own channels (manual sharing only—no bulk messaging from Tanda):
         </p>
         <div class="referral-link">
           <input 
@@ -477,10 +495,11 @@
             readonly 
             value="Loading..."
           >
-          <button class="copy-btn" onclick="copyReferralLink()">
+          <button type="button" class="copy-btn" onclick="copyReferralLink()">
             <i class="fas fa-copy"></i> Copy Link
           </button>
         </div>
+        <p id="referral-link-app-hint" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.4;"></p>
       </div>
 
       <!-- Account Info Card -->
@@ -502,7 +521,7 @@
         </div>
         <div class="info-row">
           <span class="info-label">Payment Terms:</span>
-          <span class="info-value">Monthly (minimum $50)</span>
+          <span class="info-value">See wallet &amp; payouts (platform rules apply)</span>
         </div>
       </div>
 
@@ -544,76 +563,88 @@
 
   <!-- API Helper -->
   <script src="js/error-handler.js"></script>
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
 
   <script>
-    // Check authentication
+    const SA_LOADING_INNER = `
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    `;
+
+    function formatNgn(amount) {
+      const n = parseFloat(amount || 0);
+      return `₦${n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    }
+
+    function webSuperAffiliateReferralUrl(code) {
+      if (!code) return '';
+      try {
+        return new URL(`index.html?ref=${encodeURIComponent(code)}`, window.location.href).href;
+      } catch (_) {
+        return `https://app.tanda.media/?ref=${encodeURIComponent(code)}`;
+      }
+    }
+
     if (!SuperAffiliateAPI.isAuthenticated()) {
-      window.location.href = 'super-affiliate-login.html';
+      window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent('super-affiliate-dashboard.html');
     }
 
     let dashboardData = null;
 
+    function resetSuperAffiliateLoadingView() {
+      const loadEl = document.getElementById('loading-section');
+      loadEl.style.display = 'block';
+      loadEl.innerHTML = SA_LOADING_INNER;
+      document.getElementById('sa-dash-load-error').style.display = 'none';
+      document.getElementById('sa-not-enrolled').style.display = 'none';
+      document.getElementById('dashboard-section').style.display = 'none';
+    }
+
     // Load dashboard data
     async function loadDashboard() {
+      resetSuperAffiliateLoadingView();
       try {
         console.log('Loading dashboard data...');
         dashboardData = await SuperAffiliateAPI.getDashboardStats();
-        
-        // Check if user is not a Super Affiliate - redirect to video feed
+
         if (!dashboardData) {
-          window.location.href = 'feed.html';
+          document.getElementById('loading-section').style.display = 'none';
+          document.getElementById('sa-not-enrolled').style.display = 'block';
           return;
         }
-        
+
         displayDashboard(dashboardData);
       } catch (error) {
         console.error('Dashboard load error:', error);
-        
-        // If authentication error, redirect to login
-        if (error.message.includes('Session expired') || error.message.includes('401')) {
+
+        if (error.message && (error.message.includes('Session expired') || error.message.includes('401'))) {
           SuperAffiliateAPI.clearTokens();
-          window.location.href = 'super-affiliate-login.html';
+          window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent('super-affiliate-dashboard.html');
           return;
         }
-        
-        // If user is not a Super Affiliate (404 or similar), redirect to feed
-        if (error.message.includes('Not a Super Affiliate') || 
-            error.message.includes('No Super Affiliate') ||
-            error.message.includes('404')) {
-          window.location.href = 'feed.html';
-          return;
-        }
-        
-        showToast('❌ Error loading dashboard: ' + error.message, 'error');
-        
-        // Show error and provide retry option
-        document.getElementById('loading-section').innerHTML = `
-          <div style="text-align: center;">
-            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #ff0050; margin-bottom: 1rem;"></i>
-            <h2>Unable to Load Dashboard</h2>
-            <p style="color: var(--text-secondary); margin: 1rem 0;">
-              ${error.message || 'Please try again later'}
-            </p>
-            <button class="btn" onclick="location.reload()">
-              <i class="fas fa-redo"></i> Retry
-            </button>
-          </div>
-        `;
+
+        document.getElementById('loading-section').style.display = 'none';
+        document.getElementById('dashboard-section').style.display = 'none';
+        const errBox = document.getElementById('sa-dash-load-error');
+        const det = document.getElementById('sa-dash-load-error-detail');
+        errBox.style.display = 'block';
+        det.textContent = error.message || 'Please check your connection and try again.';
       }
     }
+
+    document.getElementById('sa-dash-retry-btn')?.addEventListener('click', () => loadDashboard());
 
     function displayDashboard(data) {
       // Hide loading, show dashboard
       document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('sa-dash-load-error').style.display = 'none';
+      document.getElementById('sa-not-enrolled').style.display = 'none';
       document.getElementById('dashboard-section').style.display = 'block';
 
       // Update stats
-      document.getElementById('stat-earned').textContent = 
-        `$${parseFloat(data.totalEarned || 0).toFixed(2)}`;
+      document.getElementById('stat-earned').textContent = formatNgn(data.totalEarned || 0);
       document.getElementById('stat-referrals').textContent = data.totalReferrals || 0;
-      document.getElementById('stat-paid').textContent = 
-        `$${parseFloat(data.totalPaid || 0).toFixed(2)}`;
+      document.getElementById('stat-paid').textContent = formatNgn(data.totalPaid || 0);
       
       // Update status
       const status = data.status || 'active';
@@ -624,9 +655,16 @@
       // Update affiliate code
       document.getElementById('affiliate-code').textContent = data.affiliateCode || 'N/A';
 
-      // Update referral link
-      const referralLink = `https://app.tanda.media/?ref=${data.affiliateCode}`;
-      document.getElementById('referral-link').value = referralLink;
+      // Update referral link (web + app hint)
+      const code = data.affiliateCode || '';
+      const refInput = document.getElementById('referral-link');
+      refInput.value = webSuperAffiliateReferralUrl(code) || '—';
+      const appHint = document.getElementById('referral-link-app-hint');
+      if (code && appHint) {
+        appHint.textContent = 'Mobile app install link (same ref code): https://app.tanda.media/?ref=' + code;
+      } else if (appHint) {
+        appHint.textContent = '';
+      }
 
       // Update program expiry
       if (data.expiresAt) {
@@ -641,6 +679,13 @@
       // Load referrals and transactions
       loadReferrals();
       loadTransactions();
+    }
+
+    function escapeHtml(str) {
+      if (str == null || str === '') return '';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
     }
 
     async function loadReferrals() {
@@ -677,12 +722,14 @@
         const converted = ref.referred_user_converted ? 
           '<span style="color: #00f2ea;">✓ Converted</span>' : 
           '<span style="color: var(--text-secondary);">Pending</span>';
+        const unameRaw = ref.referred_user?.username || ref.referred_user_username || 'Unknown';
+        const uname = escapeHtml(unameRaw);
         
         return `
           <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-weight: 600; margin-bottom: 0.25rem;">
-                @${ref.referred_user?.username || ref.referred_user_username || 'Unknown'}
+                @${uname}
               </div>
               <div style="font-size: 0.85rem; color: var(--text-secondary);">
                 ${date.toLocaleDateString()} • ${converted}
@@ -738,9 +785,11 @@
           '<span style="color: #00f2ea;">Paid</span>' : 
           txn.status === 'approved' ?
           '<span style="color: #ffd700;">Pending</span>' :
-          '<span style="color: var(--text-secondary);">' + (txn.status || 'Pending') + '</span>';
+          '<span style="color: var(--text-secondary);">' + escapeHtml(String(txn.status || 'Pending')) + '</span>';
         
-        const revenueType = (txn.revenue_type || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const revenueTypeRaw = (txn.revenue_type || '').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        const revenueType = escapeHtml(revenueTypeRaw);
+        const ru = txn.revenue_user_username ? escapeHtml(txn.revenue_user_username) : '';
         
         return `
           <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
@@ -751,7 +800,7 @@
               <div style="font-size: 0.85rem; color: var(--text-secondary);">
                 ${date.toLocaleDateString()} • ${statusBadge}
               </div>
-              ${txn.revenue_user_username ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">From: @${txn.revenue_user_username}</div>` : ''}
+              ${ru ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">From: @${ru}</div>` : ''}
             </div>
             <div style="text-align: right;">
               <div style="font-weight: 600; color: var(--accent-color);">
@@ -812,11 +861,6 @@
 
     // Initialize dashboard
     loadDashboard();
-
-    // Auto-refresh every 30 seconds
-    setInterval(() => {
-      loadDashboard();
-    }, 30000);
   </script>
 </body>
 </html>

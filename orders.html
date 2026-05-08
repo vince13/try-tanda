@@ -164,11 +164,34 @@
     }
 
     .item-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .item-image-wrap {
+      flex-shrink: 0;
       width: 80px;
       height: 80px;
-      object-fit: cover;
       border-radius: 0.5rem;
-      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+    }
+
+    .item-image-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 1.5rem;
+    }
+
+    .item-image-wrap.item-image-wrap--empty .item-image-fallback {
+      display: flex;
     }
 
     .item-details {
@@ -261,10 +284,24 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        scroll-behavior: smooth;
       }
 
       .nav::-webkit-scrollbar {
         display: none;
+      }
+
+      .nav > * {
+        flex-shrink: 0;
+      }
+
+      .nav .user-menu-dropdown {
+        overflow: visible !important;
+        position: relative !important;
+      }
+
+      .nav .user-menu-wrapper {
+        overflow: visible !important;
       }
 
       .order-card {
@@ -286,9 +323,10 @@
         text-align: center;
       }
 
-      .item-image {
+      .item-image-wrap {
         width: 100%;
         max-width: 200px;
+        height: 200px;
         margin: 0 auto;
       }
 
@@ -317,7 +355,7 @@
     }
   </style>
 </head>
-<body>
+<body data-tanda-page-label="Your orders — status and receipts.">
   <div class="header">
     <h1 class="title">My Orders</h1>
     <div class="nav" id="authNav"></div>
@@ -338,9 +376,24 @@
         <i class="fas fa-shopping-bag"></i> Start Shopping
       </a>
     </div>
+
+    <div id="error-section" class="empty-state" style="display: none;">
+      <i class="fas fa-exclamation-circle" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.4;"></i>
+      <h2 style="margin-bottom: 0.75rem;">Could not load your orders</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.25rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+        Check your connection and try again. If you were logged out, sign in and return here.
+      </p>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <button type="button" class="btn" id="orders-retry-btn" style="border: none; cursor: pointer;">
+          <i class="fas fa-redo"></i> Try again
+        </button>
+        <a href="super-affiliate-login.html" class="btn btn-secondary" style="display: inline-block;">Login</a>
+      </div>
+    </div>
   </div>
 
-  <script src="js/super-affiliate-api.js"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     // Check authentication
     if (!SuperAffiliateAPI.isAuthenticated()) {
@@ -350,7 +403,52 @@
     // Render auth nav
     SuperAffiliateAPI.renderAuthNav('authNav');
 
+    function escapeAttr(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /** Match API `ProductSerializer.images` (and legacy fields). */
+    function getOrderLineImageUrl(product) {
+      if (!product || typeof product !== 'object') return '';
+      const imgs = product.images;
+      if (Array.isArray(imgs) && imgs.length) {
+        const primary = imgs.find((i) => i && i.is_primary) || imgs[0];
+        if (primary && typeof primary === 'object') {
+          const u = primary.image || primary.url || primary.file;
+          if (u) return String(u);
+        }
+      }
+      if (product.image) return String(product.image);
+      if (product.thumbnail) return String(product.thumbnail);
+      return '';
+    }
+
+    function orderItemThumbHtml(product) {
+      const url = getOrderLineImageUrl(product);
+      const name = product && product.name ? String(product.name) : 'Product';
+      const alt = escapeAttr(name);
+      if (!url) {
+        return `<div class="item-image-wrap item-image-wrap--empty" aria-hidden="true">
+          <div class="item-image-fallback" style="display:flex;"><i class="fas fa-image"></i></div>
+        </div>`;
+      }
+      return `<div class="item-image-wrap">
+        <img src="${escapeAttr(url)}" alt="${alt}" class="item-image" loading="lazy"
+          onerror="this.style.display='none'; const f=this.parentElement.querySelector('.item-image-fallback'); if(f) f.style.display='flex';">
+        <div class="item-image-fallback"><i class="fas fa-image"></i></div>
+      </div>`;
+    }
+
     async function loadOrders() {
+      document.getElementById('error-section').style.display = 'none';
+      document.getElementById('empty-section').style.display = 'none';
+      document.getElementById('orders-section').style.display = 'none';
+      document.getElementById('orders-section').innerHTML = '';
+      document.getElementById('loading-section').style.display = 'block';
       try {
         const response = await SuperAffiliateAPI.apiRequest('/commerce/orders/');
         const orders = response.results || response.orders || response;
@@ -358,18 +456,28 @@
       } catch (error) {
         console.error('Error loading orders:', error);
         document.getElementById('loading-section').style.display = 'none';
-        document.getElementById('empty-section').style.display = 'block';
+        document.getElementById('error-section').style.display = 'block';
       }
+    }
+
+    function formatOrderListId(id) {
+      if (id == null || id === '') return 'N/A';
+      const s = String(id).trim();
+      if (!s) return 'N/A';
+      return s.length > 12 ? `${s.slice(0, 12)}…` : s;
     }
 
     function displayOrders(orders) {
       document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('error-section').style.display = 'none';
 
       if (!orders || orders.length === 0) {
         document.getElementById('empty-section').style.display = 'block';
+        document.getElementById('orders-section').style.display = 'none';
         return;
       }
 
+      document.getElementById('empty-section').style.display = 'none';
       document.getElementById('orders-section').style.display = 'block';
 
       const formatCurrency = (amount) => {
@@ -407,7 +515,7 @@
           <div class="order-card">
             <div class="order-header">
               <div>
-                <div class="order-id">Order #${order.id?.substring(0, 8) || 'N/A'}</div>
+                <div class="order-id">Order #${formatOrderListId(order.id)}</div>
                 <div style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">
                   ${formatDate(order.created_at || order.date_created)}
                   ${hasDigitalProducts ? `
@@ -426,10 +534,7 @@
             <div class="order-items">
               ${items.map(item => `
                 <div class="order-item">
-                  <img src="${item.product?.image || item.product?.thumbnail || ''}" 
-                       alt="${item.product?.name}" 
-                       class="item-image"
-                       onerror="this.style.display='none';">
+                  ${orderItemThumbHtml(item.product)}
                   <div class="item-details">
                     <div class="item-name">${item.product?.name || 'Product'}</div>
                     <div class="item-price">${formatCurrency(item.product?.price || 0)} x ${item.quantity}</div>
@@ -467,7 +572,7 @@
       }
 
       try {
-        const callbackUrl = `${window.location.origin}/payment-callback.html`;
+        const callbackUrl = SuperAffiliateAPI.getPaymentCallbackUrl();
         const response = await SuperAffiliateAPI.apiRequest(`/commerce/orders/${orderId}/complete-payment/`, {
           method: 'POST',
           body: JSON.stringify({
@@ -517,6 +622,11 @@
     }
 
     // Initialize
+    document.getElementById('orders-retry-btn').addEventListener('click', () => {
+      document.getElementById('loading-section').style.display = 'block';
+      document.getElementById('error-section').style.display = 'none';
+      loadOrders();
+    });
     loadOrders();
   </script>
 </body>
