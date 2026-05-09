@@ -322,7 +322,7 @@
       <h2>Support conversations</h2>
       <p class="muted" style="margin-bottom: 1rem;">
         Open a ticket, switch threads from your history, or open a shared link (<code style="font-size:0.85em;">?conversation=</code>).
-        Optional <strong>attachment</strong> on <code style="font-size:0.85em;">support/send/</code> — image, PDF, video, or other file (multipart field <code style="font-size:0.85em;">attachment</code>; max 25MB). Plain text still uses JSON or multipart with caption only.
+        Optional <strong>attachment</strong> on <code style="font-size:0.85em;">support/send/</code> – image, PDF, video, or other file (multipart field <code style="font-size:0.85em;">attachment</code>; max 25MB). Plain text still uses JSON or multipart with caption only.
       </p>
 
       <div class="support-split">
@@ -366,7 +366,7 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/super-affiliate-api.js?v=31"></script>
   <script>
     if (!SuperAffiliateAPI.isAuthenticated()) {
       window.location.href = 'super-affiliate-login.html?redirect=' + encodeURIComponent(window.location.href);
@@ -545,7 +545,7 @@
       const messages = payload.messages || [];
       wrap.innerHTML = messages
         .map((m) => {
-          const who = m.sender_name || m.sender || '—';
+          const who = m.sender_name || m.sender || '–';
           const senderRaw = m.sender != null ? String(m.sender) : '';
           const isMine = messageSenderIsMe(senderRaw);
           const src = m.source || 'user';
@@ -661,7 +661,7 @@
       const cid = currentConversationId();
       const line = document.getElementById('thread-id-line');
       if (!cid) {
-        line.textContent = 'No conversation selected — pick a ticket or tap Start / resume.';
+        line.textContent = 'No conversation selected – pick a ticket or tap Start / resume.';
         document.getElementById('thread-wrap').style.display = 'none';
         document.getElementById('thread-wrap').innerHTML = '';
         stopPoll();
@@ -675,7 +675,7 @@
         if (data.conversation) {
           const c = data.conversation;
           line.innerHTML = 'Conversation #' + esc(cid) +
-            ' · status: <span class="badge">' + esc(c.status || '—') + '</span>' +
+            ' · status: <span class="badge">' + esc(c.status || '–') + '</span>' +
             (c.escalated_to_human ? ' · escalated' : '');
         }
         renderMessages(data);
@@ -716,7 +716,7 @@
         }
         wrap.innerHTML = list.map((c) => {
           const id = c.id != null ? String(c.id) : '';
-          const preview = (c.last_message && c.last_message.content) ? String(c.last_message.content) : '—';
+          const preview = (c.last_message && c.last_message.content) ? String(c.last_message.content) : '–';
           const when = fmtWhen(c.last_activity || c.created_at);
           const statusEsc = esc(c.status || '');
           const escFlag = c.escalated_to_human ? '<span class="badge">escalated</span>' : '';

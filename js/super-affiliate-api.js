@@ -2601,9 +2601,13 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         overflow: visible !important;
       }
       
-      /* When dropdown is portaled to body, ensure it's on top */
+      /* When dropdown is portaled to body, ensure it's on top and scrollable (long menus on iPhone) */
       body > .user-menu {
         z-index: 99999 !important;
+        max-height: min(75vh, calc(100dvh - 48px)) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
       }
       
       .user-menu-dropdown .user-menu {
@@ -2617,6 +2621,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         -webkit-backdrop-filter: none !important;
         min-width: 220px !important;
         max-width: 280px !important;
+        max-height: min(75vh, calc(100dvh - 48px)) !important;
         opacity: 0 !important;
         visibility: hidden !important;
         transform: none !important;
@@ -2628,7 +2633,9 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         list-style: none !important;
         display: block !important;
         pointer-events: none !important;
-        overflow: visible !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
         text-align: left !important;
       }
       
@@ -3074,7 +3081,7 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
       e.preventDefault();
       const isActive = userMenu.classList.contains('active');
       
-      if (isActive) {
+        if (isActive) {
         // Close instantly (disable transition for this close)
         userMenu.classList.add('closing');
         userMenu.classList.remove('active');
@@ -3084,6 +3091,9 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         userMenu.style.visibility = 'hidden';
         userMenu.style.transform = 'none';
         userMenu.style.pointerEvents = 'none';
+        userMenu.style.maxHeight = '';
+        userMenu.style.overflowY = '';
+        userMenu.style.overflowX = '';
         // Reset positioning
         userMenu.style.position = '';
         userMenu.style.top = '';
@@ -3229,6 +3239,11 @@ SuperAffiliateAPI.renderAuthNav = function(containerId) {
         // Ensure border and rounded edges match index.html
         userMenu.style.border = '1px solid rgba(255, 255, 255, 0.1)';
         userMenu.style.borderRadius = '1rem';
+        const menuMaxH = Math.max(160, Math.min(viewportHeight * 0.75, viewportHeight - top - padding));
+        userMenu.style.maxHeight = menuMaxH + 'px';
+        userMenu.style.overflowY = 'auto';
+        userMenu.style.overflowX = 'hidden';
+        userMenu.style.setProperty('-webkit-overflow-scrolling', 'touch');
         
         // Apply hover styles to all menu items
         const menuItems = userMenu.querySelectorAll('.user-menu-item');

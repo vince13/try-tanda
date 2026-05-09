@@ -185,7 +185,7 @@
       padding: var(--feed-topbar-stack-height, 64px) 12px calc(14px + 60px); /* Extra bottom padding for browser bar */
     }
 
-    /* Desktop: mimic TikTok web — phone stage centered with side actions */
+    /* Desktop: mimic TikTok web – phone stage centered with side actions */
     .stage {
       width: min(520px, 92vw);
       height: min(88vh, 920px);
@@ -1359,7 +1359,7 @@
   </style>
 </head>
 
-<body data-tanda-page-label="Video feed — discover and shop from clips.">
+<body data-tanda-page-label="Video feed – discover and shop from clips.">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand">
@@ -1413,12 +1413,18 @@
   </div>
 
   <script src="js/error-handler.js"></script>
-  <script src="js/super-affiliate-api.js?v=30"></script>
-  <script src="js/tanda-shopping-assistant.js?v=4"></script>
+  <script src="js/super-affiliate-api.js?v=31"></script>
   <script>
     const feedEl = document.getElementById('feed');
     const statusEl = document.getElementById('status');
     const loginGateEl = document.getElementById('loginGate');
+
+    /** Set after first tap/click so iOS/Safari allow unmuted playback on scroll-to-play. */
+    (function initFeedAudioGestureUnlock() {
+      const unlock = () => { window.__tandaFeedAudioUnlocked = true; };
+      document.addEventListener('touchstart', unlock, { once: true, capture: true, passive: true });
+      document.addEventListener('click', unlock, { once: true, capture: true });
+    })();
 
     /** Match Flutter `VideoService._defaultPageSize` (30). */
     const FEED_PAGE_SIZE = 30;
@@ -1579,7 +1585,7 @@
 
       // Use autoplay with inline playback to keep the "scrolling feed" feel.
       // We only actively play the video that's currently in view (via IntersectionObserver).
-      // Start muted to allow autoplay, then unmute after first user interaction.
+      // Video starts muted until the first user gesture site-wide; then scroll-to-play uses sound.
       wrapper.innerHTML = `
         <div class="stage">
           <video class="video"
@@ -2081,22 +2087,28 @@
 
       activeVideoEl = videoEl;
       
-      // For autoplay: start muted (required by browser policies), then unmute after user interaction
-      // Set volume to 1.0, but keep muted initially to allow autoplay
+      // Autoplay: browsers block unmuted auto-play until there has been a user gesture.
+      // After the first tap/click anywhere, we play visible videos with sound.
       videoEl.volume = 1.0;
-      // Keep muted for autoplay - will be unmuted on first user interaction
-      // Check if this video has been interacted with before (stored in dataset)
-      if (!videoEl.dataset.hasUnmuted) {
-        videoEl.muted = true; // Start muted for autoplay
-      } else {
-        // If user has previously unmuted this video, keep it unmuted
-        videoEl.muted = false;
-      }
+      const allowSound =
+        window.__tandaFeedAudioUnlocked === true || videoEl.dataset.hasUnmuted === 'true';
+      videoEl.muted = !allowSound;
       
       try {
         await videoEl.play();
         console.log('Video playing (autoplay):', cardEl.dataset.itemId);
       } catch (error) {
+        if (error.name === 'NotAllowedError' && allowSound && !videoEl.muted) {
+          videoEl.muted = true;
+          try {
+            await videoEl.play();
+          } catch (e2) {
+            if (e2.name !== 'AbortError') {
+              console.warn('Video muted fallback play failed:', e2);
+            }
+          }
+          return;
+        }
         // Handle iOS-specific video errors
         if (error.name === 'NotAllowedError') {
           // Autoplay blocked - user interaction required

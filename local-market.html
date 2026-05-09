@@ -45,7 +45,7 @@
       min-width: 0;
     }
 
-    /* Same nav strip pattern as products.html — horizontal scroll when links overflow */
+    /* Same nav strip pattern as products.html – horizontal scroll when links overflow */
     .nav {
       display: flex;
       align-items: center;
@@ -293,7 +293,7 @@
     </div>
   </div>
 
-  <script src="js/super-affiliate-api.js?v=30"></script>
+  <script src="js/super-affiliate-api.js?v=31"></script>
   <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     SuperAffiliateAPI.renderAuthNav('authNav');
@@ -320,7 +320,7 @@
     }
 
     function priceStr(p) {
-      if (p == null) return '—';
+      if (p == null) return '–';
       const n = Number(p);
       if (Number.isFinite(n)) return '₦' + Math.round(n).toLocaleString();
       return esc(String(p));
