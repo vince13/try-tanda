@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
   <meta name="theme-color" content="#030712">
-  <title>Instant checkout — Tanda</title>
+  <title>Instant checkout – Tanda</title>
   <link rel="icon" type="image/png" sizes="32x32" href="Tanda logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
     .instant-status.err { color: #ff9b9b; }
   </style>
 </head>
-<body class="instant-page" data-tanda-page-label="Instant — vertical feed; open watch for checkout.">
+<body class="instant-page" data-tanda-page-label="Instant – vertical feed; open watch for checkout.">
   <div class="instant-chrome">
     <a href="feed.html" id="backInstant" title="Back" aria-label="Back to previous page"><i class="fas fa-arrow-left"></i></a>
     <button type="button" id="btnRefresh" title="Reload feed"><i class="fas fa-rotate"></i></button>
@@ -236,7 +236,7 @@
 
   <main class="instant-reel" id="reel" aria-label="Instant vertical feed"></main>
 
-  <script src="js/super-affiliate-api.js?v=31"></script>
+  <script src="js/super-affiliate-api.js?v=30"></script>
   <script src="js/tanda-shopping-assistant.js?v=4"></script>
   <script>
     SuperAffiliateAPI.renderAuthNav('authNav');
@@ -392,7 +392,7 @@
       if (!url) return;
       const title = btn.getAttribute('data-share-title') || 'Tanda instant checkout';
       const price = btn.getAttribute('data-share-price') || '';
-      const text = price ? `${title} — ${price}` : title;
+      const text = price ? `${title} – ${price}` : title;
       if (navigator.share) {
         try {
           await navigator.share({ title, text, url });

@@ -185,7 +185,7 @@ class SuperAffiliateAPI {
   }
 
   /**
-   * Append a short-lived auth handoff to an instant watch URL (fragment only — not sent to server).
+   * Append a short-lived auth handoff to an instant watch URL (fragment only – not sent to server).
    * The watch page consumes `_tt`, stores `tanda_auth_token`, and strips the hash.
    * Use when opening `/w/` or `/i/` from Tanda web so checkout can load email + saved address.
    */
@@ -332,7 +332,7 @@ class SuperAffiliateAPI {
     });
   }
 
-  /** Approved village agent only — POST `/commerce/village/batches/`. */
+  /** Approved village agent only – POST `/commerce/village/batches/`. */
   static createVillageBatch(payload) {
     const body = payload && typeof payload === 'object' ? payload : {};
     return this.apiRequest('/commerce/village/batches/', {
@@ -416,7 +416,7 @@ class SuperAffiliateAPI {
     });
   }
 
-  /** §A2 Org logistics (pilot) — paths align with `DeliveryLogisticsService` (Flutter). */
+  /** §A2 Org logistics (pilot) – paths align with `DeliveryLogisticsService` (Flutter). */
   static getCommerceDeliveryOrgsMine() {
     return this.apiRequest('/commerce/delivery/orgs/mine/');
   }
@@ -571,7 +571,7 @@ class SuperAffiliateAPI {
     return this.apiRequest(`/chat/support/inbox/?scope=${s}`);
   }
 
-  /** §B2 Staff inbox — claim/release ticket (`action`: `assign` | `unassign`). */
+  /** §B2 Staff inbox – claim/release ticket (`action`: `assign` | `unassign`). */
   static postSupportAssign(conversationId, action = 'assign') {
     return this.apiRequest('/chat/support/assign/', {
       method: 'POST',
@@ -1588,7 +1588,7 @@ class SuperAffiliateAPI {
     return this.apiRequest('/instant/seller/watch-links/', { method: 'GET' });
   }
 
-  /** Seller: create link — multipart (video_id, uploaded_video, image, video_url, etc.). */
+  /** Seller: create link – multipart (video_id, uploaded_video, image, video_url, etc.). */
   static createSellerInstantWatchLink(formData, options = {}) {
     return this.multipartRequest('/instant/seller/watch-links/', formData, {
       method: 'POST',
@@ -1642,7 +1642,7 @@ class SuperAffiliateAPI {
     return await this.apiRequest(`/videos/feed/?${qp}`, { method: 'GET' });
   }
 
-  /** Authenticated — same endpoint as mobile trending (`VideoService` / `/videos/trending/`). */
+  /** Authenticated – same endpoint as mobile trending (`VideoService` / `/videos/trending/`). */
   static async getTrendingVideos({ page = 1, perPage = 30 } = {}) {
     const qp = new URLSearchParams({
       page: String(page),
@@ -2162,7 +2162,7 @@ SuperAffiliateAPI.applyActiveNavState = function() {
  * - If logged out: Login / Sign up
  * - If logged in: strip actions + account menu (desktop also mounts the left sidebar).
  *
- * Optional on `#authNav`: `data-nav-mode` — `instant_shop` | `immersive_shop` | `local_market` | `village_hub`
+ * Optional on `#authNav`: `data-nav-mode` – `instant_shop` | `immersive_shop` | `local_market` | `village_hub`
  * (underscores; hyphens normalized). Shapes the top strip for mobile commerce chrome.
  *
  * Usage: <div id="authNav" data-nav-mode="instant_shop"></div> then SuperAffiliateAPI.renderAuthNav('authNav')
