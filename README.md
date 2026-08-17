@@ -185,7 +185,7 @@ For technical support or customization requests:
 
 ## 📄 License
 
-This project is proprietary to Tanda. All rights reserved.
+This project is proprietary to Avandis Technologies Inc. Copyright 2026 Avandis Technologies Inc. All rights reserved.
 
 ---
 
