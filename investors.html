@@ -471,7 +471,7 @@
           </picture>
           <span class="logo-text">Tanda</span>
         </a>
-        <div id="authNav" class="tanda-nav-container"></div>
+        <!-- <div id="authNav" class="tanda-nav-container"></div> -->
       </nav>
     </div>
   </header>
@@ -771,12 +771,12 @@
       }
 
       if (typeof SuperAffiliateAPI !== 'undefined') {
-        SuperAffiliateAPI.renderAuthNav('authNav');
+        // SuperAffiliateAPI.renderAuthNav('authNav');
       } else {
         // Fallback if API not loaded
         setTimeout(() => {
           if (typeof SuperAffiliateAPI !== 'undefined') {
-            SuperAffiliateAPI.renderAuthNav('authNav');
+            // SuperAffiliateAPI.renderAuthNav('authNav');
           }
         }, 100);
       }
