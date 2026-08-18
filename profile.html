@@ -222,6 +222,44 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
+    .card-danger {
+      border-color: rgba(255, 77, 109, 0.45);
+      background: rgba(255, 77, 109, 0.08);
+    }
+
+    .card-danger h2 {
+      color: #ff6b8a;
+    }
+
+    .btn-danger {
+      background: #ff4d6d;
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      box-shadow: 0 10px 30px rgba(255, 77, 109, 0.35);
+    }
+
+    .danger-note {
+      color: #ffb3c1;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .checkbox-row input {
+      width: auto;
+      margin-top: 0.25rem;
+    }
+
     .avatar-section {
       display: flex;
       align-items: center;
@@ -562,13 +600,13 @@
       </div>
 
       <div class="tabs">
-        <button class="tab active" onclick="switchTab('profile')">
+        <button class="tab active" onclick="switchTab('profile', this)">
           <i class="fas fa-user"></i> Profile
         </button>
-        <button class="tab" onclick="switchTab('settings')">
+        <button class="tab" onclick="switchTab('settings', this)">
           <i class="fas fa-cog"></i> Settings
         </button>
-        <button class="tab" onclick="switchTab('platforms')">
+        <button class="tab" onclick="switchTab('platforms', this)">
           <i class="fas fa-link"></i> Platforms
         </button>
       </div>
@@ -747,6 +785,31 @@
 
             <button type="submit" class="btn">
               <i class="fas fa-key"></i> Change Password
+            </button>
+          </form>
+        </div>
+
+        <div class="card card-danger" id="delete-account" style="margin-top: 1.5rem;">
+          <h2><i class="fas fa-trash-alt" style="margin-right: 0.5rem;"></i> Delete Account</h2>
+          <p class="danger-note">
+            Permanently delete your Tanda account and associated personal data. This action cannot be undone.
+            <a href="delete-account.html" style="color: #ffb3c1;">Learn more about account deletion</a>.
+          </p>
+          <form id="delete-account-form" onsubmit="handleDeleteAccount(event)">
+            <div class="form-group">
+              <label for="delete_confirmation">Type <strong>delete my account</strong> to confirm</label>
+              <input type="text" id="delete_confirmation" name="delete_confirmation" autocomplete="off" required placeholder="delete my account">
+            </div>
+            <div class="form-group">
+              <label for="delete_password">Current password</label>
+              <input type="password" id="delete_password" name="delete_password" autocomplete="current-password" required>
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="delete_acknowledge" required>
+              <span>I understand this permanently deletes my Tanda account and associated data.</span>
+            </label>
+            <button type="submit" class="btn btn-danger" id="delete-account-btn">
+              <i class="fas fa-trash-alt"></i> Delete My Account
             </button>
           </form>
         </div>
@@ -1174,6 +1237,49 @@
       }
     }
 
+    async function handleDeleteAccount(event) {
+      event.preventDefault();
+
+      const confirmationText = document.getElementById('delete_confirmation').value.trim();
+      const password = document.getElementById('delete_password').value;
+      const submitBtn = document.getElementById('delete-account-btn');
+
+      if (confirmationText.toLowerCase() !== 'delete my account') {
+        showError('Please type "delete my account" exactly.');
+        return;
+      }
+
+      if (!window.confirm('This will permanently delete your Tanda account. Continue?')) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting…';
+
+      try {
+        const response = await SuperAffiliateAPI.apiRequest('/users/delete-account/', {
+          method: 'POST',
+          body: JSON.stringify({
+            confirmation_text: confirmationText,
+            password: password,
+          }),
+        });
+
+        if (response && response.success) {
+          showSuccess(response.message || 'Your account has been deleted.');
+          setTimeout(function () {
+            SuperAffiliateAPI.logout();
+          }, 1500);
+        } else {
+          throw new Error((response && (response.error || response.message)) || 'Failed to delete account.');
+        }
+      } catch (error) {
+        showError(error.message || 'Failed to delete account. Please try again or email privacy@tanda.media.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete My Account';
+      }
+    }
+
     async function handleAvatarUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1241,14 +1347,22 @@
       }
     }
 
-    function switchTab(tabName) {
-      // Update tab buttons
+    function switchTab(tabName, clickedButton) {
       document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      event.target.classList.add('active');
+      const tabButton = clickedButton || document.querySelector(`.tab[onclick*="switchTab('${tabName}')"]`);
+      if (tabButton) tabButton.classList.add('active');
 
-      // Update tab content
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    function focusDeleteAccountSection() {
+      if (window.location.hash !== '#delete-account') return;
+      switchTab('settings');
+      setTimeout(function () {
+        const section = document.getElementById('delete-account');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
     }
 
     function showError(message) {
@@ -1286,7 +1400,11 @@
     });
 
     // Initialize profile after service worker is registered
-    loadProfile();
+    loadProfile()
+      .then(function () { focusDeleteAccountSection(); })
+      .catch(function () { focusDeleteAccountSection(); });
+
+    window.addEventListener('hashchange', focusDeleteAccountSection);
 
     // Email verification event listeners
     document.addEventListener('DOMContentLoaded', () => {
